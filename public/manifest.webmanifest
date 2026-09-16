@@ -1,0 +1,31 @@
+{
+  "name": "Mefford Project Command",
+  "short_name": "Command Center",
+  "description": "Mefford Contracting project, field and company operations.",
+  "start_url": "/?source=installed",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#f3f2ef",
+  "theme_color": "#111111",
+  "categories": ["business", "productivity"],
+  "icons": [
+    {
+      "src": "/mefford-logo.png",
+      "sizes": "any",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/mefford-logo.png",
+      "sizes": "any",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    { "name": "My Work", "short_name": "My Work", "url": "/?target=My%20Work" },
+    { "name": "Daily Log", "short_name": "Daily Log", "url": "/?target=Daily%20Logs&quick=1" },
+    { "name": "Project", "short_name": "Project", "url": "/?target=Project%20Overview" }
+  ]
+}

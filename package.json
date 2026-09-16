@@ -1,0 +1,62 @@
+{
+  "name": "mefford-project-command",
+  "version": "0.1.0",
+  "private": true,
+  "engines": {
+    "node": ">=22.13.0"
+  },
+  "scripts": {
+    "install:ci": "bash scripts/install-ci.sh",
+    "dev": "WRANGLER_LOG_PATH=.wrangler/wrangler.log vite",
+    "build": "bash scripts/build-verified.sh",
+    "start": "WRANGLER_LOG_PATH=.wrangler/wrangler.log vinext start",
+    "test": "npm run build",
+    "test:controls": "node --experimental-strip-types --import ./tests/support/f06-cloudflare-loader.mjs --experimental-test-coverage --test-coverage-include=lib/accounting-ledger.ts --test-coverage-include=lib/project-health-core.js --test-coverage-include=lib/scheduler-reliability.js --test-coverage-include=lib/system-health-evidence.js --test-coverage-lines=85 --test-coverage-branches=70 --test-coverage-functions=85 --test tests/*.test.mjs",
+    "test:mutation": "node scripts/f06-mutation-gate.mjs",
+    "test:spreadsheet-security": "node scripts/verify-spreadsheet-security.mjs && node --experimental-strip-types --import ./tests/support/f06-cloudflare-loader.mjs --test tests/spreadsheet-security.test.mjs",
+    "typecheck": "bash scripts/sites-env.sh -- ./node_modules/.bin/tsc --noEmit --pretty false",
+    "validate:artifact": "bash scripts/validate-artifact.sh",
+    "lint": "bash scripts/sites-env.sh -- eslint . --ignore-pattern dist --ignore-pattern .next",
+    "db:generate": "bash scripts/sites-env.sh -- drizzle-kit generate"
+  },
+  "dependencies": {
+    "@pdf-lib/fontkit": "^1.1.1",
+    "@tesseract.js-data/eng": "^1.0.0",
+    "drizzle-orm": "0.45.2",
+    "fflate": "0.8.2",
+    "next": "16.2.11",
+    "pdf-lib": "^1.17.1",
+    "pdfjs-dist": "6.2.108",
+    "react": "19.2.8",
+    "react-dom": "19.2.8",
+    "tesseract.js": "^6.0.1",
+    "xlsx": "npm:@e965/xlsx@0.20.3"
+  },
+  "devDependencies": {
+    "@cloudflare/vite-plugin": "1.52.1",
+    "@cloudflare/workers-types": "^5.20260823.1",
+    "@tailwindcss/postcss": "4.2.1",
+    "@types/node": "22.19.19",
+    "@types/react": "19.2.14",
+    "@types/react-dom": "19.2.3",
+    "@vitejs/plugin-react": "6.0.5",
+    "@vitejs/plugin-rsc": "0.5.34",
+    "drizzle-kit": "0.31.10",
+    "eslint": "9.39.4",
+    "eslint-config-next": "16.2.11",
+    "fake-indexeddb": "6.2.4",
+    "react-server-dom-webpack": "19.2.8",
+    "tailwindcss": "4.2.1",
+    "typescript": "5.9.3",
+    "vinext": "0.0.50",
+    "vite": "8.2.1",
+    "wrangler": "4.123.0"
+  },
+  "overrides": {
+    "nanoid": "3.3.18",
+    "postcss": "8.5.26",
+    "sharp": "0.35.0"
+  },
+  "type": "module",
+  "displayName": "Command Center"
+}

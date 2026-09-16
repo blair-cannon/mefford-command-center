@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>tm_base</title>
+  <style>
+    html {
+      color: #1a1a1a;
+      background-color: #fdfdfd;
+    }
+    body {
+      margin: 0 auto;
+      max-width: 36em;
+      padding-left: 50px;
+      padding-right: 50px;
+      padding-top: 50px;
+      padding-bottom: 50px;
+      hyphens: auto;
+      overflow-wrap: break-word;
+      text-rendering: optimizeLegibility;
+      font-kerning: normal;
+    }
+    @media (max-width: 600px) {
+      body {
+        font-size: 0.9em;
+        padding: 12px;
+      }
+      h1 {
+        font-size: 1.8em;
+      }
+    }
+    @media print {
+      html {
+        background-color: white;
+      }
+      body {
+        background-color: transparent;
+        color: black;
+        font-size: 12pt;
+      }
+      p, h2, h3 {
+        orphans: 3;
+        widows: 3;
+      }
+      h2, h3, h4 {
+        page-break-after: avoid;
+      }
+    }
+    p {
+      margin: 1em 0;
+    }
+    a {
+      color: #1a1a1a;
+    }
+    a:visited {
+      color: #1a1a1a;
+    }
+    img {
+      max-width: 100%;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      margin-top: 1.4em;
+    }
+    h5, h6 {
+      font-size: 1em;
+      font-style: italic;
+    }
+    h6 {
+      font-weight: normal;
+    }
+    ol, ul {
+      padding-left: 1.7em;
+      margin-top: 1em;
+    }
+    li > ol, li > ul {
+      margin-top: 0;
+    }
+    blockquote {
+      margin: 1em 0 1em 1.7em;
+      padding-left: 1em;
+      border-left: 2px solid #e6e6e6;
+      color: #606060;
+    }
+    code {
+      font-family: Menlo, Monaco, Consolas, 'Lucida Console', monospace;
+      font-size: 85%;
+      margin: 0;
+      hyphens: manual;
+    }
+    pre {
+      margin: 1em 0;
+      overflow: auto;
+    }
+    pre code {
+      padding: 0;
+      overflow: visible;
+      overflow-wrap: normal;
+    }
+    .sourceCode {
+     background-color: transparent;
+     overflow: visible;
+    }
+    hr {
+      background-color: #1a1a1a;
+      border: none;
+      height: 1px;
+      margin: 1em 0;
+    }
+    table {
+      margin: 1em 0;
+      border-collapse: collapse;
+      width: 100%;
+      overflow-x: auto;
+      display: block;
+      font-variant-numeric: lining-nums tabular-nums;
+    }
+    table caption {
+      margin-bottom: 0.75em;
+    }
+    tbody {
+      margin-top: 0.5em;
+      border-top: 1px solid #1a1a1a;
+      border-bottom: 1px solid #1a1a1a;
+    }
+    th {
+      border-top: 1px solid #1a1a1a;
+      padding: 0.25em 0.5em 0.25em 0.5em;
+    }
+    td {
+      padding: 0.125em 0.5em 0.25em 0.5em;
+    }
+    header {
+      margin-bottom: 4em;
+      text-align: center;
+    }
+    #TOC li {
+      list-style: none;
+    }
+    #TOC ul {
+      padding-left: 1.3em;
+    }
+    #TOC > ul {
+      padding-left: 0;
+    }
+    #TOC a:not(:hover) {
+      text-decoration: none;
+    }
+    code{white-space: pre-wrap;}
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+    ul.task-list[class]{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
+  </style>
+</head>
+<body>
+<p><strong>MEFFORD CONTRACTING, LLC</strong></p>
+<p><strong>TIME &amp; MATERIALS OWNER CONTRACT</strong></p>
+<p>Owner-Contractor Agreement | Design Services Included or Excluded by Project Election</p>
+<table>
+<colgroup>
+<col style="width: 100%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th><p><strong>CONTROL STATUS</strong></p>
+<p>This is a counsel-review master developed from New Form Owner Contract 2.9.26. It is not ready for signature until Mefford's construction counsel approves the contract type, project-state addendum, insurance requirements, design-services election, and project-specific business terms.</p></th>
+</tr>
+</thead>
+<tbody>
+</tbody>
+</table>
+<table>
+<colgroup>
+<col style="width: 28%" />
+<col style="width: 71%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th><strong>PROJECT TERM</strong></th>
+<th><strong>CONTROLLED VALUE</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>Owner legal name</strong></td>
+<td>{{OWNER_LEGAL_NAME}}</td>
+</tr>
+<tr class="even">
+<td><strong>Owner entity / state</strong></td>
+<td>{{OWNER_ENTITY_AND_STATE}}</td>
+</tr>
+<tr class="odd">
+<td><strong>Project name / number</strong></td>
+<td>{{PROJECT_NAME}} | {{PROJECT_NUMBER}}</td>
+</tr>
+<tr class="even">
+<td><strong>Project site</strong></td>
+<td>{{PROJECT_SITE_ADDRESS}}</td>
+</tr>
+<tr class="odd">
+<td><strong>Project state</strong></td>
+<td>{{PROJECT_STATE}}</td>
+</tr>
+<tr class="even">
+<td><strong>Effective date</strong></td>
+<td>{{EFFECTIVE_DATE}}</td>
+</tr>
+<tr class="odd">
+<td><strong>Contract type</strong></td>
+<td>Cost of the Work plus Contractor's Fee</td>
+</tr>
+<tr class="even">
+<td><strong>Design services election</strong></td>
+<td>{{DESIGN_SERVICES_INCLUDED_OR_EXCLUDED}} [Enter INCLUDED or EXCLUDED]</td>
+</tr>
+<tr class="odd">
+<td><strong>Owner's design professional, if excluded</strong></td>
+<td>{{OWNER_DESIGN_PROFESSIONAL_OR_NA}}</td>
+</tr>
+<tr class="even">
+<td><strong>Mefford-retained licensed design professional, if included</strong></td>
+<td>{{CONTRACTOR_DESIGN_PROFESSIONAL_OR_TBD}}</td>
+</tr>
+<tr class="odd">
+<td><strong>Substantial / final completion</strong></td>
+<td>{{SUBSTANTIAL_COMPLETION_DATE}} | {{FINAL_COMPLETION_DATE}}</td>
+</tr>
+<tr class="even">
+<td><strong>Payment / retainage</strong></td>
+<td>{{PAYMENT_TERMS}} | {{RETAINAGE_TERMS}}</td>
+</tr>
+<tr class="odd">
+<td><strong>State addendum</strong></td>
+<td>{{STATE_ADDENDUM_ID_AND_VERSION}}</td>
+</tr>
+</tbody>
+</table>
+<p><em>The Project Terms, this Agreement, the incorporated exhibits, approved Change Orders, and the identified state addendum constitute the Contract Documents. Blank fields and unresolved selections must be completed before execution.</em></p>
+<h1 id="agreement-and-recitals">AGREEMENT AND RECITALS</h1>
+<p>This T&amp;M Owner Contract (the "Agreement") is entered as of {{EFFECTIVE_DATE}} by and between {{OWNER_LEGAL_NAME}} ("Owner") and Mefford Contracting, LLC, a Kentucky limited liability company, 1585 Mercer Road, Suite 110, Lexington, Kentucky 40511 ("Contractor").</p>
+<p>Owner desires to develop the Project identified in the Project Terms. Contractor is willing to furnish the construction and, only when expressly elected, arrange the design services described in the Contract Documents. The parties therefore agree as follows.</p>
+<h1 id="contract-documents-and-order-of-precedence">1. CONTRACT DOCUMENTS AND ORDER OF PRECEDENCE</h1>
+<p><strong>1.1 Contract Documents.</strong> The Contract Documents consist of this Agreement; the Project Terms; Exhibits A through D; the approved drawings, specifications, addenda, allowances, alternates, and schedules identified in Exhibit C; approved Change Orders and Construction Change Directives; and any lawfully licensed supplementary general conditions expressly identified in Exhibit C.</p>
+<p><strong>1.2 Order of Precedence.</strong> In case of conflict, a later signed Change Order controls, followed by the state addendum, this Agreement, the Project Terms, the exhibits, supplementary conditions, specifications, and drawings. A more specific requirement controls over a general requirement unless the documents expressly state otherwise.</p>
+<p><strong>1.3 Entire Scope.</strong> Contractor is not responsible for work, design, fees, permits, testing, utilities, or services not reasonably inferable from the Contract Documents. Exclusions and Owner-provided items must be listed in Exhibit C.</p>
+<h1 id="scope-of-work-and-design-services-election">2. SCOPE OF WORK AND DESIGN SERVICES ELECTION</h1>
+<p><strong>2.1 Construction Work.</strong> Contractor shall furnish and coordinate the construction work described in Exhibit C, subject to the Contract Documents, approved changes, applicable law, and the agreed schedule.</p>
+<p><strong>2.2 Controlling Election.</strong> The Design Services Election in the Project Terms is controlling. If it states INCLUDED, Section 2.3 applies and Section 2.4 does not. If it states EXCLUDED, Section 2.4 applies and Section 2.3 does not. An incomplete election blocks execution of this Agreement.</p>
+<p><strong>2.3 Design Services Included.</strong> Contractor shall arrange the design services described in Exhibit A through architects, engineers, or other design professionals properly licensed for the Project jurisdiction when licensure is required. Contractor does not hold itself out as an architect or engineer. Professional services shall be performed with the ordinary professional skill and care exercised by similarly situated licensed professionals. No warranty or guarantee of professional design services is created. Owner shall provide timely Project criteria, decisions, surveys, geotechnical information, existing-condition information, and approvals. Regulatory revisions, Owner changes, unknown conditions, and services outside Exhibit A are changes in the Work.</p>
+<p><strong>2.4 Design Services Excluded.</strong> Owner shall retain and pay the architect, engineer, and other design professionals identified in the Project Terms and shall provide complete, coordinated, code-compliant design documents on the dates required by the schedule. Contractor may rely on those documents and is not responsible for their adequacy, completeness, or professional standard of care. Contractor's review, coordination, estimating, constructability comments, submittals, delegated-design coordination, or discovery of an apparent conflict does not transfer design responsibility to Contractor. Costs or delay caused by design errors, omissions, incompleteness, or late decisions are changes in the Work to the extent permitted by law.</p>
+<p><strong>2.5 Instruments of Service.</strong> Ownership and permitted use of drawings, models, and specifications are governed by Exhibit A and the applicable design-professional agreement. Owner receives only the license expressly stated there, conditioned on payment of amounts due.</p>
+<h1 id="contract-sum-and-compensation">3. CONTRACT SUM AND COMPENSATION</h1>
+<p><strong>3.1 Basis.</strong> Owner shall pay Contractor the verified Cost of the Work plus Contractor's Fee calculated under Exhibit B. The current estimate, if any, is a planning tool and is not a guaranteed maximum price unless the parties execute a written Not-to-Exceed Amendment.</p>
+<p><strong>3.2 Contractor's Fee.</strong> Fee and markup percentages apply only as stated in Exhibit B. The schedule separately identifies labor, subcontractor, material, equipment, reimbursable, insurance, bond, tax, and design-service treatment. Markup stacking is prohibited unless Exhibit B expressly authorizes it.</p>
+<p><strong>3.3 Open-Book Support.</strong> Each payment application shall be supported by an internal project cost ledger and the backup required by Exhibit B. Owner-facing backup, if any, is limited to the contractually required form and does not include confidential payroll rates, benefits, burden, internal margin, or unrelated company information.</p>
+<p><strong>3.4 Authorization Control.</strong> Contractor shall not knowingly incur a material out-of-scope cost without written authorization, except emergency work necessary to protect persons or property. Daily tickets and field authorizations are evidence of time and cost but do not waive the written change requirements of Section 8.</p>
+<h1 id="cost-of-the-work">4. COST OF THE WORK</h1>
+<p><strong>4.1 Included Cost.</strong> Cost of the Work means costs necessarily and reasonably incurred in proper performance of the Work, including field labor and burden; subcontractors; materials and equipment; rentals; temporary facilities; permits and inspections; testing allocated to Contractor; project-specific insurance and bonds when identified; project technology; cleanup; warranty response; and other categories expressly listed in Exhibit B.</p>
+<p><strong>4.2 Excluded Cost.</strong> Cost of the Work excludes costs caused by Contractor's failure to comply with the Contract Documents, unapproved home-office overhead except as included in the Fee, fines caused by Contractor's violation of law, costs recovered from insurance or responsible third parties, and categories expressly excluded in Exhibit B.</p>
+<p><strong>4.3 Payroll and Labor.</strong> Labor may be billed at the burdened actual cost or contractual billing rates selected in Exhibit B. The selected method must be used consistently. Confidential employee compensation remains internal; any Owner audit is subject to confidentiality and may be satisfied through a summary or independent verification.</p>
+<p><strong>4.4 Records.</strong> Contractor shall maintain project cost records supporting payment applications. Owner may review relevant records on reasonable notice during the Project and for {{RECORD_RETENTION_YEARS}} years after Final Payment, subject to confidentiality, privilege, cybersecurity, and limitations protecting unrelated records.</p>
+<h1 id="owner-responsibilities">5. OWNER RESPONSIBILITIES</h1>
+<p><strong>5.1 Information and Access.</strong> Owner shall provide legal access to the site; accurate surveys, title restrictions, existing-condition information, geotechnical and environmental information allocated to Owner; timely decisions; financing information reasonably requested; and the services identified as Owner responsibilities in Exhibit C.</p>
+<p><strong>5.2 Owner Representatives.</strong> Owner designates {{OWNER_AUTHORIZED_REPRESENTATIVE}} as its authorized representative. Contractor may rely on that person's written direction within the authority stated in Exhibit C. Owner shall identify lender, architect, consultants, and separate contractors and coordinate their responsibilities.</p>
+<p><strong>5.3 Separate Contractors.</strong> Owner shall notify Contractor before engaging separate contractors, furnish their scopes and schedules, and coordinate them so they do not interfere with Contractor. Interference, rework, acceleration, or delay caused by Owner's separate contractors is a change in the Work.</p>
+<p><strong>5.4 Payment Assurance.</strong> Upon reasonable request, Owner shall furnish evidence that financial arrangements are sufficient to satisfy Owner's obligations. A material adverse change in financing or failure to provide required evidence is grounds for suspension under Section 14.</p>
+<h1 id="time-schedule-and-delay">6. TIME, SCHEDULE, AND DELAY</h1>
+<p><strong>6.1 Dates.</strong> Contractor shall achieve Substantial Completion and Final Completion by the dates in the Project Terms, as adjusted under the Contract Documents. Milestones and assumptions are stated in Exhibit C.</p>
+<p><strong>6.2 Excusable Delay.</strong> Contractor is entitled to reasonable time adjustment for causes beyond its control, including unusually severe weather, fire, casualty, epidemic, labor disruption, transportation or supply disruption, governmental action, concealed conditions, Owner or design-professional delay, separate-contractor interference, and other causes allowed by law. Cost recovery is governed by the cause, applicable law, and the Contract Documents.</p>
+<p><strong>6.3 Notice and Mitigation.</strong> The affected party shall give prompt written notice of a material delay and use commercially reasonable efforts to mitigate. Failure to give notice bars relief only to the extent the other party is materially prejudiced, unless a controlling state addendum requires a different result.</p>
+<p><strong>6.4 Liquidated Damages.</strong> Liquidated damages apply only if the Project Terms state a completed amount and applicable milestone. They are intended as a reasonable estimate, not a penalty, and are the Owner's exclusive time-related remedy for the covered delay, subject to counsel-approved state requirements.</p>
+<h1 id="payment-retainage-and-financial-controls">7. PAYMENT, RETAINAGE, AND FINANCIAL CONTROLS</h1>
+<p><strong>7.1 Applications.</strong> Contractor shall submit monthly payment applications in the agreed form for Work performed, properly stored materials, approved changes, and other amounts due. Owner shall notify Contractor in writing of a specific disputed amount and basis within {{PAYMENT_REVIEW_DAYS}} business days after receipt.</p>
+<p><strong>7.2 Due Date and Interest.</strong> Undisputed amounts are due within the period stated in the Project Terms, but never later than mandatory applicable law. For a Kentucky Project, unless an exception applies, payment is due within thirty (30) business days after a timely, properly completed, undisputed request; interest accrues at twelve percent (12%) per annum beginning on the thirty-first business day, subject to the notice requirements of applicable law. A state addendum controls for other jurisdictions.</p>
+<p><strong>7.3 Retainage.</strong> Retainage is withheld and released only as stated in the Project Terms and applicable law. For a Kentucky Project, retainage may not exceed ten percent (10%) until fifty percent (50%) completion and may not exceed five percent (5%) after fifty-one percent (51%) completion; statutory release requirements control after Substantial Completion.</p>
+<p><strong>7.4 Withholding.</strong> Owner may withhold only a reasonable amount necessary to protect against a specific documented deficiency, unpaid claim attributable to Contractor, or other contractual basis. Owner shall pay all undisputed amounts. Contractor may cure, bond, or otherwise address a withholding as permitted by law.</p>
+<p><strong>7.5 Suspension for Nonpayment.</strong> After required notice and cure periods, Contractor may suspend Work for nonpayment of undisputed amounts and is entitled to reasonable time and cost adjustment arising from the suspension and remobilization, to the extent permitted by law.</p>
+<p><strong>7.6 Final Payment.</strong> Final Payment is due after Final Completion, submission of required closeout documents, final lien-waiver requirements applicable to the Project, and resolution of the final payment application. Payment does not waive latent defects, unsettled claims, or obligations that survive completion.</p>
+<h1 id="changes-in-the-work">8. CHANGES IN THE WORK</h1>
+<p><strong>8.1 Written Changes.</strong> Changes in scope, price, fee, design services, schedule, or risk allocation require a written Change Order signed by authorized representatives, except an emergency or a written Construction Change Directive permitted by Section 8.2.</p>
+<p><strong>8.2 Directed Work.</strong> If Owner directs disputed or time-sensitive work before price and time are agreed, Contractor shall proceed only upon a written directive identifying the work and stating that compensation and time will be determined under the applicable method in Exhibit B. Contractor shall maintain contemporaneous records.</p>
+<p><strong>8.3 Pricing.</strong> Change pricing may use agreed lump sum, unit prices, documented cost plus fee, or another written method. Contractor shall identify subcontractor tiers, labor, material, equipment, insurance, bond, tax, fee, and schedule effect consistent with Exhibit B.</p>
+<p><strong>8.4 Substitutions.</strong> Contractor may propose substitutions when specified items are unavailable or impracticable. No substitution that materially changes performance, appearance, maintenance, warranty, code compliance, or cost may be made without required approval.</p>
+<h1 id="insurance-and-bonds">9. INSURANCE AND BONDS</h1>
+<p><strong>9.1 Contractor Insurance.</strong> Contractor shall maintain workers' compensation as required by law, commercial general liability of not less than ${{CGL_LIMIT}}, automobile liability of not less than ${{AUTO_LIMIT}}, umbrella or excess liability of not less than ${{UMBRELLA_LIMIT}}, and other coverage stated in Exhibit C.</p>
+<p><strong>9.2 Professional Liability.</strong> When Design Services are INCLUDED, the responsible licensed design professional shall maintain professional liability insurance of not less than ${{PROFESSIONAL_LIABILITY_LIMIT}} for the period stated in Exhibit A.</p>
+<p><strong>9.3 Builder's Risk and Bonds.</strong> Responsibility for builder's risk, property insurance, payment and performance bonds, deductibles, and bond premiums is allocated in Exhibit C. No bond is included unless expressly listed.</p>
+<h1 id="permits-conditions-and-hazardous-materials">10. PERMITS, CONDITIONS, AND HAZARDOUS MATERIALS</h1>
+<p><strong>10.1 Permits.</strong> Contractor shall obtain construction permits assigned to it in Exhibit C. Owner shall obtain zoning, land-use, financing, utility, easement, and other Owner approvals unless expressly reassigned.</p>
+<p><strong>10.2 Concealed Conditions.</strong> Materially differing concealed or unknown physical conditions shall be documented promptly and equitably adjust the Contract Sum and time where allowed by the Contract Documents and applicable law.</p>
+<p><strong>10.3 Hazardous Materials.</strong> Unless expressly included, Contractor is not responsible for testing, removal, transport, or remediation of preexisting hazardous materials. Upon discovery, Contractor may stop affected work until a qualified party addresses the condition. Resulting reasonable time and cost are a change in the Work unless Contractor introduced the material negligently.</p>
+<h1 id="safety-subcontractors-and-quality">11. SAFETY, SUBCONTRACTORS, AND QUALITY</h1>
+<p><strong>11.1 Safety.</strong> Contractor is responsible for its construction means, methods, sequencing, and site safety program. Owner and its consultants shall not direct Contractor's means, methods, or safety precautions. Each separate contractor remains responsible for its work and safety.</p>
+<p><strong>11.2 Subcontractors.</strong> Contractor may select and contract with qualified subcontractors and suppliers. Contractor remains responsible to Owner for their construction work as required by this Agreement. Owner shall not directly direct or contract with Contractor's subcontractors concerning Project work without Contractor's written consent.</p>
+<p><strong>11.3 Standard of Construction.</strong> Construction shall be performed in a good and workmanlike manner consistent with the Contract Documents and applicable law. Contractor may rely on manufacturer instructions, approved submittals, and design-professional interpretations.</p>
+<h1 id="substantial-completion-warranty-and-closeout">12. SUBSTANTIAL COMPLETION, WARRANTY, AND CLOSEOUT</h1>
+<p><strong>12.1 Substantial Completion.</strong> Substantial Completion occurs when the Work, or agreed portion, is sufficiently complete for its intended use and required regulatory approvals and closeout prerequisites identified by applicable law and the Contract Documents have been satisfied.</p>
+<p><strong>12.2 Correction Period.</strong> For one year after Substantial Completion, or the longer period stated in a specific warranty, Contractor shall correct nonconforming construction reported in writing. This obligation excludes ordinary wear, abuse, improper maintenance, unauthorized modification, Owner-provided work, and design services EXCLUDED from Contractor's scope.</p>
+<p><strong>12.3 Design Standard.</strong> When Design Services are INCLUDED, professional design claims are governed by the professional standard of care and applicable limitation periods, not by a warranty of perfect plans or results. No clause in this Agreement shortens a nonwaivable statutory period.</p>
+<p><strong>12.4 Closeout.</strong> Contractor shall provide the closeout documents listed in Exhibit C, including warranties, operation and maintenance information, inspection approvals, training records, and payment-specific lien documentation required by the Project jurisdiction.</p>
+<h1 id="indemnity-and-limitation-of-liability">13. INDEMNITY AND LIMITATION OF LIABILITY</h1>
+<p><strong>13.1 Indemnity.</strong> To the fullest extent permitted by law, each party shall indemnify the other from third-party claims for bodily injury or tangible property damage, but only to the extent caused by the indemnifying party's negligent acts or omissions, willful misconduct, or breach of a nondelegable legal duty. No party is required to indemnify another for the indemnitee's own negligence where prohibited by law.</p>
+<p><strong>13.2 Consequential Damages.</strong> To the fullest extent permitted by law, Owner and Contractor waive consequential, incidental, indirect, exemplary, and punitive damages arising from the Project, including lost profit not directly earned under this Agreement, loss of use, financing loss, and reputational harm, except damages payable to a third party under a covered indemnity or amounts caused by fraud or willful misconduct.</p>
+<p><strong>13.3 Liability Cap.</strong> To the fullest extent permitted by law, Contractor's aggregate liability arising from the Project shall not exceed the Contract Sum, excluding unpaid contract obligations, covered third-party indemnity to the extent of available insurance, fraud, willful misconduct, and obligations that cannot legally be limited. Counsel shall confirm this provision for the Project jurisdiction and delivery method.</p>
+<h1 id="suspension-and-termination">14. SUSPENSION AND TERMINATION</h1>
+<p><strong>14.1 Owner Suspension.</strong> Owner may suspend the Work by written notice. Contractor is entitled to an equitable adjustment for resulting cost, delay, demobilization, remobilization, storage, escalation, and extended general conditions unless the suspension results from Contractor's uncured material breach.</p>
+<p><strong>14.2 Termination for Cause.</strong> A party may terminate for material breach after written notice describing the breach and a reasonable opportunity to cure, except an emergency or insolvency event may permit shorter action to the extent allowed by law.</p>
+<p><strong>14.3 Owner Termination for Convenience.</strong> Owner may terminate for convenience upon written notice and shall pay Contractor for Work performed, properly committed costs, cancellation charges, demobilization, closeout, Contractor's Fee earned to date, and {{TERMINATION_FEE_OR_NONE}}, subject to the Project Terms and applicable law.</p>
+<h1 id="dispute-resolution-governing-law-and-venue">15. DISPUTE RESOLUTION, GOVERNING LAW, AND VENUE</h1>
+<p><strong>15.1 Project-Level Resolution.</strong> Authorized representatives shall first meet in good faith to resolve a dispute. Work and undisputed payment obligations continue during the dispute unless unsafe, impossible, or suspended under the Contract Documents.</p>
+<p><strong>15.2 Mediation.</strong> Before litigation, the parties shall participate in nonbinding mediation with a mutually selected mediator. If they cannot agree, a mediation service named in the state addendum shall appoint the mediator. Mediation is a prerequisite to litigation but does not forfeit or extinguish substantive or procedural rights.</p>
+<p><strong>15.3 Governing Law and Venue.</strong> Governing law and venue are {{GOVERNING_LAW_AND_VENUE}}, subject to mandatory law of the Project location. For Kentucky Projects, the default venue is Fayette County, Kentucky, unless the Project Terms or state addendum provides otherwise.</p>
+<p><strong>15.4 Fees.</strong> The prevailing party may recover reasonable attorneys' fees and costs only to the extent permitted by applicable law and the state addendum.</p>
+<h1 id="notices-records-and-electronic-transactions">16. NOTICES, RECORDS, AND ELECTRONIC TRANSACTIONS</h1>
+<p><strong>16.1 Notices.</strong> Formal notices shall be sent to the addresses and emails in Exhibit D by personal delivery, nationally recognized overnight delivery, certified mail, or a controlled electronic system that records sender, recipient, content, and delivery. A routine project communication is not a formal notice unless it clearly states that it is notice under this Agreement.</p>
+<p><strong>16.2 Electronic Records and Signatures.</strong> The parties consent to electronic records, counterparts, and signatures to the extent recognized by applicable law. The final executed version and its audit record shall be retained as the authoritative copy.</p>
+<p><strong>16.3 Command Center.</strong> When the parties use Mefford Project Command, its approved records may administer submittals, changes, payment applications, notices, and closeout. The system does not alter the Contract Documents, approval authority, or legal requirements unless a record is expressly executed as a contract modification.</p>
+<h1 id="miscellaneous">17. MISCELLANEOUS</h1>
+<p><strong>17.1 Entire Agreement.</strong> The Contract Documents are the complete agreement and supersede prior representations concerning their subject matter. No oral statement modifies the Agreement.</p>
+<p><strong>17.2 Amendment and Waiver.</strong> An amendment or waiver must be written and signed by the party against whom enforcement is sought. A delay in enforcement is not a continuing waiver.</p>
+<p><strong>17.3 Severability.</strong> If a provision is unenforceable, it shall be enforced to the maximum lawful extent or severed, and the remaining provisions remain effective.</p>
+<p><strong>17.4 Assignment.</strong> Neither party may assign the Agreement without the other's written consent, except to a lender, successor, or affiliate that assumes the obligations and does not materially impair the other party's rights.</p>
+<p><strong>17.5 No Personal Liability Without Separate Guaranty.</strong> No owner, member, manager, officer, employee, or representative is personally liable solely by signing for an entity. A personal guaranty applies only if a separate guaranty exhibit identifies the guarantor and is separately signed.</p>
+<p><strong>17.6 Independent Contractor.</strong> Contractor is an independent contractor and not Owner's employee, partner, or agent, except for limited authority expressly granted in writing.</p>
+<p><strong>17.7 Counterparts.</strong> The Agreement may be executed in counterparts, each treated as an original and together constituting one instrument.</p>
+<h1 id="signatures">SIGNATURES</h1>
+<p>The parties execute this Agreement after completing the Project Terms and all required exhibits and addenda.</p>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th><strong>CONTRACTOR</strong></th>
+<th><strong>OWNER</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Mefford Contracting, LLC</td>
+<td>{{OWNER_LEGAL_NAME}}</td>
+</tr>
+<tr class="even">
+<td>By: {{CONTRACTOR_SIGNATORY}}</td>
+<td>By: {{OWNER_SIGNATORY}}</td>
+</tr>
+<tr class="odd">
+<td>Title: {{CONTRACTOR_SIGNATORY_TITLE}}</td>
+<td>Title: {{OWNER_SIGNATORY_TITLE}}</td>
+</tr>
+<tr class="even">
+<td>Signature: {{CONTRACTOR_SIGNATURE}}</td>
+<td>Signature: {{OWNER_SIGNATURE}}</td>
+</tr>
+<tr class="odd">
+<td>Date: {{CONTRACTOR_SIGNATURE_DATE}}</td>
+<td>Date: {{OWNER_SIGNATURE_DATE}}</td>
+</tr>
+<tr class="even">
+<td>Email: {{CONTRACTOR_NOTICE_EMAIL}}</td>
+<td>Email: {{OWNER_NOTICE_EMAIL}}</td>
+</tr>
+</tbody>
+</table>
+<h1 id="exhibit-a---design-services-election-and-scope">EXHIBIT A - DESIGN SERVICES ELECTION AND SCOPE</h1>
+<table>
+<colgroup>
+<col style="width: 100%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th><p><strong>DESIGN CONTROL</strong></p>
+<p>The Design Services Election in the Project Terms must state INCLUDED or EXCLUDED. The system must not permit both. Licensed-professional requirements and the project-state addendum control.</p></th>
+</tr>
+</thead>
+<tbody>
+</tbody>
+</table>
+<table>
+<colgroup>
+<col style="width: 28%" />
+<col style="width: 71%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th><strong>DESIGN TERM</strong></th>
+<th><strong>PROJECT VALUE</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>Election</strong></td>
+<td>{{DESIGN_SERVICES_INCLUDED_OR_EXCLUDED}}</td>
+</tr>
+<tr class="even">
+<td><strong>Design professional</strong></td>
+<td>{{DESIGN_PROFESSIONAL_NAME_LICENSE_AND_STATE}}</td>
+</tr>
+<tr class="odd">
+<td><strong>Design agreement / flow-down</strong></td>
+<td>{{DESIGN_AGREEMENT_REFERENCE}}</td>
+</tr>
+<tr class="even">
+<td><strong>Design fee basis</strong></td>
+<td>{{DESIGN_FEE_BASIS_AND_AMOUNT}}</td>
+</tr>
+<tr class="odd">
+<td><strong>Owner criteria / program</strong></td>
+<td>{{OWNER_PROGRAM_REFERENCE}}</td>
+</tr>
+<tr class="even">
+<td><strong>Required deliverables</strong></td>
+<td>{{DESIGN_DELIVERABLES}}</td>
+</tr>
+<tr class="odd">
+<td><strong>Milestones / approvals</strong></td>
+<td>{{DESIGN_MILESTONES_AND_APPROVAL_DAYS}}</td>
+</tr>
+<tr class="even">
+<td><strong>Permitting services</strong></td>
+<td>{{DESIGN_PERMITTING_SCOPE}}</td>
+</tr>
+<tr class="odd">
+<td><strong>Construction administration</strong></td>
+<td>{{DESIGN_CA_SCOPE}}</td>
+</tr>
+<tr class="even">
+<td><strong>Excluded services</strong></td>
+<td>{{DESIGN_EXCLUSIONS}}</td>
+</tr>
+<tr class="odd">
+<td><strong>Instruments-of-service license</strong></td>
+<td>{{DESIGN_DOCUMENT_LICENSE}}</td>
+</tr>
+</tbody>
+</table>
+<h1 id="exhibit-b---financial-and-billing-schedule">EXHIBIT B - FINANCIAL AND BILLING SCHEDULE</h1>
+<table>
+<colgroup>
+<col style="width: 32%" />
+<col style="width: 67%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th><strong>FINANCIAL TERM</strong></th>
+<th><strong>AGREED VALUE / RULE</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>Construction labor</strong></td>
+<td>Contract billing rates in the approved annual rate schedule; project overrides: {{CONSTRUCTION_LABOR_RATES}}</td>
+</tr>
+<tr class="even">
+<td><strong>Design labor if INCLUDED</strong></td>
+<td>Lead Architect $175.00/hr; Architect $125.00/hr; Graduate Architect $85.00/hr; project override: {{DESIGN_LABOR_RATE_OVERRIDE_OR_NONE}}</td>
+</tr>
+<tr class="odd">
+<td><strong>Project management</strong></td>
+<td>$125.00/hr; project override: {{PM_RATE_OVERRIDE_OR_NONE}}</td>
+</tr>
+<tr class="even">
+<td><strong>Site superintendent</strong></td>
+<td>$85.00/hr; project override: {{SUPERINTENDENT_RATE_OVERRIDE_OR_NONE}}</td>
+</tr>
+<tr class="odd">
+<td><strong>Carpenter / general labor</strong></td>
+<td>$65.00/hr / $45.00/hr; project override: {{FIELD_RATE_OVERRIDE_OR_NONE}}</td>
+</tr>
+<tr class="even">
+<td><strong>Subcontractor cost markup</strong></td>
+<td>{{SUBCONTRACTOR_MARKUP_PERCENT}}</td>
+</tr>
+<tr class="odd">
+<td><strong>Material and equipment purchase markup</strong></td>
+<td>{{MATERIAL_EQUIPMENT_MARKUP_PERCENT}}</td>
+</tr>
+<tr class="even">
+<td><strong>Rental / owned equipment</strong></td>
+<td>{{EQUIPMENT_RATE_AND_MARKUP_METHOD}}</td>
+</tr>
+<tr class="odd">
+<td><strong>Insurance, bonds, tax</strong></td>
+<td>{{INSURANCE_BOND_TAX_TREATMENT}}</td>
+</tr>
+<tr class="even">
+<td><strong>Emergency / after-hours premium</strong></td>
+<td>{{EMERGENCY_PREMIUM_OR_NONE}}</td>
+</tr>
+<tr class="odd">
+<td><strong>Not-to-exceed control</strong></td>
+<td>{{NTE_AMOUNT_OR_NOT_APPLICABLE}}</td>
+</tr>
+<tr class="even">
+<td><strong>Billing backup</strong></td>
+<td>{{OWNER_FACING_BACKUP_REQUIREMENTS}}</td>
+</tr>
+</tbody>
+</table>
+<h1 id="exhibit-c---scope-schedule-and-project-controls">EXHIBIT C - SCOPE, SCHEDULE, AND PROJECT CONTROLS</h1>
+<table>
+<colgroup>
+<col style="width: 32%" />
+<col style="width: 67%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th><strong>PROJECT CONTROL</strong></th>
+<th><strong>PROJECT REQUIREMENT</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>Construction scope</strong></td>
+<td>{{CONSTRUCTION_SCOPE_OF_WORK}}</td>
+</tr>
+<tr class="even">
+<td><strong>Specific exclusions</strong></td>
+<td>{{CONSTRUCTION_EXCLUSIONS}}</td>
+</tr>
+<tr class="odd">
+<td><strong>Owner-provided work / separate contractors</strong></td>
+<td>{{OWNER_PROVIDED_WORK}}</td>
+</tr>
+<tr class="even">
+<td><strong>Drawings and specifications</strong></td>
+<td>{{DRAWING_AND_SPECIFICATION_INDEX}}</td>
+</tr>
+<tr class="odd">
+<td><strong>Addenda / supplementary conditions</strong></td>
+<td>{{ADDENDA_AND_SUPPLEMENTARY_CONDITIONS}}</td>
+</tr>
+<tr class="even">
+<td><strong>Allowances / alternates</strong></td>
+<td>{{ALLOWANCES_AND_ALTERNATES}}</td>
+</tr>
+<tr class="odd">
+<td><strong>Project milestones</strong></td>
+<td>{{PROJECT_MILESTONES}}</td>
+</tr>
+<tr class="even">
+<td><strong>Schedule assumptions</strong></td>
+<td>{{SCHEDULE_ASSUMPTIONS}}</td>
+</tr>
+<tr class="odd">
+<td><strong>Permits and fees allocation</strong></td>
+<td>{{PERMIT_AND_FEE_ALLOCATION}}</td>
+</tr>
+<tr class="even">
+<td><strong>Testing and inspections allocation</strong></td>
+<td>{{TESTING_AND_INSPECTION_ALLOCATION}}</td>
+</tr>
+<tr class="odd">
+<td><strong>Builder's risk</strong></td>
+<td>{{BUILDERS_RISK_RESPONSIBILITY}}</td>
+</tr>
+<tr class="even">
+<td><strong>Bonds</strong></td>
+<td>{{BOND_REQUIREMENTS_OR_NONE}}</td>
+</tr>
+<tr class="odd">
+<td><strong>Closeout package</strong></td>
+<td>{{CLOSEOUT_DOCUMENT_REQUIREMENTS}}</td>
+</tr>
+<tr class="even">
+<td><strong>Liquidated damages</strong></td>
+<td>{{LIQUIDATED_DAMAGES_OR_NONE}}</td>
+</tr>
+</tbody>
+</table>
+<h1 id="exhibit-d---notices-state-addendum-and-controlled-amendments">EXHIBIT D - NOTICES, STATE ADDENDUM, AND CONTROLLED AMENDMENTS</h1>
+<h2 id="d.1-notice-addresses">D.1 Notice Addresses</h2>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th><strong>CONTRACTOR</strong></th>
+<th><strong>OWNER</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Mefford Contracting, LLC</td>
+<td>{{OWNER_LEGAL_NAME}}</td>
+</tr>
+<tr class="even">
+<td>1585 Mercer Road, Suite 110</td>
+<td>{{OWNER_NOTICE_ADDRESS_LINE_1}}</td>
+</tr>
+<tr class="odd">
+<td>Lexington, KY 40511</td>
+<td>{{OWNER_NOTICE_ADDRESS_LINE_2}}</td>
+</tr>
+<tr class="even">
+<td>Attn: Jordan Mefford</td>
+<td>Attn: {{OWNER_NOTICE_CONTACT}}</td>
+</tr>
+<tr class="odd">
+<td>Email: {{CONTRACTOR_NOTICE_EMAIL}}</td>
+<td>Email: {{OWNER_NOTICE_EMAIL}}</td>
+</tr>
+</tbody>
+</table>
+<h2 id="d.2-state-addendum">D.2 State Addendum</h2>
+<p>Required addendum: {{STATE_ADDENDUM_ID_AND_VERSION}}. A Project outside Kentucky may not proceed under this master until the applicable counsel-approved state addendum is attached. Mandatory Project-state law controls over inconsistent terms.</p>
+<h2 id="d.3-project-specific-amendments">D.3 Project-Specific Amendments</h2>
+<p>{{PROJECT_SPECIFIC_AMENDMENTS_OR_NONE}}</p>
+<h2 id="d.4-optional-personal-guaranty">D.4 Optional Personal Guaranty</h2>
+<p>Required: {{PERSONAL_GUARANTY_REQUIRED_YES_OR_NO}}. If YES, a separate counsel-approved guaranty must identify the guarantor, guaranteed obligations, cap, duration, and signature. No guaranty arises from this Agreement alone.</p>
+</body>
+</html>
