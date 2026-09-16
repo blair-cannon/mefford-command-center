@@ -1,0 +1,286 @@
+{
+  "version": "7",
+  "dialect": "sqlite",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "6",
+      "when": 1786367599875,
+      "tag": "0000_robust_mockingbird",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1786378887072,
+      "tag": "0001_charming_justin_hammer",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1786800049630,
+      "tag": "0002_premium_boom_boom",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "6",
+      "when": 1786801897818,
+      "tag": "0003_classy_deathbird",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "6",
+      "when": 1786831366515,
+      "tag": "0004_clever_phalanx",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "6",
+      "when": 1786892830150,
+      "tag": "0005_romantic_major_mapleleaf",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "6",
+      "when": 1786898435764,
+      "tag": "0006_early_rattler",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "6",
+      "when": 1786906640474,
+      "tag": "0007_nasty_cyclops",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "6",
+      "when": 1786907168393,
+      "tag": "0008_brief_inhumans",
+      "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "6",
+      "when": 1786907203094,
+      "tag": "0009_fearless_night_nurse",
+      "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "6",
+      "when": 1786924574122,
+      "tag": "0010_seed_jason_amanda",
+      "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "6",
+      "when": 1786931582269,
+      "tag": "0011_vendor-compliance-payment-only",
+      "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "6",
+      "when": 1787375189923,
+      "tag": "0012_right_black_panther",
+      "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "6",
+      "when": 1787399418489,
+      "tag": "0013_special_union_jack",
+      "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "6",
+      "when": 1787406686125,
+      "tag": "0014_colossal_unicorn",
+      "breakpoints": true
+    },
+    {
+      "idx": 15,
+      "version": "6",
+      "when": 1787440640947,
+      "tag": "0015_hot_phalanx",
+      "breakpoints": true
+    },
+    {
+      "idx": 16,
+      "version": "6",
+      "when": 1787445344654,
+      "tag": "0016_happy_radioactive_man",
+      "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "6",
+      "when": 1787487841535,
+      "tag": "0017_foamy_jubilee",
+      "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "6",
+      "when": 1787493768602,
+      "tag": "0018_overconfident_lyja",
+      "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "6",
+      "when": 1787494168328,
+      "tag": "0019_supreme_vector",
+      "breakpoints": true
+    },
+    {
+      "idx": 20,
+      "version": "6",
+      "when": 1787495876378,
+      "tag": "0020_tough_greymalkin",
+      "breakpoints": true
+    },
+    {
+      "idx": 21,
+      "version": "6",
+      "when": 1787503519352,
+      "tag": "0021_special_romulus",
+      "breakpoints": true
+    },
+    {
+      "idx": 22,
+      "version": "6",
+      "when": 1787511005240,
+      "tag": "0022_narrow_centennial",
+      "breakpoints": true
+    },
+    {
+      "idx": 23,
+      "version": "6",
+      "when": 1787511162663,
+      "tag": "0023_productive_dormammu",
+      "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "6",
+      "when": 1787512156929,
+      "tag": "0024_watery_dark_beast",
+      "breakpoints": true
+    },
+    {
+      "idx": 25,
+      "version": "6",
+      "when": 1787518023752,
+      "tag": "0025_equal_the_fury",
+      "breakpoints": true
+    },
+    {
+      "idx": 26,
+      "version": "6",
+      "when": 1787520683000,
+      "tag": "0026_domain_event_outbox",
+      "breakpoints": true
+    },
+    {
+      "idx": 27,
+      "version": "6",
+      "when": 1787525200000,
+      "tag": "0027_template_governance",
+      "breakpoints": true
+    },
+    {
+      "idx": 28,
+      "version": "6",
+      "when": 1787575658495,
+      "tag": "0028_last_ser_duncan",
+      "breakpoints": true
+    },
+    {
+      "idx": 29,
+      "version": "6",
+      "when": 1787632661750,
+      "tag": "0029_elite_vivisector",
+      "breakpoints": true
+    },
+    {
+      "idx": 30,
+      "version": "6",
+      "when": 1788344680288,
+      "tag": "0030_sour_kulan_gath",
+      "breakpoints": true
+    },
+    {
+      "idx": 31,
+      "version": "6",
+      "when": 1788367495622,
+      "tag": "0031_owner_approval_center",
+      "breakpoints": true
+    },
+    {
+      "idx": 32,
+      "version": "6",
+      "when": 1788381944597,
+      "tag": "0032_lazy_bishop",
+      "breakpoints": true
+    },
+    {
+      "idx": 33,
+      "version": "6",
+      "when": 1788382042260,
+      "tag": "0033_material_puck",
+      "breakpoints": true
+    },
+    {
+      "idx": 34,
+      "version": "6",
+      "when": 1789055653926,
+      "tag": "0034_four_digit_accounts",
+      "breakpoints": true
+    },
+    {
+      "idx": 35,
+      "version": "6",
+      "when": 1789095506994,
+      "tag": "0035_proposal_word_import",
+      "breakpoints": true
+    },
+    {
+      "idx": 36,
+      "version": "6",
+      "when": 1789122856841,
+      "tag": "0036_curly_ironclad",
+      "breakpoints": true
+    },
+    {
+      "idx": 37,
+      "version": "6",
+      "when": 1789152861454,
+      "tag": "0037_short_joshua_kane",
+      "breakpoints": true
+    },
+    {
+      "idx": 38,
+      "version": "6",
+      "when": 1789520673232,
+      "tag": "0038_odd_shape",
+      "breakpoints": true
+    },
+    {
+      "idx": 39,
+      "version": "6",
+      "when": 1789523003157,
+      "tag": "0039_chunky_peter_parker",
+      "breakpoints": true
+    }
+  ]
+}

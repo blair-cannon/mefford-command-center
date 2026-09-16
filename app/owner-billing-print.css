@@ -1,0 +1,164 @@
+/* Invoice printing must paginate the document, not the work screen behind it. */
+@media print {
+  body:has(.owner-invoice-preview) *:not(.owner-invoice-preview):not(.owner-invoice-preview *):not(:has(.owner-invoice-preview)) {
+    display: none !important;
+  }
+
+  html:has(.owner-invoice-preview),
+  body:has(.owner-invoice-preview),
+  body:has(.owner-invoice-preview) *:has(.owner-invoice-preview) {
+    page: owner-invoice;
+    position: static !important;
+    display: block !important;
+    width: auto !important;
+    min-width: 0 !important;
+    max-width: none !important;
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: 0 !important;
+    overflow: visible !important;
+    contain: none !important;
+    container-type: normal !important;
+    transform: none !important;
+    background: white !important;
+    box-shadow: none !important;
+  }
+
+  .owner-invoice-preview {
+    page: owner-invoice;
+    position: static !important;
+    display: block !important;
+    width: 100% !important;
+    max-width: none !important;
+    height: auto !important;
+    min-height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: visible !important;
+    color: #24292c;
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+
+  .owner-invoice-preview .owner-invoice-page {
+    page: owner-invoice;
+    width: 100% !important;
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    margin: 0;
+    padding: 0;
+    overflow: visible;
+    box-shadow: none;
+    break-before: auto;
+    break-after: auto;
+    break-inside: auto;
+  }
+
+  .owner-invoice-preview .owner-invoice-g702 {
+    break-inside: avoid-page;
+    page-break-inside: avoid;
+  }
+
+  .owner-invoice-preview .owner-invoice-g703 {
+    display: block;
+    break-before: page;
+    page-break-before: always;
+  }
+
+  .owner-invoice-preview .owner-invoice-document-head {
+    min-height: 0.46in;
+  }
+  .owner-invoice-preview .owner-invoice-document-head h1 {
+    font-size: 15pt;
+    letter-spacing: normal;
+  }
+  .owner-invoice-preview .owner-invoice-document-head aside {
+    min-width: 0;
+    max-width: 100%;
+  }
+  .owner-invoice-preview .g703-document-head > div,
+  .owner-invoice-preview .g703-document-head > div > span {
+    flex: 1;
+    min-width: 0;
+  }
+  .owner-invoice-preview .g702-routing-grid > div,
+  .owner-invoice-preview .g702-contractor-execution > div {
+    height: auto;
+    max-height: none;
+    overflow: visible;
+  }
+  .owner-invoice-preview .g702-routing-grid :is(strong, small),
+  .owner-invoice-preview .g703-meta-grid strong {
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+  .owner-invoice-preview .owner-invoice-watermark {
+    display: none;
+  }
+
+  .owner-invoice-preview .owner-invoice-continuation {
+    margin-top: 0.1in;
+    break-inside: auto;
+  }
+  .owner-invoice-preview .owner-invoice-sov-wrap {
+    display: block;
+    width: 100%;
+    overflow: visible;
+    container-type: normal;
+  }
+  .owner-invoice-preview .owner-invoice-continuation table {
+    display: table;
+    width: 100%;
+    min-width: 0;
+    table-layout: fixed;
+    border-collapse: collapse;
+    font-size: 7pt;
+    line-height: 1.25;
+    break-inside: auto;
+  }
+  .owner-invoice-preview .owner-invoice-continuation thead {
+    display: table-header-group;
+  }
+  .owner-invoice-preview .owner-invoice-continuation tbody {
+    display: table-row-group;
+  }
+  .owner-invoice-preview .owner-invoice-continuation tr {
+    display: table-row;
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+  .owner-invoice-preview .owner-invoice-continuation :is(th, td) {
+    display: table-cell;
+    width: auto;
+    min-width: 0;
+    padding: 3pt;
+    font-size: 7pt;
+  }
+  .owner-invoice-preview .owner-invoice-continuation td small {
+    font-size: 6pt;
+    line-height: 1.2;
+  }
+  .owner-invoice-preview .owner-invoice-continuation td:nth-child(2) {
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+  .owner-invoice-preview .owner-invoice-continuation :is(.owner-invoice-subtotal-row, .owner-invoice-total-row) td {
+    text-align: right;
+    white-space: nowrap;
+    overflow-wrap: normal;
+  }
+  .owner-invoice-preview .owner-invoice-continuation :is(.owner-invoice-subtotal-row, .owner-invoice-total-row) td:first-child {
+    text-align: left;
+  }
+  .owner-invoice-preview .owner-invoice-group-row {
+    break-after: avoid-page;
+    page-break-after: avoid;
+  }
+  .owner-invoice-preview .owner-invoice-page > footer {
+    break-inside: avoid;
+  }
+}

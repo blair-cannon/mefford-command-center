@@ -1,0 +1,30 @@
+export type MobileActor = {
+  name?: string;
+  email?: string;
+  accessLevel?: string;
+  designations?: string[];
+};
+export type MobileQuickAction = {
+  id: string;
+  label: string;
+  target: string;
+  formType?: string;
+  icon: string;
+  roles: string[];
+};
+export const MOBILE_OFFLINE_DAYS: number;
+export const MOBILE_PRIMARY_NAVIGATION: ReadonlyArray<{ id: string; label: string; icon: string }>;
+export const MOBILE_OFFLINE_RECORD_TYPES: ReadonlyArray<string>;
+export const MOBILE_LIVE_ONLY_ACTIONS: ReadonlyArray<string>;
+export const MOBILE_PUSH_CATEGORIES: ReadonlyArray<string>;
+export const MOBILE_SCAN_TYPES: ReadonlyArray<string>;
+export const MOBILE_DEVICE_TEST_MATRIX: ReadonlyArray<{ device: string; portrait: readonly [number, number]; landscape: readonly [number, number] }>;
+export const MOBILE_QUICK_ACTIONS: ReadonlyArray<MobileQuickAction>;
+export function mobileRole(actor?: MobileActor): string;
+export function quickActionsForActor(actor?: MobileActor): MobileQuickAction[];
+export function canQueueOfflineAction(recordType: string): boolean;
+export function requiresLiveConnection(action: string): boolean;
+export function isSensitiveActionLabel(label: string): boolean;
+export function offlineSessionExpiresAt(lastSuccessfulConnection: string | Date, days?: number): string | null;
+export function offlineSessionExpired(lastSuccessfulConnection: string | Date, now?: string | Date): boolean;
+export function resolveOfflineConflict(existingUpdatedAt: string | Date, queuedAt: string | Date): "preserve_both_review_required" | "apply_queued_record";

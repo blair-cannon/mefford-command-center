@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>External Contract Intake And Control Record</title>
+<style>
+body{font-family:Arial,Helvetica,sans-serif;color:#20272d;font-size:10pt;line-height:1.4}h1{font-size:18pt;color:#8f2f27;border-bottom:2px solid #8f2f27;padding-bottom:7px}h2{font-size:11pt;margin:20px 0 6px;color:#243746}table{width:100%;border-collapse:collapse;margin:10px 0}th,td{border:1px solid #aeb6bd;padding:7px;vertical-align:top}th{background:#243746;color:#fff;text-align:left}.brand{display:flex;justify-content:space-between;align-items:flex-end;border-bottom:6px solid #8f2f27;padding-bottom:12px}.brand strong{font-size:17pt}.brand span{font-size:8pt;color:#59646d}.control{padding:12px;border:2px solid #8f2f27;background:#fbf4f3}.signature{margin-top:24px;break-inside:avoid}
+</style></head><body>
+<div class="brand"><strong>MEFFORD CONTRACTING</strong><span>EXTERNAL CONTRACT CONTROL · MC-OWN-EXT-001</span></div>
+<h1>External Contract Intake And Obligation Map</h1>
+<p class="control"><strong>The uploaded external agreement is the controlling contract.</strong> This record does not replace, rewrite, or convert it into a Mefford form. It identifies the exact source file and maps its requirements into Command Center project, schedule, accounting, insurance, notice, and change controls.</p>
+<table><thead><tr><th>Source Control</th><th>Recorded Value</th></tr></thead><tbody>
+<tr><td>Project</td><td>{{PROJECT_NAME}} · {{PROJECT_NUMBER}}<br>{{PROJECT_SITE_ADDRESS}}</td></tr>
+<tr><td>Owner / contracting party</td><td>{{OWNER_LEGAL_NAME}}</td></tr>
+<tr><td>Contract issued by</td><td>{{EXTERNAL_CONTRACT_SOURCE_PARTY}}</td></tr>
+<tr><td>Controlling file</td><td>{{EXTERNAL_CONTRACT_FILE_NAME}} · File {{EXTERNAL_CONTRACT_FILE_ID}} · {{EXTERNAL_CONTRACT_FILE_REVISION}}</td></tr>
+<tr><td>Confirmation</td><td>{{EXTERNAL_CONTRACT_CONTROLS_CONFIRMATION}}</td></tr>
+<tr><td>Effective date / value</td><td>{{EFFECTIVE_DATE}} · ${{EXTERNAL_CONTRACT_AMOUNT}}</td></tr>
+</tbody></table>
+<h2>Mapped Scope</h2><p>{{CONSTRUCTION_SCOPE_OF_WORK}}</p>
+<h2>Mapped Dates</h2><p>Start {{CONSTRUCTION_COMMENCEMENT_DATE}} · Substantial Completion {{SUBSTANTIAL_COMPLETION_DATE}} · Final Completion {{FINAL_COMPLETION_DATE}}</p>
+<h2>Payment And Retainage</h2><p>{{PAYMENT_TERMS}}</p><p>{{RETAINAGE_TERMS}}</p>
+<h2>Insurance And Bonds</h2><p>{{INSURANCE_AND_BOND_REQUIREMENTS}}</p>
+<h2>Changes, Notices, Disputes And Termination</h2><p><strong>Changes:</strong> {{EXTERNAL_CHANGE_ORDER_PROCEDURE}}</p><p><strong>Notices:</strong> {{NOTICE_REQUIREMENTS_AND_ADDRESSES}}</p><p><strong>Disputes / suspension / termination:</strong> {{EXTERNAL_DISPUTE_AND_TERMINATION_TERMS}}</p>
+<h2>Internal Review</h2><p>{{INTERNAL_CONTRACT_REVIEWER_AND_DATE}}</p><p>Mefford authorized signatory: {{CONTRACTOR_SIGNATORY}}, {{CONTRACTOR_SIGNATORY_TITLE}}.</p>
+<table class="signature"><tbody><tr><td><strong>OTHER CONTRACTING PARTY</strong><br>{{OWNER_SIGNATURE}}<br>{{OWNER_SIGNATORY}} · {{OWNER_SIGNATORY_TITLE}}<br>{{OWNER_SIGNATURE_DATE}}</td><td><strong>MEFFORD CONTRACTING, LLC</strong><br>{{CONTRACTOR_SIGNATURE}}<br>{{CONTRACTOR_SIGNATORY}} · {{CONTRACTOR_SIGNATORY_TITLE}}<br>{{CONTRACTOR_SIGNATURE_DATE}}</td></tr></tbody></table>
+</body></html>

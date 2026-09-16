@@ -1,0 +1,539 @@
+/* Width belongs to the working surface, including panels inside a desktop page.
+   Reflow information; never use a clipped page to conceal layout overflow.
+   All adaptations are screen-only so issued/printed documents retain geometry. */
+@media screen {
+  html, body { min-width: 0; }
+  .app-shell { width: 100%; min-width: 0; }
+  .app-shell .workspace { flex: 1 1 0; min-width: 0; max-width: 100%; }
+  .app-shell .content { min-width: 0; width: 100%; container: workspace / inline-size; }
+  :is(.app-shell, .modal-layer, .proposal-studio-shell, .estimate-bids-layer,
+    .owner-portal-shell, .vendor-portal-shell) :is(section, article, div, main, aside,
+    header, footer, nav, form, fieldset, label, details, button, input, select, textarea) {
+    min-inline-size: 0 !important;
+    max-inline-size: 100%;
+    box-sizing: border-box;
+  }
+  :is(.app-shell, .modal-layer, .proposal-studio-shell, .estimate-bids-layer,
+    .owner-portal-shell, .vendor-portal-shell) :is(p, span, strong, b, small, a, label,
+    button, summary, h1, h2, h3, h4, dt, dd, th, td) { overflow-wrap: anywhere; }
+  :is(.app-shell, .modal-layer, .proposal-studio-shell) :is(input, select, textarea) {
+    width: 100%; max-width: 100%; min-width: 0; box-sizing: border-box;
+  }
+  :is(.app-shell, .modal-layer, .proposal-studio-shell) :is(input[type=checkbox], input[type=radio]) {
+    width: 1.125rem; max-width: 1.125rem; flex-shrink: 0;
+  }
+  :is(.app-shell, .modal-layer, .proposal-studio-shell) textarea { resize: vertical; }
+  :is(.app-shell, .modal-layer, .proposal-studio-shell) button { white-space: normal; }
+  :is(img, video, canvas, iframe, object, embed) { max-width: 100%; }
+  .app-shell :is(pre, code) { white-space: pre-wrap; overflow-wrap: anywhere; }
+  .app-shell .topbar { height: auto; min-height: 4.5rem; flex-wrap: wrap; padding-block: .625rem; }
+  .app-shell .topbar-actions { flex: 1 1 24rem; flex-wrap: wrap; justify-content: flex-end; }
+  .app-shell .project-switcher { flex: 1 1 14rem; }
+  .app-shell .site-wide-search { flex: 1 1 12rem; }
+
+  /* Navigation and action strips take another line when they need one. */
+  :is(.app-shell, .proposal-studio-shell, .owner-portal-shell, .vendor-portal-shell)
+    :is([role=tablist], [class$="-tabs"], .employee-home-nav, .vendor-portal-nav,
+      .owner-portal-nav, .proposal-step-rail, .contract-preview-nav, .file-category-grid,
+      .native-office-switcher, .mobile-scan-tools, .mobile-markup-tools) {
+    display: flex; flex-flow: row wrap; gap: .375rem;
+    overflow: visible; height: auto; max-height: none; white-space: normal;
+  }
+  :is(.app-shell, .proposal-studio-shell, .owner-portal-shell, .vendor-portal-shell)
+    :is([role=tablist], [class$="-tabs"], .employee-home-nav, .vendor-portal-nav,
+      .owner-portal-nav, .proposal-step-rail, .contract-preview-nav, .file-category-grid,
+      .native-office-switcher) > :is(button, a) {
+    flex: 0 1 auto; min-width: 0; max-width: 100%; white-space: normal; height: auto;
+  }
+  .proposal-studio-shell .proposal-step-rail { flex-direction: column; }
+  .app-shell :is([class$="-actions"], [class$="-toolbar"], .records-tools,
+    .calendar-controls, .native-mail-toolbar, .native-calendar-toolbar, .gantt-legend) {
+    flex-wrap: wrap; height: auto; gap: .625rem;
+  }
+  .app-shell :is(.sales-form-grid, .field-grid, .form-grid, .accounting-form-grid,
+    .quality-form-grid, .owner-contract-form-grid, .marketing-form-grid,
+    .procurement-form-grid, .proposal-form-grid, .estimate-setup-grid,
+    .journal-header-grid, .preaward-commercial-terms, .meeting-setup-grid,
+    .selection-decision-grid, .employee-profile-form) {
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 14rem), 1fr));
+  }
+  :is(.app-shell, .modal-layer) :is(.wide, .field-wide, .sales-field-wide) { grid-column: 1 / -1; }
+  .app-shell :is(.sales-summary-grid, .sales-dashboard-metrics, .accounting-summary-grid,
+    .accounting-command-summary, .schedule-summary, .role-outcome-command,
+    .meeting-scorecard, .health-summary-grid, .financial-summary-grid,
+    .selection-date-bar, .closeout-category-grid) {
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 11rem), 1fr));
+  }
+
+  /* The five active stages form a compact board, with no outcome columns. */
+  .sales-workspace { container: sales / inline-size; }
+  .app-shell .funnel-board {
+    display: grid; grid-template-columns: repeat(5, minmax(0, 1fr));
+    grid-auto-flow: row; grid-auto-columns: auto; gap: .5rem;
+    width: 100%; padding: 0; overflow: visible; scroll-snap-type: none;
+    align-items: stretch;
+  }
+  .app-shell .funnel-column {
+    display: flex; flex-direction: column; height: auto; min-height: 0;
+    overflow: visible; border-radius: 6px;
+  }
+  .app-shell .funnel-column > header {
+    min-height: 3.5rem; padding: .5rem; gap: .375rem; align-items: flex-start;
+  }
+  .app-shell .funnel-column .stage-number { display: none; }
+  .app-shell .funnel-column > header strong { font-size: .8125rem; line-height: 1.3; }
+  .app-shell .funnel-column > header small { margin-top: .2rem; font-size: .75rem; line-height: 1.25; }
+  .app-shell .funnel-column .funnel-card-list {
+    display: grid; align-content: start; grid-auto-rows: minmax(3rem, auto);
+    gap: .25rem; padding: .375rem;
+    min-height: calc(10 * 3rem + 9 * .25rem + .75rem);
+    height: auto; max-height: none; overflow: visible; scrollbar-gutter: auto;
+  }
+  .app-shell .funnel-card-shell { display: flex; min-height: 3rem; }
+  .app-shell .funnel-card {
+    display: grid; grid-template-columns: minmax(0, 1fr) auto;
+    gap: .2rem .375rem; align-content: center; align-items: start;
+    padding: .375rem; border-radius: 4px; box-shadow: none;
+    min-height: 3rem; height: auto;
+  }
+  .app-shell .funnel-card > strong {
+    grid-column: 1 / -1; grid-row: 1; margin: 0; font-size: .875rem; line-height: 1.25;
+  }
+  .app-shell .funnel-card > .funnel-customer {
+    grid-column: 1 / -1; grid-row: 3; margin: 0; font-size: .75rem; line-height: 1.25;
+  }
+  .app-shell .funnel-card > .funnel-value {
+    grid-row: 2; grid-column: 1; margin: 0; font-size: .875rem !important;
+    line-height: 1.25; font-variant-numeric: tabular-nums; text-align: left;
+  }
+  .app-shell .funnel-card > .funnel-salesperson {
+    grid-row: 2; grid-column: 2; margin: 0; font-size: .75rem; text-align: right; line-height: 1.25;
+  }
+  .app-shell .funnel-summary { gap: .5rem; }
+  .app-shell .funnel-summary > article {
+    display: flex; flex-wrap: wrap; align-items: baseline; gap: .25rem .5rem;
+    min-height: 0; padding: .5rem .625rem;
+  }
+  .app-shell .funnel-summary > article > strong { font-size: 1rem; margin: 0; }
+  .app-shell .funnel-summary > article > span { font-size: .6875rem; }
+  .app-shell .funnel-summary > article > small { display: none; }
+  .sales-history-list { display: grid; gap: .5rem; margin-top: 1rem; }
+  .sales-history-list:empty::after { content: "No matching opportunities."; padding: 1rem; }
+  .sales-history-list > article { display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; border-bottom: 1px solid #dce0e4; padding-block: .5rem; }
+  .sales-history-list > article > button:first-child { flex: 1 1 18rem; display: grid; gap: .25rem; border: 0; background: #fff; text-align: left; padding: .5rem; }
+
+  /* Registers switch by their container width, including nested panels. */
+  [data-reflow-table] {
+    container: records / inline-size; min-width: 0 !important; max-width: 100%;
+    overflow: visible !important;
+  }
+  [data-reflow-row], [data-reflow-head] { min-width: 0 !important; max-width: 100%; }
+  [data-reflow-row] > * { min-width: 0; max-width: 100%; white-space: normal; }
+  .reflow-field { display: block; margin: 0; min-width: 0; max-width: 100%; }
+  .reflow-field > :is(input, select, textarea) { width: 100%; max-width: 100%; }
+  .app-shell :is(.contacts-table-wrap, .estimating-panel, .accounting-ledger-table,
+    .ap-table-wrap, .billing-table-wrap, .journal-register, .trial-balance-table,
+    .journal-line-table, .journal-detail-lines, .coordinated-project-ledger,
+    .payroll-register, .selection-sheet-scroll, .financial-table-wrap,
+    .template-review-panel, .access-panel, .sector-history-table,
+    .attendee-table, .estimate-table-shell, .estimate-override-table,
+    .visitor-safety-panel, .quote-comparison-scroll) { overflow: visible; max-height: none; }
+  .app-shell :is(.estimate-workspace-shell, .estimate-row, .estimate-editor,
+    .estimate-footer, .selection-sheet-empty, .executive-project-empty,
+    .access-panel-heading) { min-width: 0; max-width: 100%; }
+  .app-shell .estimate-list { display: grid; grid-template-columns: minmax(0, 1fr); }
+  .app-shell .estimate-row { grid-template-columns: repeat(auto-fit, minmax(min(100%, 12rem), 1fr)); height: auto; gap: .75rem; }
+  .app-shell .estimate-row > div:first-child { grid-column: 1 / -1; }
+  .app-shell .estimate-division-heading { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; height: auto; min-height: 2.75rem; }
+  .app-shell .estimate-header-actions { flex-shrink: 1; }
+  .app-shell .estimate-editor-content { overflow: auto; }
+  .app-shell .estimate-line input { height: 2.5rem; font-size: .875rem; }
+
+  /* Dashboard panels grow vertically rather than clipping rows or scrolling a rail. */
+  .app-shell.operations-app-mode .company-dashboard,
+  .app-shell.operations-app-mode .company-dashboard .dashboard-stack-board {
+    display: grid; height: auto; grid-template-rows: auto; overflow: visible;
+  }
+  .app-shell.operations-app-mode .company-dashboard .dashboard-role-grid {
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 14rem), 1fr));
+    overflow: visible; grid-auto-rows: auto;
+  }
+  .app-shell.operations-app-mode .company-dashboard .dashboard-role-card {
+    height: auto; min-height: 13rem; overflow: visible;
+  }
+  .app-shell .company-dashboard .dashboard-role-card :is(header, b, strong) {
+    white-space: normal; overflow: visible; text-overflow: clip;
+  }
+  .app-shell .company-dashboard .dashboard-role-card > div { overflow: visible; }
+  .app-shell.operations-app-mode .company-dashboard :is(.dashboard-today-command,
+    .dashboard-action-queue, .dashboard-field-command) { grid-row: auto; }
+  .app-shell.operations-app-mode .company-dashboard .dashboard-field-layout { grid-template-rows: auto; overflow: visible; }
+
+  .app-shell .monthly-sales-chart {
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 4.5rem), 1fr));
+    height: auto; gap: .75rem; overflow: visible; padding: .875rem;
+  }
+  .app-shell .month-column {
+    height: auto; min-height: 12rem; min-width: 0;
+    grid-template-rows: auto 9rem auto; gap: .25rem;
+  }
+  .app-shell .month-value { overflow-wrap: anywhere; }
+  .app-shell .month-bars { height: 9rem; }
+  .app-shell .design-lifecycle-lane,
+  .app-shell .quote-comparison-scroll { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 18rem), 1fr)); overflow: visible; }
+
+  /* Calendars keep date context when days stack. */
+  :is(.master-calendar-grid, .marketing-calendar, .native-calendar-canvas) { container: calendar / inline-size; overflow: visible !important; }
+  :is(.calendar-weekdays, .calendar-days, .marketing-calendar-weekdays,
+    .marketing-calendar-days, .native-calendar-canvas > header, .native-month-grid,
+    .native-agenda-view) { min-width: 0 !important; width: 100%; }
+  :is(.calendar-days, .marketing-calendar-days, .native-month-grid) { grid-template-columns: repeat(7, minmax(0, 1fr)); }
+  [data-calendar-date]::before { display: none; }
+  .app-shell :is(.calendar-event, .marketing-calendar-days article > div,
+    .native-month-grid article > div > button) { height: auto; white-space: normal; overflow: visible; }
+  .app-shell :is(.calendar-event span, .marketing-calendar-days article b,
+    .native-month-grid article > div > button span) { white-space: normal; overflow: visible; }
+
+  .app-shell .gantt-card { overflow: visible; }
+  .gantt-scroll { container: schedule / inline-size; min-width: 0; overflow: visible; }
+  .app-shell .gantt-grid { grid-template-columns: 13rem repeat(12, minmax(0, 1fr)); }
+  .app-shell .gantt-row { background: none; }
+  .app-shell .gantt-header > div { min-width: 0; overflow-wrap: anywhere; padding: .25rem; }
+  .app-shell .task-label { min-width: 0; height: auto; }
+  .app-shell .task-label input { width: 3.5rem; }
+  .app-shell .task-label strong { font-size: .8125rem; }
+  .app-shell .task-label span { font-size: .75rem; line-height: 1.4; }
+  .app-shell .gantt-bar { min-width: 0; }
+
+  /* Editors and previews remain usable without changing printed output. */
+  .proposal-studio-shell { width: 100%; max-width: 100vw; }
+  .proposal-studio-shell .proposal-studio-header {
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr)); height: auto;
+  }
+  .proposal-studio-shell :is(.proposal-studio-body, .proposal-editor-panel) { min-width: 0; }
+  .proposal-studio-shell :is(.proposal-price-card, .proposal-review-owner,
+    .owner-contact-subsection, .proposal-visual-controls, .proposal-design-startup > header) {
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 15rem), 1fr));
+  }
+  .proposal-studio-shell :is(.proposal-studio-footer, .proposal-studio-footer > div,
+    .proposal-mode-switch, .proposal-source-strip, .proposal-word-actions) { flex-wrap: wrap; overflow: visible; }
+  .proposal-studio-shell .proposal-editor-panel { overflow: auto; }
+  :is(.contract-pages, .formal-preview, .proposal-preview-panel, .owner-invoice-sov-wrap) { max-width: 100%; overflow: visible; }
+  :is(.contract-sheet, .owner-invoice-preview, .owner-doc-proposal-preview,
+    .owner-doc-engagement-preview, .formal-change-order-preview) { width: 100%; max-width: 100%; box-sizing: border-box; }
+  :is(.contract-sheet, .owner-invoice-preview, .owner-doc-proposal-preview,
+    .owner-doc-engagement-preview, .formal-change-order-preview) :is(p, td, th, span, strong) { overflow-wrap: anywhere; }
+  .contract-sheet table { width: 100%; table-layout: fixed; }
+  .contract-page-body { padding-inline: clamp(.75rem, 4vw, 2.75rem); }
+}
+
+@container sales (max-width: 64rem) {
+  .app-shell .funnel-board { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+@container sales (max-width: 42rem) {
+  .app-shell .funnel-board { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@container sales (max-width: 28rem) {
+  .app-shell .funnel-board { grid-template-columns: minmax(0, 1fr); }
+}
+
+@container calendar (max-width: 58rem) {
+  :is(.calendar-weekdays, .marketing-calendar-weekdays, .native-calendar-canvas > header) { display: none; }
+  :is(.calendar-days, .marketing-calendar-days, .native-month-grid) { grid-template-columns: minmax(0, 1fr); }
+  :is(.calendar-days, .marketing-calendar-days, .native-month-grid) > article.outside { display: none; }
+  :is(.calendar-days, .marketing-calendar-days, .native-month-grid) > article { min-height: 0 !important; padding: .75rem; }
+  [data-calendar-date]::before { display: block; content: attr(data-calendar-date); font-weight: 700; margin-bottom: .5rem; font-size: .875rem; }
+  .calendar-days > article > b:first-child,
+  .marketing-calendar-days > article > span:first-child { display: none; }
+}
+
+@container schedule (max-width: 60rem) {
+  .app-shell .gantt-grid { grid-template-columns: repeat(12, minmax(0, 1fr)); }
+  .app-shell .gantt-header > div:first-child { grid-column: 1 / -1; padding: .5rem; }
+  .app-shell .gantt-row { padding-bottom: .625rem; gap: .25rem 0; }
+  .app-shell .gantt-row .task-label { grid-column: 1 / -1; grid-row: 1; padding: .75rem .5rem; }
+  .app-shell .gantt-row :is(.gantt-bar, .baseline-bar) {
+    grid-column: var(--task-start) / span var(--task-span) !important;
+    grid-row: 2; position: relative; top: auto; margin: 0; align-self: start;
+  }
+  .app-shell .gantt-row .baseline-bar { grid-row: 3; }
+  .app-shell .gantt-scroll .today-line { display: none; }
+}
+
+@container workspace (max-width: 64rem) {
+  .app-shell :is(.accounting-control-grid, .sales-dashboard-grid, .health-layout,
+    .closeout-register-layout, .integration-connection-layout, .automation-health-layout,
+    .po-layout, .selection-layout, .incident-command-layout, .asset-layout,
+    .owner-approval-layout, .employee-calendar-layout, .employee-mail-layout,
+    .employee-service-layout, .employee-experience-layout, .employee-microsoft-grid,
+    .microsoft-files-layout, .my-work-role-command, .operating-action-grid,
+    .performance-layout, .meetings-layout, .live-meeting-grid) { grid-template-columns: minmax(0, 1fr); }
+  .app-shell.operations-app-mode .company-dashboard .dashboard-stack-board { grid-template-columns: minmax(0, 1fr); }
+  .app-shell.operations-app-mode .company-dashboard :is(.dashboard-role-status,
+    .dashboard-today-command, .dashboard-action-queue, .dashboard-field-command) { grid-column: 1; grid-row: auto; }
+}
+
+@media screen and (max-width: 960px) {
+  .proposal-studio-shell > .proposal-studio-body { grid-template-columns: minmax(0, 1fr); }
+  .proposal-studio-shell .proposal-step-rail { flex-direction: row; }
+  .app-shell .content { padding-inline: .875rem; }
+  .app-shell :is(.native-office-switcher, .native-folder-pane) { flex-wrap: wrap; overflow: visible; }
+}
+@media screen and (max-width: 600px) {
+  :is(.app-shell, .modal-layer, .proposal-studio-shell) :is(.field-grid, .form-grid,
+    .sales-form-grid, .proposal-form-grid, .accounting-form-grid, .quality-form-grid,
+    .owner-contract-form-grid, .procurement-form-grid) { grid-template-columns: minmax(0, 1fr); }
+  .app-shell :is(.meeting-control-row, .agenda-filter-row, .meeting-inline-form,
+    .selection-action-row, .financial-filter-row, .safety-upload-control,
+    .asset-upload, .asset-checklist > div, .calendar-agenda > article,
+    .native-agenda-view > article, .owner-contact-routing-panel > header) { grid-template-columns: minmax(0, 1fr); }
+  .app-shell .calendar-controls nav { width: 100%; margin: 0; grid-template-columns: 2.625rem minmax(0, 1fr) 2.625rem; }
+  .app-shell :is(.estimate-table-shell, .estimate-override-report, .estimate-notes-section) { margin-inline: .75rem; }
+  .app-shell :is(.estimate-workspace-intro, .estimate-workbook-heading) { padding-inline: .75rem; }
+  .app-shell .decision-priority { width: fit-content; max-width: 100%; white-space: normal; }
+}
+
+@container records (max-width: 124rem) {
+  [data-reflow-head="xl"] { display: none !important; }
+  [data-reflow-row="xl"] {
+    display: grid !important;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 12rem), 1fr)) !important;
+    grid-auto-flow: row; gap: .75rem 1rem; height: auto !important;
+    min-height: 0; padding: .875rem !important; text-align: left;
+    border-bottom: 1px solid #dce0e4;
+  }
+  [data-reflow-row="xl"] > [data-label] {
+    display: block; grid-column: auto !important; grid-row: auto !important;
+    width: auto; min-width: 0; max-width: 100%; height: auto;
+    white-space: normal !important; overflow: visible !important;
+    text-overflow: clip; text-align: left !important; position: static;
+  }
+  [data-reflow-row="xl"] > [data-label]::before {
+    display: block; content: attr(data-label); font-size: .75rem;
+    line-height: 1.4; font-weight: 650; color: #59616a;
+    letter-spacing: normal; text-transform: none; margin-bottom: .25rem;
+  }
+  [data-reflow-row="xl"] > [data-label]:first-child { grid-column: 1 / -1 !important; }
+  [data-reflow-row="xl"] :is(input:not([type=checkbox]):not([type=radio]), select, textarea) {
+    width: 100%; min-width: 0; max-width: 100%; min-height: 2.5rem;
+  }
+  .app-shell [data-reflow-row="xl"] :is(span, strong, small, b) { white-space: normal; }
+}
+
+@container records (max-width: 84rem) {
+  [data-reflow-head="wide"] { display: none !important; }
+  [data-reflow-row="wide"] {
+    display: grid !important;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 12rem), 1fr)) !important;
+    grid-auto-flow: row; gap: .75rem 1rem; height: auto !important;
+    min-height: 0; padding: .875rem !important; text-align: left;
+    border-bottom: 1px solid #dce0e4;
+  }
+  [data-reflow-row="wide"] > [data-label] {
+    display: block; grid-column: auto !important; grid-row: auto !important;
+    width: auto; min-width: 0; max-width: 100%; height: auto;
+    white-space: normal !important; overflow: visible !important;
+    text-overflow: clip; text-align: left !important; position: static;
+  }
+  [data-reflow-row="wide"] > [data-label]::before {
+    display: block; content: attr(data-label); font-size: .75rem;
+    line-height: 1.4; font-weight: 650; color: #59616a;
+    letter-spacing: normal; text-transform: none; margin-bottom: .25rem;
+  }
+  [data-reflow-row="wide"] > [data-label]:first-child { grid-column: 1 / -1 !important; }
+  [data-reflow-row="wide"] :is(input:not([type=checkbox]):not([type=radio]), select, textarea) {
+    width: 100%; min-width: 0; max-width: 100%; min-height: 2.5rem;
+  }
+  .app-shell [data-reflow-row="wide"] :is(span, strong, small, b) { white-space: normal; }
+}
+
+@container records (max-width: 64rem) {
+  [data-reflow-head="medium"] { display: none !important; }
+  [data-reflow-row="medium"] {
+    display: grid !important;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 12rem), 1fr)) !important;
+    grid-auto-flow: row; gap: .75rem 1rem; height: auto !important;
+    min-height: 0; padding: .875rem !important; text-align: left;
+    border-bottom: 1px solid #dce0e4;
+  }
+  [data-reflow-row="medium"] > [data-label] {
+    display: block; grid-column: auto !important; grid-row: auto !important;
+    width: auto; min-width: 0; max-width: 100%; height: auto;
+    white-space: normal !important; overflow: visible !important;
+    text-overflow: clip; text-align: left !important; position: static;
+  }
+  [data-reflow-row="medium"] > [data-label]::before {
+    display: block; content: attr(data-label); font-size: .75rem;
+    line-height: 1.4; font-weight: 650; color: #59616a;
+    letter-spacing: normal; text-transform: none; margin-bottom: .25rem;
+  }
+  [data-reflow-row="medium"] > [data-label]:first-child { grid-column: 1 / -1 !important; }
+  [data-reflow-row="medium"] :is(input:not([type=checkbox]):not([type=radio]), select, textarea) {
+    width: 100%; min-width: 0; max-width: 100%; min-height: 2.5rem;
+  }
+  .app-shell [data-reflow-row="medium"] :is(span, strong, small, b) { white-space: normal; }
+}
+
+@container records (max-width: 42rem) {
+  [data-reflow-head="small"] { display: none !important; }
+  [data-reflow-row="small"] {
+    display: grid !important;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 12rem), 1fr)) !important;
+    grid-auto-flow: row; gap: .75rem 1rem; height: auto !important;
+    min-height: 0; padding: .875rem !important; text-align: left;
+    border-bottom: 1px solid #dce0e4;
+  }
+  [data-reflow-row="small"] > [data-label] {
+    display: block; grid-column: auto !important; grid-row: auto !important;
+    width: auto; min-width: 0; max-width: 100%; height: auto;
+    white-space: normal !important; overflow: visible !important;
+    text-overflow: clip; text-align: left !important; position: static;
+  }
+  [data-reflow-row="small"] > [data-label]::before {
+    display: block; content: attr(data-label); font-size: .75rem;
+    line-height: 1.4; font-weight: 650; color: #59616a;
+    letter-spacing: normal; text-transform: none; margin-bottom: .25rem;
+  }
+  [data-reflow-row="small"] > [data-label]:first-child { grid-column: 1 / -1 !important; }
+  [data-reflow-row="small"] :is(input:not([type=checkbox]):not([type=radio]), select, textarea) {
+    width: 100%; min-width: 0; max-width: 100%; min-height: 2.5rem;
+  }
+  .app-shell [data-reflow-row="small"] :is(span, strong, small, b) { white-space: normal; }
+}
+
+@media screen {
+  .app-shell .quote-comparison-grid {
+    grid-auto-flow: row; grid-auto-columns: auto;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 18rem), 1fr));
+  }
+  .app-shell .quote-comparison-scroll { display: block; }
+  .cash-forecast-table { min-width: 0; width: 100%; }
+  .cash-forecast-row { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: .625rem; padding: .75rem; border-bottom: 1px solid #dce0e4; font-size: .875rem; }
+  .cash-forecast-row[data-reflow-head] { background: #f4f5f6; font-weight: 700; }
+  .cash-forecast-row .negative { color: #a52228; }
+  .owner-invoice-continuation table { width: 100%; min-width: 0; table-layout: fixed; }
+  .owner-invoice-continuation :is(td, th) { min-width: 0; overflow-wrap: anywhere; }
+  .app-shell :is(.native-mail-shell, .native-calendar-shell) { container: office / inline-size; }
+  .app-shell .native-mail-shell { grid-template-columns: minmax(8rem, .6fr) minmax(0, 1fr) minmax(0, 1.5fr); }
+  .app-shell .native-calendar-shell { grid-template-columns: minmax(0, 1fr) minmax(0, .4fr); }
+  .app-shell :is(.meeting-control-row, .agenda-filter-row, .meeting-inline-form,
+    .project-meeting-plan-row, .selection-action-row, .financial-filter-row,
+    .safety-upload-control, .asset-upload, .deletion-recovery-list article,
+    .onboarding-live-roles, .employee-resource-editor > article) {
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 13rem), 1fr));
+  }
+  .app-shell .billing-controls { grid-template-columns: repeat(auto-fit, minmax(min(100%, 12rem), 1fr)); }
+  .app-shell :is(.gantt-toolbar, .schedule-heading-actions, .calendar-controls nav,
+    .marketing-calendar > header, .employee-time-actions, .proposal-milestones article,
+    .proposal-scope-list header) { min-width: 0; max-width: 100%; }
+  .app-shell .proposal-milestones article { grid-template-columns: repeat(auto-fit, minmax(min(100%, 9rem), 1fr)); }
+  .app-shell .proposal-scope-list header { grid-template-columns: minmax(0, 1fr) auto minmax(0, 8rem); }
+  .app-shell .proposal-studio-header .proposal-mode-switch button { min-width: 0; white-space: normal; }
+  .app-shell .proposal-studio-header .proposal-mode-switch { min-width: 0; display: flex; flex-wrap: wrap; }
+  .app-shell .native-mail-toolbar > label { flex: 1 1 12rem; }
+  .app-shell .native-mail-shell :is(.native-folder-pane, .native-message-list, .native-reader-pane) { min-width: 0; }
+  .app-shell :is(.financial-table-scroll, .visitor-command-register, .safety-file-register, .employee-time-sheet) { overflow: visible; }
+  .app-shell :is(.crm-status, .status-badge, .mini-status) { white-space: normal; height: auto; max-width: 100%; }
+}
+@container workspace (max-width: 64rem) {
+  .app-shell :is(.native-mail-shell, .native-calendar-shell, .waiver-layout,
+    .people-management-grid, .procurement-layout, .safety-grid,
+    .microsoft-connection-handoff, .microsoft-identity-cutover, .microsoft-access-hero) { grid-template-columns: minmax(0, 1fr); }
+  .app-shell .native-folder-pane { display: flex; flex-flow: row wrap; overflow: visible; max-height: none; }
+  .app-shell .native-folder-pane > button { flex: 1 1 9rem; }
+}
+@container calendar (max-width: 58rem) {
+  .app-shell .native-agenda-view > section > button { grid-template-columns: auto minmax(0, 1fr); }
+  .app-shell .native-agenda-view > section > button > i { display: none; }
+  .app-shell .native-agenda-view > section > button > em { grid-column: 1 / -1; }
+}
+@container records (max-width: 124rem) {
+  .owner-invoice-continuation :is(table, tbody) { display: block; width: 100%; }
+  .owner-invoice-continuation thead { display: none; }
+  .owner-invoice-continuation :is(.owner-invoice-group-row, .owner-invoice-group-row > td) { display: block; }
+}
+@media screen and (max-width: 600px) {
+  .proposal-studio-shell :is(.proposal-scope-list header, .owner-contact-subsection,
+    .owner-doc-proposal-preview > footer, .owner-invoice-document-head,
+    .owner-invoice-summary-grid, .signature-columns) { grid-template-columns: minmax(0, 1fr); }
+  .proposal-studio-shell :is(.proposal-studio-footer > div, .proposal-word-actions) > button { flex: 1 1 10rem; }
+  .app-shell :is(.health-role-chain, .my-work-live-status, .home-date-rail,
+    .calendar-agenda > article, .onboarding-readiness-panel) { grid-template-columns: repeat(auto-fit, minmax(min(100%, 7rem), 1fr)); }
+}
+/* Only displayed for a failed live request; never substitutes for empty data. */
+.workspace-load-error {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: .5rem 1rem;
+  padding: .65rem .8rem;
+  margin-bottom: .75rem;
+  border: 1px solid #b42332;
+  border-radius: .4rem;
+  background: #fff1f2;
+  color: #8b1c27;
+}
+.workspace-load-error > span { flex: 1 1 15rem; min-width: 0; overflow-wrap: anywhere; }
+
+/* Keep the transparent native file control within its visible upload button. */
+.app-shell .upload-button { position: relative; }
+.app-shell .upload-button > input[type="file"] { inset: 0; width: 100%; max-width: 100%; height: 100%; min-width: 0; }
+@media screen {
+  .journal-line-row > label[data-label]::before { display: none; }
+}
+
+/* Keep phone actions above the fixed connectivity strip. Desktop wrapping
+   must not create a second header row beneath that strip. */
+@media screen and (max-width: 720px) {
+  .app-shell .topbar { height: 4.5rem; min-height: 4.5rem; flex-wrap: nowrap; }
+  .app-shell .topbar-actions { flex: 0 0 auto; flex-wrap: nowrap; }
+  .app-shell .project-switcher { flex: 1 1 0; }
+}
+
+/* Keep the cap sheet's actions at their natural height while its fields scroll. */
+@media screen {
+  .app-shell .estimate-editor > :is(.estimate-editor-header, .estimate-footer, .estimate-close-confirm) {
+    flex: 0 0 auto; height: auto;
+  }
+  .app-shell .estimate-editor > .estimate-editor-content { flex: 1 1 auto; min-height: 0; }
+  .app-shell .estimate-workspace-layer:has(.estimate-editor-layer) { overflow: hidden; }
+  .app-shell .estimate-workspace-stats {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 8rem), 1fr));
+    min-width: 0; max-width: 100%;
+  }
+  .app-shell .estimate-workspace-stats > span { min-width: 0; }
+  .app-shell .estimate-folder-row { grid-template-columns: 1rem 2.375rem minmax(0, 1fr) auto auto; }
+  .app-shell .live-estimate-file { grid-template-columns: 2.625rem minmax(0, 1fr) repeat(3, minmax(0, 7.5rem)); }
+}
+@media screen and (max-width: 600px) {
+  .app-shell .estimate-workspace-header { padding: .875rem; gap: .625rem; }
+  .app-shell .estimate-workspace-header > div { min-width: 0; }
+  .app-shell .estimate-workspace-close { flex: 0 0 2.25rem; }
+  .app-shell .estimate-folder-list { padding-inline: .75rem; }
+  .app-shell .estimate-folder-row { grid-template-columns: 1rem 2.375rem minmax(0, 1fr); }
+  .app-shell .estimate-folder-row > :is(small, .folder-open-label) { grid-column: 3; text-align: left; }
+  .app-shell .live-estimate-file { grid-template-columns: 2.625rem minmax(0, 1fr); gap: .625rem; }
+  .app-shell .live-estimate-file > :nth-child(n + 3) { grid-column: 2; }
+}
+/* Narrow document studios use one vertical flow, preserving the editor's
+   full height instead of compressing it beneath a wrapped section menu. */
+@media screen and (max-width: 960px) {
+  .proposal-studio-layer { display: block; overflow: auto; overscroll-behavior: contain; }
+  .proposal-studio-layer > .proposal-studio-shell {
+    display: flex; flex-direction: column; height: auto; min-height: 100dvh; overflow: visible;
+  }
+  .proposal-studio-shell > * { flex: 0 0 auto; }
+  .proposal-studio-shell > .proposal-studio-body { display: block; height: auto; min-height: 0; overflow: visible; }
+  .proposal-studio-shell .proposal-editor-panel { height: auto; min-height: 0; max-height: none; overflow: visible; }
+  .proposal-studio-shell .proposal-step-rail {
+    display: grid; grid-template-columns: repeat(2, minmax(0, 1fr));
+    height: auto; max-height: none; overflow: visible;
+  }
+  .proposal-studio-shell .proposal-step-rail button { min-width: 0; width: 100%; }
+  .proposal-studio-shell .proposal-studio-header { grid-template-columns: minmax(0, 1fr) auto; }
+  .proposal-studio-shell .proposal-studio-brand { grid-column: 1; grid-row: 1; }
+  .proposal-studio-shell .proposal-header-actions { grid-column: 2; grid-row: 1; }
+  .proposal-studio-shell .proposal-type-switch { grid-column: 1 / -1; grid-row: auto; }
+  .proposal-studio-shell .proposal-studio-brand strong { white-space: normal; overflow: visible; }
+  .proposal-studio-shell .proposal-studio-footer { height: auto; max-height: none; overflow: visible; }
+}

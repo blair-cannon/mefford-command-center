@@ -1,0 +1,1266 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>design_build_base</title>
+  <style>
+    html {
+      color: #1a1a1a;
+      background-color: #fdfdfd;
+    }
+    body {
+      margin: 0 auto;
+      max-width: 36em;
+      padding-left: 50px;
+      padding-right: 50px;
+      padding-top: 50px;
+      padding-bottom: 50px;
+      hyphens: auto;
+      overflow-wrap: break-word;
+      text-rendering: optimizeLegibility;
+      font-kerning: normal;
+    }
+    @media (max-width: 600px) {
+      body {
+        font-size: 0.9em;
+        padding: 12px;
+      }
+      h1 {
+        font-size: 1.8em;
+      }
+    }
+    @media print {
+      html {
+        background-color: white;
+      }
+      body {
+        background-color: transparent;
+        color: black;
+        font-size: 12pt;
+      }
+      p, h2, h3 {
+        orphans: 3;
+        widows: 3;
+      }
+      h2, h3, h4 {
+        page-break-after: avoid;
+      }
+    }
+    p {
+      margin: 1em 0;
+    }
+    a {
+      color: #1a1a1a;
+    }
+    a:visited {
+      color: #1a1a1a;
+    }
+    img {
+      max-width: 100%;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      margin-top: 1.4em;
+    }
+    h5, h6 {
+      font-size: 1em;
+      font-style: italic;
+    }
+    h6 {
+      font-weight: normal;
+    }
+    ol, ul {
+      padding-left: 1.7em;
+      margin-top: 1em;
+    }
+    li > ol, li > ul {
+      margin-top: 0;
+    }
+    blockquote {
+      margin: 1em 0 1em 1.7em;
+      padding-left: 1em;
+      border-left: 2px solid #e6e6e6;
+      color: #606060;
+    }
+    code {
+      font-family: Menlo, Monaco, Consolas, 'Lucida Console', monospace;
+      font-size: 85%;
+      margin: 0;
+      hyphens: manual;
+    }
+    pre {
+      margin: 1em 0;
+      overflow: auto;
+    }
+    pre code {
+      padding: 0;
+      overflow: visible;
+      overflow-wrap: normal;
+    }
+    .sourceCode {
+     background-color: transparent;
+     overflow: visible;
+    }
+    hr {
+      background-color: #1a1a1a;
+      border: none;
+      height: 1px;
+      margin: 1em 0;
+    }
+    table {
+      margin: 1em 0;
+      border-collapse: collapse;
+      width: 100%;
+      overflow-x: auto;
+      display: block;
+      font-variant-numeric: lining-nums tabular-nums;
+    }
+    table caption {
+      margin-bottom: 0.75em;
+    }
+    tbody {
+      margin-top: 0.5em;
+      border-top: 1px solid #1a1a1a;
+      border-bottom: 1px solid #1a1a1a;
+    }
+    th {
+      border-top: 1px solid #1a1a1a;
+      padding: 0.25em 0.5em 0.25em 0.5em;
+    }
+    td {
+      padding: 0.125em 0.5em 0.25em 0.5em;
+    }
+    header {
+      margin-bottom: 4em;
+      text-align: center;
+    }
+    #TOC li {
+      list-style: none;
+    }
+    #TOC ul {
+      padding-left: 1.3em;
+    }
+    #TOC > ul {
+      padding-left: 0;
+    }
+    #TOC a:not(:hover) {
+      text-decoration: none;
+    }
+    code{white-space: pre-wrap;}
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+    ul.task-list[class]{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
+  </style>
+</head>
+<body>
+<p><strong>MEFFORD CONTRACTING, LLC</strong></p>
+<p><strong>DESIGN-BUILD OWNER CONTRACT</strong></p>
+<p>Owner-Design-Builder Agreement | Two-Stage Design and Construction Delivery</p>
+<table>
+<colgroup>
+<col style="width: 100%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th><p><strong>CONTROLLED MASTER - MC-OWN-DBGMP-001 v0.2</strong></p>
+<p>Status: Draft for Counsel Review; not for execution. This master replaces the Construction Management owner-contract concept for future Mefford design-build projects. Design services are mandatory and included. Legal Review must approve the project-state addendum, insurance, professional-services structure, and all project elections before activation. Previously issued or executed documents are never changed by a later template version.</p></th>
+</tr>
+</thead>
+<tbody>
+</tbody>
+</table>
+<table>
+<colgroup>
+<col style="width: 28%" />
+<col style="width: 71%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th><strong>PROJECT TERM</strong></th>
+<th><strong>CONTROLLED VALUE</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>Owner legal name / entity</strong></td>
+<td>{{OWNER_LEGAL_NAME}} | {{OWNER_ENTITY_AND_STATE}}</td>
+</tr>
+<tr class="even">
+<td><strong>Project name / number</strong></td>
+<td>{{PROJECT_NAME}} | {{PROJECT_NUMBER}}</td>
+</tr>
+<tr class="odd">
+<td><strong>Project site / state</strong></td>
+<td>{{PROJECT_SITE_ADDRESS}} | {{PROJECT_STATE}}</td>
+</tr>
+<tr class="even">
+<td><strong>Agreement effective date</strong></td>
+<td>{{EFFECTIVE_DATE}}</td>
+</tr>
+<tr class="odd">
+<td><strong>Delivery method</strong></td>
+<td>Two-Stage Design-Build; Design Services INCLUDED</td>
+</tr>
+<tr class="even">
+<td><strong>Owner Criteria</strong></td>
+<td>{{OWNER_CRITERIA_ID_VERSION_AND_DATE}}</td>
+</tr>
+<tr class="odd">
+<td><strong>Design professional</strong></td>
+<td>{{DESIGN_PROFESSIONAL_LEGAL_NAME_LICENSE_AND_STATE}}</td>
+</tr>
+<tr class="even">
+<td><strong>Phase 1 authorization</strong></td>
+<td>{{PHASE_1_FIXED_FEE_OR_NTE}} | {{PHASE_1_COMPLETION_TARGET}}</td>
+</tr>
+<tr class="odd">
+<td><strong>Owner target budget</strong></td>
+<td>${{OWNER_TARGET_BUDGET}} [planning target until Amendment]</td>
+</tr>
+<tr class="even">
+<td><strong>GMP Exhibit A</strong></td>
+<td>Required before Phase 2 construction, except authorized Early Work</td>
+</tr>
+<tr class="odd">
+<td><strong>GMP / Design-Builder fee</strong></td>
+<td>${{GMP_AMOUNT_OR_TBD}} | {{DESIGN_BUILDER_FEE_PERCENT_OR_AMOUNT}}</td>
+</tr>
+<tr class="even">
+<td><strong>Final GMP Exhibit A controls</strong></td>
+<td>${{GMP_AMOUNT}} | {{FINAL_GMP_COST_BREAKDOWN_AND_SOV}}</td>
+</tr>
+<tr class="odd">
+<td><strong>Final design basis</strong></td>
+<td>{{FINAL_DESIGN_DOCUMENT_INDEX}} | {{FINAL_OWNER_CRITERIA_ID_VERSION_AND_DATE}}</td>
+</tr>
+<tr class="even">
+<td><strong>Allowances / contingencies</strong></td>
+<td>{{ALLOWANCES_AND_CONTINGENCIES}}</td>
+</tr>
+<tr class="odd">
+<td><strong>GMP assumptions / exclusions / clarifications</strong></td>
+<td>{{GMP_ASSUMPTIONS_EXCLUSIONS_AND_CLARIFICATIONS}}</td>
+</tr>
+<tr class="even">
+<td><strong>Substantial / final completion</strong></td>
+<td>{{SUBSTANTIAL_COMPLETION_DATE_OR_TBD}} | {{FINAL_COMPLETION_DATE_OR_TBD}}</td>
+</tr>
+<tr class="odd">
+<td><strong>Payment / retainage</strong></td>
+<td>{{PAYMENT_TERMS}} | {{RETAINAGE_TERMS}}</td>
+</tr>
+<tr class="even">
+<td><strong>State addendum</strong></td>
+<td>{{STATE_ADDENDUM_ID_AND_VERSION}}</td>
+</tr>
+<tr class="odd">
+<td><strong>Generated document control</strong></td>
+<td>{{PROJECT_DOCUMENT_ID}} | {{TEMPLATE_HASH}} | {{DOCUMENT_HASH_AT_EXECUTION}}</td>
+</tr>
+</tbody>
+</table>
+<h1 id="agreement-and-recitals">AGREEMENT AND RECITALS</h1>
+<p>This Design-Build Owner Contract (the "Agreement") is entered as of {{EFFECTIVE_DATE}} by and between {{OWNER_LEGAL_NAME}} ("Owner") and Mefford Contracting, LLC, a Kentucky limited liability company, 1585 Mercer Road, Suite 110, Lexington, Kentucky 40511 ("Design-Builder").</p>
+<p>Owner desires a single point of contractual responsibility for the coordinated design and construction of the Project. Design-Builder will perform construction and will retain properly licensed architects, engineers, and other design professionals for the professional services identified in the Contract Documents. The parties intend a two-stage process: Phase 1 establishes and validates the Owner Criteria, design, budget, schedule, and Design-Builder's Proposal; Phase 2 begins only after execution of GMP Exhibit A, except for expressly authorized Early Work.</p>
+<h1 id="contract-documents-definitions-and-control">1. CONTRACT DOCUMENTS, DEFINITIONS, AND CONTROL</h1>
+<p><strong>1.1 Contract Documents.</strong> The Contract Documents consist of this Agreement; the Project Terms; the Owner Criteria; the executed GMP Exhibit A; Exhibits B through G; the design and construction documents identified in GMP Exhibit A; the counsel-approved Project-state addendum; approved Change Orders and written directives; and other documents expressly incorporated by title, date, and version.</p>
+<p><strong>1.2 Order of Precedence.</strong> A later signed Change Order controls, followed by mandatory law and the Project-state addendum, the executed GMP Exhibit A, this Agreement, the Project Terms, Exhibits B through G, the approved Owner Criteria, the accepted Design-Builder's Proposal, and the Construction Documents. A specific requirement controls over a general requirement. A deviation from the Owner Criteria controls only when it is conspicuously identified and accepted in a signed Modification.</p>
+<p><strong>1.3 Independent Form.</strong> No published industry form, license, software term, proposal boilerplate, subcontract, purchase order, or design-professional agreement is incorporated unless expressly identified in Exhibit G. This Agreement is a Mefford-controlled form and does not reproduce or require an AIA form.</p>
+<p><strong>1.4 Key Definitions.</strong> Owner Criteria means the Owner's documented program, performance requirements, site information, budget, schedule, quality expectations, sustainability goals, and other requirements in the Owner Criteria attachment. Design Professional means each architect, engineer, or other professional retained by Design-Builder for services requiring licensure. Early Work means only the limited construction or procurement expressly authorized in Exhibit C. Phase 2 Work means the remaining design and construction authorized by GMP Exhibit A. Instruments of Service means drawings, models, specifications, calculations, studies, and similar professional work product.</p>
+<p><strong>1.5 Template and Record Integrity.</strong> The executed document shall retain its Template ID, template version, project document ID, exhibits, approvals, and final hash. An approved template revision applies only to documents generated after its effective date. No template update alters an issued or executed document; a project change requires a separate, signed, versioned Modification.</p>
+<h1 id="owner-criteria-and-project-team">2. OWNER CRITERIA AND PROJECT TEAM</h1>
+<p><strong>2.1 Owner Criteria.</strong> Owner shall approve the Owner Criteria attachment before Design-Builder proceeds beyond the authorized Phase 1 step. The Owner Criteria shall identify the program, site and physical characteristics, performance standards, aesthetics, target budget, schedule, required approvals, Owner-provided items, sustainability objectives, incentives, and known restrictions.</p>
+<p><strong>2.2 Target Budget.</strong> The Owner target budget is a planning constraint, not a Guaranteed Maximum Price. Design-Builder shall compare evolving design and market information to the target budget and report material variance. If the Owner Criteria cannot reasonably be achieved within the target budget, Owner shall timely select a scope, quality, schedule, funding, or procurement adjustment. No target-budget statement creates a guarantee before execution of GMP Exhibit A.</p>
+<p><strong>2.3 Design Professional Relationship.</strong> Design-Builder shall retain each Design Professional in writing and require licensing, insurance, intellectual-property rights, flow-down obligations, and standard-of-care terms sufficient for Design-Builder's obligations. Owner may identify a preferred professional, but Design-Builder is not required to accept a person to whom it reasonably objects. A professional first retained by Owner must be assigned or novated to Design-Builder, or governed by a counsel-approved responsibility matrix, before Design-Builder assumes responsibility for that professional's included services.</p>
+<p><strong>2.4 Representatives.</strong> Owner designates {{OWNER_AUTHORIZED_REPRESENTATIVE}} and Design-Builder designates {{DESIGN_BUILDER_AUTHORIZED_REPRESENTATIVE}}. Each representative may bind its party only within the authority recorded in the Owner Criteria and Project Terms. A representative change requires written notice and may not retroactively invalidate an authorized decision.</p>
+<p><strong>2.5 Owner Criteria Changes.</strong> A change, clarification, late decision, or omission in the Owner Criteria that affects design, procurement, cost, or time shall be documented and, when material, processed as a Change Order. Design development that is reasonably necessary to implement unchanged Owner Criteria is not by itself a compensable change.</p>
+<h1 id="design-builders-integrated-responsibilities">3. DESIGN-BUILDER'S INTEGRATED RESPONSIBILITIES</h1>
+<p><strong>3.1 Single Contractual Responsibility.</strong> Design-Builder is responsible to Owner for coordinating and performing the included design and construction through its employees, Design Professionals, consultants, subcontractors, and suppliers. This single point of responsibility does not cause Design-Builder to hold itself out as an architect or engineer or to perform professional services that law requires a licensed professional to perform.</p>
+<p><strong>3.2 Professional Standard of Care.</strong> Professional design services shall be performed with the ordinary professional skill and care exercised by similarly situated licensed professionals practicing under similar circumstances in the Project jurisdiction. No warranty or guarantee of perfect plans, code approval, budget, schedule, or outcome is created for professional services. Construction warranties do not elevate the professional standard of care.</p>
+<p><strong>3.3 Construction Standard.</strong> Construction shall be performed in a good and workmanlike manner, in accordance with the Contract Documents and applicable law. Design-Builder is responsible for construction means, methods, sequences, procedures, supervision, and site safety, except for means or methods expressly required by Owner over Design-Builder's written objection.</p>
+<p><strong>3.4 Licensing and Seals.</strong> Services requiring professional licensure shall be performed and, where required, signed and sealed by Design Professionals licensed in the Project jurisdiction and acting within their disciplines. Design-Builder shall maintain the Design Professional and license information identified in Exhibit B.</p>
+<p><strong>3.5 Coordination and Quality Control.</strong> Design-Builder shall coordinate disciplines, perform constructability and clash review appropriate to the agreed level of development, manage design decisions, maintain design and submittal schedules, and implement a documented quality-control process. Review by Owner or a governmental authority does not relieve Design-Builder of an obligation expressly assigned to it.</p>
+<p><strong>3.6 Reports.</strong> At the frequency stated in Exhibit F, Design-Builder shall report design status, unresolved decisions, schedule, procurement, submittals, permits, quality, safety, cost forecast, allowances, contingencies, changes, claims, and material risks. Internal labor rates, payroll burden, benefits, and margin remain confidential unless Exhibit E expressly requires a limited audit protocol.</p>
+<p><strong>3.7 Subcontractors and Consultants.</strong> Design-Builder may select qualified Design Professionals, consultants, subcontractors, and suppliers, subject only to reasonable, timely objections and any named firms in GMP Exhibit A. Owner is not a third-party beneficiary of their agreements and shall not direct them; communications affecting scope, price, time, professional judgment, or safety shall pass through Design-Builder.</p>
+<p><strong>3.8 Digital Information.</strong> Digital models, common data environments, and electronic exchanges shall be governed by the protocol in Exhibit B. Unless that protocol states otherwise, dimensions shall not be taken from a model in place of signed and sealed documents, reliance is limited to the authorized purpose and level of development, and each party is responsible for its own cybersecurity and access controls.</p>
+<h1 id="phase-1---criteria-design-preconstruction-and-early-work">4. PHASE 1 - CRITERIA, DESIGN, PRECONSTRUCTION, AND EARLY WORK</h1>
+<p><strong>4.1 Authorization.</strong> Phase 1 is limited to the services, deliverables, compensation, authorization ceiling, and schedule in Exhibit C. Design-Builder shall not exceed a fixed fee or not-to-exceed amount without written authorization. Project-specific hourly rates are taken from the locked annual rate schedule identified in Exhibit C unless a signed project override applies.</p>
+<p><strong>4.2 Criteria Evaluation.</strong> Design-Builder and the Design Professionals shall evaluate the Owner Criteria, available site and existing-condition information, applicable codes, permitting path, procurement risks, market conditions, constructability, schedule, and target budget. The evaluation shall identify assumptions, gaps, conflicts, and information Owner must provide.</p>
+<p><strong>4.3 Preliminary Design.</strong> After Owner authorizes design development, Design-Builder shall prepare the Phase 1 design deliverables stated in Exhibit B. Each submission shall identify deviations from the Owner Criteria, unresolved alternatives, estimated cost effect, schedule effect, and decisions required from Owner.</p>
+<p><strong>4.4 Progressive Estimate and Schedule.</strong> Design-Builder shall update the estimate and integrated design-construction schedule at the milestones in Exhibit C. Estimates shall separately identify design fees, general conditions, Design-Builder's Fee, allowances, contingencies, alternates, escalation assumptions, owner-direct purchases, exclusions, and uncertainty not yet priced.</p>
+<p><strong>4.5 Design-Builder's Proposal.</strong> When the design has reached the agreed basis-of-price milestone, Design-Builder shall submit a Proposal stating the proposed GMP, Design-Builder's Fee, design compensation, Cost of the Work breakdown, schedule, allowances, contingencies, assumptions, qualifications, exclusions, accepted alternates, key firms, bid coverage, expiration date, and list of the documents on which the Proposal is based.</p>
+<p><strong>4.6 Early Work.</strong> No construction, long-lead procurement, or binding subcontract commitment may occur before GMP Exhibit A except Early Work specifically described, priced, funded, insured, and authorized in writing in Exhibit C or a separate Early Work Amendment. Early Work authorization does not require Owner to accept the later Proposal and does not create a GMP for unapproved Work.</p>
+<p><strong>4.7 Phase Gate.</strong> Phase 2 is blocked until Owner and Design-Builder execute GMP Exhibit A and required financing, insurance, bonds, permits, approvals, and state addendum controls are satisfied. If the parties do not execute GMP Exhibit A, either may end the Project subject to Article 17 and payment of authorized Phase 1 and Early Work obligations.</p>
+<h1 id="design-build-amendment-and-guaranteed-maximum-price">5. DESIGN-BUILD AMENDMENT AND GUARANTEED MAXIMUM PRICE</h1>
+<p><strong>5.1 Required GMP Exhibit A.</strong> GMP Exhibit A becomes the construction authorization only when completed and signed by both parties. It shall identify the final pricing basis, GMP, Contract Time, baseline design documents, approved Owner Criteria, Schedule of Values, fee, design compensation, general conditions, allowances, contingencies, alternates, Early Work credits, prior payments, assumptions, exclusions, key firms, and required attachments.</p>
+<p><strong>5.2 GMP Meaning.</strong> When GMP Exhibit A states a GMP, the aggregate reimbursable Cost of the Work plus Design-Builder's Fee and other included compensation shall not exceed the GMP, subject to signed adjustments. Costs exceeding the adjusted GMP are borne by Design-Builder only to the extent they are included Cost of the Work and are not caused by a compensable change, Owner act or omission, differing condition, force majeure event, law change, allowance adjustment, or other relief under the Contract Documents.</p>
+<p><strong>5.3 Contingencies.</strong> Design-Builder contingency and Owner contingency are separate controlled amounts. Design-Builder contingency may be used only for costs within its stated risk purpose and shall be reported with each payment application. Owner contingency requires Owner authorization. Neither contingency expands scope or funds an Owner Criteria change without the required Change Order.</p>
+<p><strong>5.4 Buyout and Savings.</strong> Design-Builder shall maintain an open-book buyout log. Treatment of trade buyout variance, unused allowances, unused Design-Builder contingency, rebates, refunds, and final savings shall follow GMP Exhibit A. Savings shall not be calculated until all included costs, claims, closeout obligations, and authorized contingency uses are resolved.</p>
+<p><strong>5.5 Design Completion After GMP.</strong> Execution of GMP Exhibit A does not relieve Design-Builder from completing the included design consistent with its stated basis. Normal refinement within the approved Owner Criteria and basis-of-design is included; a material Owner-requested change or a previously undisclosed condition may adjust price and time under Article 9.</p>
+<h1 id="phase-2---design-completion-permitting-and-construction">6. PHASE 2 - DESIGN COMPLETION, PERMITTING, AND CONSTRUCTION</h1>
+<p><strong>6.1 Construction Documents.</strong> Design-Builder shall cause the Design Professionals to complete coordinated Construction Documents consistent with GMP Exhibit A and Owner Criteria. Design-Builder shall provide milestone sets to Owner for the limited review stated in Exhibit B and shall identify any material deviation before proceeding.</p>
+<p><strong>6.2 Owner Review.</strong> Owner review confirms general alignment with the Owner Criteria and business requirements. It is not a technical peer review, code review, quantity verification, professional certification, or acceptance of means and methods. Approval does not transfer design or construction responsibility to Owner, and failure to identify an error does not waive a requirement.</p>
+<p><strong>6.3 Permits and Authorities.</strong> Design-Builder shall coordinate and obtain the building permits and construction approvals allocated to it in Exhibit F. Owner shall obtain land-use, zoning, title, easement, utility, financing, and other Owner approvals unless expressly reassigned. Governmental comments caused by a new law, Owner Criteria change, or condition outside Design-Builder's responsibility are a change to the extent they affect cost or time.</p>
+<p><strong>6.4 Construction.</strong> After the Phase Gate is satisfied, Design-Builder shall furnish and coordinate labor, materials, equipment, supervision, temporary facilities, and services required for the included Work. Design-Builder shall inspect preceding work before covering it and shall maintain current field records and approved submittals.</p>
+<p><strong>6.5 Delegated Design.</strong> Delegated-design and performance-specification responsibilities shall be identified by discipline. A specialty subcontractor's delegated design shall be prepared by a properly licensed professional when required, coordinated by Design-Builder, and reviewed by the Design Professional of Record for conformance with the design concept and Contract Documents.</p>
+<p><strong>6.6 Substitutions and Value Analysis.</strong> A substitution or value-analysis proposal that may affect appearance, performance, operations, maintenance, warranty, code compliance, design intent, price, or time requires documented Design Professional review and Owner approval. Approval of a substitution does not waive Design-Builder's coordination responsibility.</p>
+<h1 id="compensation-cost-of-the-work-and-accounting">7. COMPENSATION, COST OF THE WORK, AND ACCOUNTING</h1>
+<p><strong>7.1 Phase 1 Compensation.</strong> Owner shall pay the Phase 1 compensation and reimbursable expenses stated in Exhibit C. Phase 1 amounts are separate from the Phase 2 GMP unless GMP Exhibit A expressly credits them.</p>
+<p><strong>7.2 Phase 2 Compensation.</strong> After execution of GMP Exhibit A, Owner shall pay the verified Cost of the Work, Design-Builder's Fee, design compensation, general conditions, and other amounts stated in GMP Exhibit A, subject to the adjusted GMP and the billing rules in Exhibit E.</p>
+<p><strong>7.3 Included Cost.</strong> Included Cost of the Work consists only of reasonable, necessary, project-specific costs described in Exhibit E, including eligible field labor and burden, Design Professionals and consultants, subcontractors, materials, equipment, temporary facilities, permits, testing, project technology, project-specific insurance and bonds, cleanup, and other approved categories.</p>
+<p><strong>7.4 Excluded Cost.</strong> Excluded costs include unapproved principal-office overhead already included in the Fee; costs caused by Design-Builder's failure to comply with the Contract Documents; fines caused by Design-Builder's violation of law; costs recovered from insurance, surety, warranty, or a responsible third party; and any category excluded in Exhibit E.</p>
+<p><strong>7.5 Labor and Rates.</strong> Labor shall be billed using the method selected in Exhibit E: actual allowable cost with approved burden, or controlled billing rates. The selected method shall be applied consistently. Confidential employee pay, benefits, burden, and internal profit remain protected; any audit may be satisfied through masked support or independent verification where reasonable.</p>
+<p><strong>7.6 Records and Audit.</strong> Design-Builder shall maintain detailed project records supporting reimbursable cost. Owner may audit relevant records on reasonable notice during the Project and for seven years after Final Payment, or the longer period stated in Exhibit E or required by law. Audit rights are subject to privilege, cybersecurity, confidentiality, and protection of unrelated company information. Corrections shall be made by auditable credit or charge, never by overwriting a prior record.</p>
+<p><strong>7.7 Related Parties and Credits.</strong> A reimbursable transaction with a related party shall be disclosed before commitment and priced on commercially reasonable terms. Project-specific trade discounts, rebates, refunds, insurance recoveries, sales of surplus materials, and other credits shall be applied as stated in Exhibit E.</p>
+<h1 id="payment-retainage-lien-controls-and-final-accounting">8. PAYMENT, RETAINAGE, LIEN CONTROLS, AND FINAL ACCOUNTING</h1>
+<p><strong>8.1 Applications for Payment.</strong> Design-Builder shall submit monthly applications in the controlled form and cutoff schedule in Exhibit E. Each application shall separately show design services, general conditions, Design-Builder's Fee, completed construction, properly stored materials, approved changes, allowances, contingencies, retainage, prior payments, and requested amount, with the agreed supporting records.</p>
+<p><strong>8.2 Schedule of Values.</strong> Before the first Phase 2 application, Design-Builder shall submit a Schedule of Values allocating the GMP among design and construction work. The Schedule of Values supports progress billing only and does not change scope, risk, fee, or entitlement.</p>
+<p><strong>8.3 Lien-Waiver Controls.</strong> Each application shall include only the jurisdiction-appropriate conditional progress waivers and prior-payment evidence required by Exhibit E. No unconditional waiver is signed or treated as effective before cleared payment. Final waivers are separate controlled documents. A waiver may not release claims, amounts, rights, or periods beyond those lawfully stated in the approved form.</p>
+<p><strong>8.4 Kentucky Payment Rule.</strong> For a Kentucky Project, a timely, properly completed, undisputed payment request is due within thirty business days, except where a statutory exception applies. Interest on an untimely undisputed amount accrues at twelve percent per annum beginning on the applicable statutory day, subject to the notice requirements then in force. The Project-state addendum controls outside Kentucky and for later legal changes.</p>
+<p><strong>8.5 Retainage.</strong> Retainage shall follow the Project Terms and mandatory law. For a Kentucky Project, retainage may not exceed ten percent until fifty percent completion and may not exceed five percent after fifty-one percent completion. Within thirty days after statutory Substantial Completion, retainage shall be released less up to two hundred percent of the reasonably estimated cost of contractually required incomplete work, subject to current law and the state addendum.</p>
+<p><strong>8.6 Withholding.</strong> Owner may withhold only a reasonable amount needed to protect against a specific documented deficiency, probable lien attributable to Design-Builder, failure of required insurance, unsupported cost, or other contractual basis. Owner shall identify the amount and basis in writing and pay all undisputed amounts. When the basis is cured, the withheld amount is promptly due.</p>
+<p><strong>8.7 Stored Materials and Title.</strong> Payment for stored materials requires identification, insurance, secure storage, title protection, and other controls in Exhibit E. Title to paid construction materials passes as stated there, but Design-Builder remains responsible for custody, protection, and installation until accepted.</p>
+<p><strong>8.8 Lower-Tier Payment.</strong> Design-Builder shall apply Owner payments to Project obligations and pay Design Professionals, consultants, subcontractors, and suppliers within the periods required by their agreements and applicable law. The Command Center shall prevent duplicate payment and retain the payment-to-waiver audit chain.</p>
+<p><strong>8.9 Final Payment.</strong> Final Payment is due after Final Completion, final accounting, required closeout, final lien controls, resolution of the final application, and other conditions in Exhibit F. Owner shall not delay undisputed final amounts solely because a lower-tier claimant refuses a form beyond legal or contractual requirements; Design-Builder may provide acceptable bond or security where permitted.</p>
+<p><strong>8.10 Suspension for Nonpayment.</strong> After required notice and cure periods, Design-Builder may suspend affected Work for nonpayment of an undisputed amount and receive a reasonable adjustment for shutdown, delay, escalation, remobilization, and time, to the extent permitted by law.</p>
+<h1 id="changes-allowances-contingency-and-value-analysis">9. CHANGES, ALLOWANCES, CONTINGENCY, AND VALUE ANALYSIS</h1>
+<p><strong>9.1 Written Changes.</strong> A material change in Owner Criteria, scope, price, fee, design services, schedule, risk allocation, or GMP Exhibit A requires a written Change Order signed by authorized representatives, except emergency work or a written directive under Section 9.2.</p>
+<p><strong>9.2 Directed Work.</strong> Owner may issue a written directive for disputed or time-sensitive work within the general scope before price and time are agreed. The directive shall identify the work and interim pricing method. Design-Builder shall maintain contemporaneous records, and undisputed verified cost may be included in a payment application without waiving either party's position.</p>
+<p><strong>9.3 Pricing.</strong> Change pricing may use an agreed lump sum, controlled unit price, documented cost plus the fee stated in Exhibit E, or another written method. Pricing shall separately identify design, labor, material, equipment, subcontractor tiers, insurance, bond, tax, fee, and schedule effect.</p>
+<p><strong>9.4 Allowances.</strong> Allowances cover only the items and cost components stated in GMP Exhibit A. Owner shall make selections by the required dates. An allowance adjustment includes the difference between the allowance and authorized actual cost plus only the fee or markup stated in Exhibit E.</p>
+<p><strong>9.5 Contingency Use.</strong> Each contingency use shall state the event, responsible risk category, amount, remaining balance, and whether price or time changes. Monthly reporting does not itself constitute Owner approval where approval is required.</p>
+<p><strong>9.6 Value Analysis.</strong> Accepted value-analysis items shall be recorded with the changed basis of design, cost, schedule, warranty, life-cycle, maintenance, and code effects. No savings is recognized by deleting required performance without Owner's informed written approval and Design Professional validation.</p>
+<h1 id="owner-responsibilities-and-limited-review">10. OWNER RESPONSIBILITIES AND LIMITED REVIEW</h1>
+<p><strong>10.1 Information and Site Rights.</strong> Owner shall provide legal access; accurate title, easement, survey, existing-condition, utility, geotechnical, environmental, hazardous-material, and other information allocated to Owner; and timely rights for investigation and construction. Design-Builder may rely on Owner-provided information except for conflicts a qualified Design Professional should reasonably identify.</p>
+<p><strong>10.2 Decisions and Approvals.</strong> Owner shall make decisions, selections, and reviews within the durations in the Owner Criteria and Project Terms. Delay, reversal, or failure to decide may adjust cost and time. Owner's approval is for its own business and Owner Criteria purposes and does not assume professional design, code, coordination, means-and-methods, or safety responsibility.</p>
+<p><strong>10.3 Financing.</strong> Upon reasonable request before Phase 2, after a material increase, or following a payment default or other reasonable concern, Owner shall provide evidence of financial arrangements sufficient for its obligations. Owner shall give notice before materially changing those arrangements.</p>
+<p><strong>10.4 Owner Consultants and Separate Contractors.</strong> Owner shall identify and coordinate its consultants, vendors, direct-purchase suppliers, and separate contractors. Their late information, interference, defective work, or failure to follow the integrated schedule is an Owner-caused event to the extent it affects Design-Builder.</p>
+<p><strong>10.5 Direct Communications.</strong> Owner shall not direct a Design Professional, consultant, subcontractor, or supplier concerning scope, professional judgment, price, time, safety, or means and methods. An emergency communication shall be promptly documented through Design-Builder.</p>
+<p><strong>10.6 Taxes and Direct Purchase.</strong> If Owner uses tax-exempt or direct-purchase procedures, Owner shall provide current certificates, timely funding, delivery coordination, title and insurance information, and other required documents. The resulting savings and added administration shall be treated as stated in Exhibit E.</p>
+<h1 id="time-delay-fast-track-work-and-occupancy">11. TIME, DELAY, FAST-TRACK WORK, AND OCCUPANCY</h1>
+<p><strong>11.1 Contract Time.</strong> The Contract Time and milestone dates become binding only as stated in GMP Exhibit A. The integrated schedule shall include design, Owner review, permitting, procurement, construction, commissioning, training, and closeout.</p>
+<p><strong>11.2 Excusable Delay.</strong> Design-Builder is entitled to reasonable time adjustment for causes beyond its control, including unusually severe weather, casualty, epidemic, labor or transportation disruption, supply interruption, governmental action, concealed conditions, Owner or Owner-consultant delay, separate-contractor interference, and other causes stated in Exhibit F.</p>
+<p><strong>11.3 Compensable Delay.</strong> Cost recovery follows the cause, applicable law, and the Contract Documents. Nothing waives Design-Builder's right to cost, time, damages, or equitable adjustment for delay within Owner's control where such waiver is prohibited. Recoverable categories may be defined in Exhibit F.</p>
+<p><strong>11.4 Notice and Mitigation.</strong> The affected party shall promptly notify the other of a material delay, its known cause, expected effect, and mitigation. Failure to give notice bars relief only to the extent the other party is materially prejudiced, unless mandatory law or the state addendum requires a different result.</p>
+<p><strong>11.5 Fast-Track and Phased Work.</strong> If Owner authorizes construction before design completion, GMP Exhibit A shall identify the design assumptions, bid-package boundaries, required decision dates, and risks retained by each party. A later Owner Criteria change or design decision affecting released work may adjust price and time.</p>
+<p><strong>11.6 Liquidated Damages.</strong> Liquidated damages apply only when GMP Exhibit A states a completed daily amount, covered milestone, grace or concurrency rules, and cap. They are intended as a reasonable estimate rather than a penalty and are the exclusive Owner time-related remedy for the covered delay, subject to counsel approval and applicable law.</p>
+<p><strong>11.7 Partial Occupancy.</strong> Before partial occupancy, the parties shall document the condition of the area and allocate responsibility for access, safety, security, utilities, maintenance, insurance, warranties, punch work, and interference. Partial use alone is not acceptance or Substantial Completion.</p>
+<h1 id="safety-site-conditions-testing-and-hazardous-materials">12. SAFETY, SITE CONDITIONS, TESTING, AND HAZARDOUS MATERIALS</h1>
+<p><strong>12.1 Safety.</strong> Design-Builder is responsible for its construction safety program, precautions, sequencing, and means and methods. Each Owner separate contractor remains responsible for its own safety and shall coordinate with site rules. Owner shall not direct unsafe work.</p>
+<p><strong>12.2 Concealed Conditions.</strong> A materially differing concealed or unknown physical condition shall be documented before disturbance when practicable. Design-Builder shall protect the area and is entitled to an equitable adjustment where the condition was not reasonably inferable from disclosed information, investigation obligations, and ordinary conditions for comparable work.</p>
+<p><strong>12.3 Hazardous Materials.</strong> Unless expressly included, Design-Builder is not responsible for testing, design, removal, transport, or remediation of preexisting hazardous materials. Upon discovery, affected work may stop until a qualified party addresses the condition. Reasonable resulting cost and time are a change unless Design-Builder introduced the material through its negligent act.</p>
+<p><strong>12.4 Testing and Inspections.</strong> Testing, special inspections, commissioning, and regulatory inspections are allocated in Exhibit F. Failed tests attributable to nonconforming Work are Design-Builder's responsibility; added tests not required by the Contract Documents are Owner's responsibility unless they reveal nonconformance.</p>
+<p><strong>12.5 Emergencies.</strong> In an emergency threatening persons or property, Design-Builder may act without prior approval to prevent harm, shall notify Owner promptly, and shall document reasonable cost and time for treatment under Article 9.</p>
+<h1 id="insurance-professional-liability-builders-risk-and-bonds">13. INSURANCE, PROFESSIONAL LIABILITY, BUILDER'S RISK, AND BONDS</h1>
+<p><strong>13.1 Design-Builder Insurance.</strong> Design-Builder shall maintain workers' compensation, employers' liability, commercial general liability, automobile liability, umbrella or excess liability, and any pollution, cyber, or other coverage selected in Exhibit F. Certificates and required endorsements shall be provided before exposure begins and upon renewal.</p>
+<p><strong>13.2 Professional Liability.</strong> Each Design Professional shall maintain professional liability insurance at the limits, retroactive date, and completed-services period in Exhibit F. If Design-Builder maintains contractor's professional or protective coverage, Exhibit F shall state whether it is primary, excess, or project-specific.</p>
+<p><strong>13.3 Builder's Risk.</strong> Owner shall purchase and maintain replacement-cost builder's risk covering the Work, stored materials, transit, temporary work, and the interests of Owner, Design-Builder, Design Professionals, subcontractors, and suppliers unless Exhibit F expressly assigns that obligation to Design-Builder. Deductibles and excluded perils are allocated there.</p>
+<p><strong>13.4 Waiver of Subrogation.</strong> To the extent a loss is covered by required property insurance, Owner and Design-Builder waive recovery against each other and require equivalent waivers from covered project participants, except for rights to insurance proceeds and losses caused by willful misconduct to the extent a waiver is not permitted.</p>
+<p><strong>13.5 Bonds.</strong> Payment and performance bonds are not included unless Exhibit F states the form, penal sum, surety requirements, and premium treatment. No certificate of insurance creates coverage or changes a policy.</p>
+<h1 id="substantial-completion-warranty-and-closeout">14. SUBSTANTIAL COMPLETION, WARRANTY, AND CLOSEOUT</h1>
+<p><strong>14.1 Substantial Completion.</strong> Substantial Completion occurs when the Work or agreed portion is sufficiently complete for its intended use and the regulatory approvals, warranties, documentation, training, and other statutory and contractual prerequisites identified in Exhibit F are satisfied. Design-Builder shall submit a completion list and proposed certificate.</p>
+<p><strong>14.2 Punch and Final Completion.</strong> The certificate shall allocate security, utilities, maintenance, property insurance, warranties, incomplete work, and the time for completion. Final Completion occurs after correction or completion of all remaining Contract Work and delivery of the final closeout package.</p>
+<p><strong>14.3 Construction Correction Period.</strong> For one year after Substantial Completion, or the longer period in a specific warranty, Design-Builder shall correct nonconforming construction reported in writing. The obligation excludes ordinary wear, abuse, improper maintenance or operation, unauthorized modification, and Owner-provided work.</p>
+<p><strong>14.4 Professional Services.</strong> Claims involving professional design are governed by the professional standard of care, not the construction correction period or a warranty of perfect plans. No provision shortens a nonwaivable statutory limitation or repose period.</p>
+<p><strong>14.5 Closeout.</strong> Design-Builder shall provide the record documents, Design Professional certifications, permits, testing and commissioning results, warranties, operations and maintenance data, training records, spare materials, keys, electronic files, and payment-specific lien documents listed in Exhibit F.</p>
+<h1 id="instruments-of-service-license-and-data">15. INSTRUMENTS OF SERVICE, LICENSE, AND DATA</h1>
+<p><strong>15.1 Ownership.</strong> Design-Builder, Design Professionals, consultants, and specialty designers retain their respective copyrights and reserved rights in Instruments of Service. Submission for regulatory review or Project use does not transfer authorship or publish the work in derogation of those rights.</p>
+<p><strong>15.2 Project License.</strong> Upon payment of amounts due for the applicable Instruments of Service, Owner receives a nonexclusive license to use them solely to construct, occupy, operate, maintain, repair, alter, and add to this Project. The license includes use by Owner's consultants and contractors for those Project purposes, subject to the restrictions and risk allocation in Exhibit B.</p>
+<p><strong>15.3 Termination License.</strong> If the Agreement ends other than for Owner's uncured default, Owner may continue the Project using paid-for Instruments of Service after satisfying the transfer conditions in Exhibit B. If Owner changes or uses them without the responsible professional, Owner assumes the resulting risk except to the extent caused by an original error or omission.</p>
+<p><strong>15.4 Native Files and Models.</strong> Deliverable formats, model ownership, level of development, reliance, record-set status, and native-file treatment are stated in Exhibit B. A model or native file is not a record document unless expressly designated, and reuse on another project is prohibited without written permission.</p>
+<h1 id="indemnity-consequential-damages-and-liability">16. INDEMNITY, CONSEQUENTIAL DAMAGES, AND LIABILITY</h1>
+<p><strong>16.1 Third-Party Indemnity.</strong> To the fullest extent permitted by law, each party shall indemnify the other from a third-party claim for bodily injury or tangible property damage, but only to the extent caused by the indemnifying party's negligent act or omission, willful misconduct, or breach of a nondelegable legal duty. No party indemnifies another for the indemnitee's own negligence where prohibited, and no professional is required to defend or indemnify beyond lawful responsibility.</p>
+<p><strong>16.2 Professional Claims.</strong> Design-Builder is responsible for included professional services through the applicable standard of care. Design-Builder may satisfy a professional claim through the responsible Design Professional and available professional liability insurance, but delegation does not eliminate Design-Builder's contractual coordination responsibility to Owner.</p>
+<p><strong>16.3 Consequential Damages.</strong> To the fullest extent permitted by law, Owner and Design-Builder waive consequential, indirect, incidental, exemplary, and punitive damages arising from the Project, including loss of use, financing, business, reputation, and profit not earned directly under this Agreement. The waiver does not apply to fraud, willful misconduct, a covered third-party indemnity, or liquidated damages expressly stated in GMP Exhibit A.</p>
+<p><strong>16.4 Liability Cap.</strong> To the fullest extent permitted by law, Design-Builder's aggregate liability arising from the Project shall not exceed the adjusted GMP, excluding unpaid contract obligations, fraud, willful misconduct, covered third-party indemnity to the extent of available insurance, and obligations that cannot lawfully be limited. The Project-state addendum and counsel-approved project terms may establish separate professional or environmental sublimits.</p>
+<h1 id="suspension-and-termination">17. SUSPENSION AND TERMINATION</h1>
+<p><strong>17.1 Owner Suspension.</strong> Owner may suspend Work by written notice. Design-Builder is entitled to an equitable adjustment for resulting design impact, protection, delay, escalation, demobilization, remobilization, storage, and extended general conditions, unless the suspension results from Design-Builder's uncured material breach.</p>
+<p><strong>17.2 Phase 1 Termination.</strong> Before execution of GMP Exhibit A, either party may end the Project on seven days' notice unless Exhibit C states a different period. Owner shall pay authorized services, reimbursable expenses, Early Work, noncancelable commitments, termination cost, and the license or transfer amount for Instruments of Service Owner elects to use.</p>
+<p><strong>17.3 Termination for Cause.</strong> After written notice describing a material breach and a reasonable opportunity to cure, a party may terminate if the breach continues. Insolvency, prolonged shutdown, safety emergency, loss of required license or insurance, or repeated nonpayment may support shorter action to the extent allowed by law and the state addendum.</p>
+<p><strong>17.4 Owner Termination for Convenience.</strong> Owner may terminate for convenience by written notice. Owner shall pay for Work performed, properly committed and cancellation costs, protection, demobilization, closeout, Design-Builder's Fee earned on performed Work, and {{TERMINATION_FEE_OR_NONE}}. Anticipated profit on unperformed Work is excluded unless GMP Exhibit A expressly states otherwise.</p>
+<p><strong>17.5 Assignment and Transition.</strong> Upon a proper Owner termination and payment of required amounts, Design-Builder shall reasonably assist transition and, subject to Design Professional consent, surety rights, and assumption of obligations, assign the project agreements Owner identifies. Owner shall not use an agreement or Instrument of Service without assuming the related payment and use conditions.</p>
+<p><strong>17.6 Suspension for Owner Default.</strong> After required notice, Design-Builder may suspend or terminate for nonpayment, failure to provide financing evidence, denial of access, prolonged Owner suspension, or other material Owner default, with the compensation and time rights stated in this Article and applicable law.</p>
+<h1 id="claims-mediation-governing-law-and-venue">18. CLAIMS, MEDIATION, GOVERNING LAW, AND VENUE</h1>
+<p><strong>18.1 Project-Level Resolution.</strong> Authorized project representatives shall first meet in good faith. If unresolved, executives with settlement authority shall meet. Work and undisputed payment continue during the dispute unless unsafe, impossible, suspended under the Contract Documents, or otherwise agreed.</p>
+<p><strong>18.2 Notice of Claim.</strong> A party shall give prompt written notice of a claim, stating known facts, requested relief, and expected cost or time effect. A continuing event requires reasonable updates. Late notice limits recovery only to the extent of material prejudice, except where a controlling state addendum requires a different result.</p>
+<p><strong>18.3 Mediation.</strong> Before litigation, the parties shall participate in nonbinding mediation with a mutually selected construction mediator. Filing may occur when necessary to preserve a right, lien, limitation period, or emergency remedy, but the parties shall request a stay when appropriate to complete mediation.</p>
+<p><strong>18.4 Binding Forum.</strong> Unless Exhibit G contains a counsel-approved arbitration election signed by both parties, unresolved disputes are decided by litigation in a court of competent jurisdiction. No mediation or notice clause waives statutory lien, bond, payment, or litigation rights that cannot lawfully be waived.</p>
+<p><strong>18.5 Law and Venue.</strong> Governing law and venue are {{GOVERNING_LAW_AND_VENUE}}, subject to mandatory law of the Project location. For a Kentucky Project, the default venue is Fayette County, Kentucky, unless the Project Terms or state addendum states another counsel-approved venue.</p>
+<p><strong>18.6 Fees.</strong> A prevailing party may recover reasonable attorneys' fees and costs only to the extent permitted by applicable law and the Project-state addendum.</p>
+<h1 id="notices-electronic-transactions-and-miscellaneous">19. NOTICES, ELECTRONIC TRANSACTIONS, AND MISCELLANEOUS</h1>
+<p><strong>19.1 Notices.</strong> Formal notices shall be sent to Exhibit G by personal delivery, nationally recognized overnight delivery, certified mail, or a controlled electronic system that records sender, recipient, content, and delivery. Routine project communication is not formal notice unless it clearly states that it is notice under this Agreement.</p>
+<p><strong>19.2 Electronic Records and Signatures.</strong> The parties consent to electronic records, counterparts, and signatures to the extent recognized by applicable law. The authoritative executed package includes the completed Agreement, exhibits, addenda, signature evidence, audit record, and final document hash.</p>
+<p><strong>19.3 Command Center.</strong> Mefford Project Command may administer Owner Criteria, decisions, design reviews, changes, payment applications, lien documents, notices, and closeout. A system record changes the Contract only when authorized as a signed Modification. Access, approval, and audit history shall be preserved.</p>
+<p><strong>19.4 Confidentiality.</strong> A party receiving information marked or reasonably understood as confidential shall protect it and use it only for the Project, except disclosure to persons with a need to know who are bound by similar duties, or disclosure required by law after reasonable notice when permitted.</p>
+<p><strong>19.5 Entire Agreement and Amendment.</strong> The Contract Documents are the complete agreement and supersede prior representations concerning their subject. An amendment or waiver must be written and signed by the party against whom enforcement is sought. Delay in enforcement is not a continuing waiver.</p>
+<p><strong>19.6 Assignment.</strong> Neither party may assign the Agreement without the other's written consent, except to a lender, surety, successor, or affiliate that assumes the obligations and does not materially impair the other party's rights.</p>
+<p><strong>19.7 No Personal Liability.</strong> No owner, member, manager, officer, employee, or representative is personally liable solely by signing for an entity. A personal guaranty exists only in a separate counsel-approved exhibit that identifies the guarantor and is separately signed.</p>
+<p><strong>19.8 Severability, Independent Contractor, and Counterparts.</strong> An unenforceable provision shall be enforced to the maximum lawful extent or severed without invalidating the remainder. Design-Builder is an independent contractor. The Agreement may be executed in counterparts, each treated as an original and together one instrument.</p>
+<h1 id="signatures">SIGNATURES</h1>
+<p>The parties execute this Agreement only after the Project Terms, Owner Criteria, Exhibits B, C and G, required state addendum, and legal approvals are complete. GMP Exhibit A is executed separately when the Phase 2 scope, GMP, and Contract Time are approved.</p>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th><strong>DESIGN-BUILDER</strong></th>
+<th><strong>OWNER</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>Mefford Contracting, LLC</strong></td>
+<td>{{OWNER_LEGAL_NAME}}</td>
+</tr>
+<tr class="even">
+<td><strong>By: {{DESIGN_BUILDER_SIGNATORY}}</strong></td>
+<td>By: {{OWNER_SIGNATORY}}</td>
+</tr>
+<tr class="odd">
+<td><strong>Title: {{DESIGN_BUILDER_SIGNATORY_TITLE}}</strong></td>
+<td>Title: {{OWNER_SIGNATORY_TITLE}}</td>
+</tr>
+<tr class="even">
+<td><strong>Signature: {{DESIGN_BUILDER_SIGNATURE}}</strong></td>
+<td>Signature: {{OWNER_SIGNATURE}}</td>
+</tr>
+<tr class="odd">
+<td><strong>Date: {{DESIGN_BUILDER_SIGNATURE_DATE}}</strong></td>
+<td>Date: {{OWNER_SIGNATURE_DATE}}</td>
+</tr>
+<tr class="even">
+<td><strong>Email: {{DESIGN_BUILDER_NOTICE_EMAIL}}</strong></td>
+<td>Email: {{OWNER_NOTICE_EMAIL}}</td>
+</tr>
+</tbody>
+</table>
+<h1 id="owner-criteria-and-project-terms">OWNER CRITERIA AND PROJECT TERMS</h1>
+<table>
+<colgroup>
+<col style="width: 100%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th><p><strong>OWNER CRITERIA CONTROL</strong></p>
+<p>Owner and Design-Builder must approve a single versioned Owner Criteria record. A later criterion, decision, or deviation is not effective unless the change history identifies its cost and schedule treatment.</p></th>
+</tr>
+</thead>
+<tbody>
+</tbody>
+</table>
+<table>
+<colgroup>
+<col style="width: 32%" />
+<col style="width: 67%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th><strong>OWNER CRITERION</strong></th>
+<th><strong>APPROVED PROJECT REQUIREMENT</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>Project program / intended use</strong></td>
+<td>{{PROJECT_PROGRAM_AND_INTENDED_USE}}</td>
+</tr>
+<tr class="even">
+<td><strong>Site and physical characteristics</strong></td>
+<td>{{SITE_PHYSICAL_CHARACTERISTICS_AND_REPORTS}}</td>
+</tr>
+<tr class="odd">
+<td><strong>Space allocation / minimum area</strong></td>
+<td>{{SPACE_PROGRAM_AND_MINIMUM_AREA}}</td>
+</tr>
+<tr class="even">
+<td><strong>Performance and quality standards</strong></td>
+<td>{{PERFORMANCE_AND_QUALITY_REQUIREMENTS}}</td>
+</tr>
+<tr class="odd">
+<td><strong>Aesthetic / branding requirements</strong></td>
+<td>{{AESTHETIC_AND_BRAND_REQUIREMENTS}}</td>
+</tr>
+<tr class="even">
+<td><strong>Target budget and inclusions</strong></td>
+<td>${{OWNER_TARGET_BUDGET}} | {{BUDGET_INCLUSIONS_AND_EXCLUSIONS}}</td>
+</tr>
+<tr class="odd">
+<td><strong>Owner funding / lender controls</strong></td>
+<td>{{FUNDING_AND_LENDER_REQUIREMENTS}}</td>
+</tr>
+<tr class="even">
+<td><strong>Design milestones</strong></td>
+<td>{{DESIGN_MILESTONES}}</td>
+</tr>
+<tr class="odd">
+<td><strong>Construction milestones</strong></td>
+<td>{{CONSTRUCTION_MILESTONES}}</td>
+</tr>
+<tr class="even">
+<td><strong>Owner review durations</strong></td>
+<td>{{OWNER_REVIEW_DAYS_BY_SUBMISSION}}</td>
+</tr>
+<tr class="odd">
+<td><strong>Sustainability / incentives</strong></td>
+<td>{{SUSTAINABILITY_AND_INCENTIVE_REQUIREMENTS_OR_NONE}}</td>
+</tr>
+<tr class="even">
+<td><strong>Owner-provided surveys / reports</strong></td>
+<td>{{OWNER_PROVIDED_INFORMATION_INDEX}}</td>
+</tr>
+<tr class="odd">
+<td><strong>Owner-furnished items / FF&amp;E</strong></td>
+<td>{{OWNER_FURNISHED_ITEMS_AND_FFE}}</td>
+</tr>
+<tr class="even">
+<td><strong>Owner separate contractors</strong></td>
+<td>{{OWNER_SEPARATE_CONTRACTORS_OR_NONE}}</td>
+</tr>
+<tr class="odd">
+<td><strong>Zoning / easements / utilities</strong></td>
+<td>{{ZONING_EASEMENT_AND_UTILITY_REQUIREMENTS}}</td>
+</tr>
+<tr class="even">
+<td><strong>Decision authority / matrix</strong></td>
+<td>{{OWNER_DECISION_AUTHORITY_MATRIX}}</td>
+</tr>
+<tr class="odd">
+<td><strong>Special operations / phasing</strong></td>
+<td>{{OCCUPANCY_OPERATIONS_AND_PHASING_REQUIREMENTS}}</td>
+</tr>
+<tr class="even">
+<td><strong>Criteria exclusions / unknowns</strong></td>
+<td>{{OWNER_CRITERIA_EXCLUSIONS_AND_UNKNOWNS}}</td>
+</tr>
+</tbody>
+</table>
+<h1 id="exhibit-b---design-services-responsibility-and-digital-protocol">EXHIBIT B - DESIGN SERVICES, RESPONSIBILITY, AND DIGITAL PROTOCOL</h1>
+<table>
+<colgroup>
+<col style="width: 100%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th><p><strong>DESIGN-BUILD REQUIREMENT</strong></p>
+<p>Design Services are INCLUDED. Every required discipline must identify the licensed professional, contractual relationship, deliverables, exclusions, insurance, and Owner review milestone. An Owner-retained professional requires a counsel-approved responsibility matrix.</p></th>
+</tr>
+</thead>
+<tbody>
+</tbody>
+</table>
+<h2 id="b.1-design-team-and-discipline-responsibility">B.1 Design Team and Discipline Responsibility</h2>
+<table>
+<colgroup>
+<col style="width: 32%" />
+<col style="width: 67%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th><strong>DESIGN CONTROL</strong></th>
+<th><strong>PROJECT-SPECIFIC REQUIREMENT</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>Lead architect / firm / license</strong></td>
+<td>{{LEAD_ARCHITECT_FIRM_LICENSE_AND_STATE}}</td>
+</tr>
+<tr class="even">
+<td><strong>Civil engineering</strong></td>
+<td>{{CIVIL_DESIGN_RESPONSIBLE_PARTY_AND_SCOPE}}</td>
+</tr>
+<tr class="odd">
+<td><strong>Structural engineering</strong></td>
+<td>{{STRUCTURAL_DESIGN_RESPONSIBLE_PARTY_AND_SCOPE}}</td>
+</tr>
+<tr class="even">
+<td><strong>Mechanical engineering</strong></td>
+<td>{{MECHANICAL_DESIGN_RESPONSIBLE_PARTY_AND_SCOPE}}</td>
+</tr>
+<tr class="odd">
+<td><strong>Electrical engineering</strong></td>
+<td>{{ELECTRICAL_DESIGN_RESPONSIBLE_PARTY_AND_SCOPE}}</td>
+</tr>
+<tr class="even">
+<td><strong>Plumbing / fire protection</strong></td>
+<td>{{PLUMBING_FIRE_PROTECTION_RESPONSIBLE_PARTY_AND_SCOPE}}</td>
+</tr>
+<tr class="odd">
+<td><strong>Landscape / site design</strong></td>
+<td>{{LANDSCAPE_SITE_RESPONSIBLE_PARTY_AND_SCOPE}}</td>
+</tr>
+<tr class="even">
+<td><strong>Interiors / specialty consultants</strong></td>
+<td>{{INTERIORS_AND_SPECIALTY_DESIGN_SCOPE}}</td>
+</tr>
+<tr class="odd">
+<td><strong>Delegated-design disciplines</strong></td>
+<td>{{DELEGATED_DESIGN_DISCIPLINES_AND_REVIEW}}</td>
+</tr>
+<tr class="even">
+<td><strong>Professional liability</strong></td>
+<td>{{PROFESSIONAL_LIABILITY_LIMIT_RETRO_DATE_AND_TERM}}</td>
+</tr>
+<tr class="odd">
+<td><strong>Design agreement / flow-down</strong></td>
+<td>{{DESIGN_AGREEMENT_ID_AND_VERSION}}</td>
+</tr>
+<tr class="even">
+<td><strong>Assignment / novation, if needed</strong></td>
+<td>{{PRIOR_OWNER_DESIGN_CONTRACT_ASSIGNMENT_OR_NA}}</td>
+</tr>
+</tbody>
+</table>
+<h2 id="b.2-deliverables-reviews-and-digital-protocol">B.2 Deliverables, Reviews, and Digital Protocol</h2>
+<table>
+<colgroup>
+<col style="width: 32%" />
+<col style="width: 67%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th><strong>DELIVERABLE CONTROL</strong></th>
+<th><strong>PROJECT-SPECIFIC REQUIREMENT</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>Programming / criteria validation</strong></td>
+<td>{{PROGRAMMING_AND_CRITERIA_VALIDATION_DELIVERABLES}}</td>
+</tr>
+<tr class="even">
+<td><strong>Concept / schematic deliverables</strong></td>
+<td>{{CONCEPT_AND_SCHEMATIC_DELIVERABLES}}</td>
+</tr>
+<tr class="odd">
+<td><strong>Design-development deliverables</strong></td>
+<td>{{DESIGN_DEVELOPMENT_DELIVERABLES}}</td>
+</tr>
+<tr class="even">
+<td><strong>Construction-document deliverables</strong></td>
+<td>{{CONSTRUCTION_DOCUMENT_DELIVERABLES}}</td>
+</tr>
+<tr class="odd">
+<td><strong>Permitting services</strong></td>
+<td>{{DESIGN_PERMITTING_SCOPE}}</td>
+</tr>
+<tr class="even">
+<td><strong>Construction administration</strong></td>
+<td>{{DESIGN_CA_SCOPE}}</td>
+</tr>
+<tr class="odd">
+<td><strong>Commissioning / certifications</strong></td>
+<td>{{COMMISSIONING_AND_CERTIFICATION_SCOPE}}</td>
+</tr>
+<tr class="even">
+<td><strong>Excluded / additional services</strong></td>
+<td>{{DESIGN_EXCLUSIONS_AND_ADDITIONAL_SERVICES}}</td>
+</tr>
+<tr class="odd">
+<td><strong>Owner Criteria review milestones</strong></td>
+<td>{{OWNER_DESIGN_REVIEW_MILESTONES_AND_DAYS}}</td>
+</tr>
+<tr class="even">
+<td><strong>BIM / digital protocol</strong></td>
+<td>{{BIM_CDE_LOD_RELIANCE_AND_FILE_PROTOCOL}}</td>
+</tr>
+<tr class="odd">
+<td><strong>Instruments-of-Service license</strong></td>
+<td>{{PROJECT_LICENSE_AND_NATIVE_FILE_TERMS}}</td>
+</tr>
+</tbody>
+</table>
+<h1 id="exhibit-c---phase-1-authorization-and-early-work">EXHIBIT C - PHASE 1 AUTHORIZATION AND EARLY WORK</h1>
+<table>
+<colgroup>
+<col style="width: 32%" />
+<col style="width: 67%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th><strong>PHASE 1 TERM</strong></th>
+<th><strong>AUTHORIZED VALUE / RULE</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>Phase 1 scope</strong></td>
+<td>{{PHASE_1_SCOPE}}</td>
+</tr>
+<tr class="even">
+<td><strong>Phase 1 fixed fee / NTE</strong></td>
+<td>${{PHASE_1_FIXED_FEE_OR_NTE}}</td>
+</tr>
+<tr class="odd">
+<td><strong>Billing method / milestones</strong></td>
+<td>{{PHASE_1_BILLING_METHOD_AND_MILESTONES}}</td>
+</tr>
+<tr class="even">
+<td><strong>Controlled annual rate schedule</strong></td>
+<td>{{ANNUAL_RATE_SCHEDULE_ID_VERSION_AND_DATE}}</td>
+</tr>
+<tr class="odd">
+<td><strong>Project rate overrides</strong></td>
+<td>{{PROJECT_RATE_OVERRIDES_OR_NONE}}</td>
+</tr>
+<tr class="even">
+<td><strong>Reimbursable expenses</strong></td>
+<td>{{PHASE_1_REIMBURSABLE_EXPENSE_RULES}}</td>
+</tr>
+<tr class="odd">
+<td><strong>Reimbursable admin fee</strong></td>
+<td>{{PHASE_1_REIMBURSABLE_ADMIN_FEE_OR_NONE}}</td>
+</tr>
+<tr class="even">
+<td><strong>Design estimate milestones</strong></td>
+<td>{{PHASE_1_ESTIMATE_MILESTONES}}</td>
+</tr>
+<tr class="odd">
+<td><strong>Required Phase 1 deliverables</strong></td>
+<td>{{PHASE_1_REQUIRED_DELIVERABLES}}</td>
+</tr>
+<tr class="even">
+<td><strong>Owner decision dates</strong></td>
+<td>{{PHASE_1_OWNER_DECISION_DATES}}</td>
+</tr>
+<tr class="odd">
+<td><strong>Proposal target / expiration</strong></td>
+<td>{{DESIGN_BUILDER_PROPOSAL_TARGET_AND_EXPIRATION}}</td>
+</tr>
+<tr class="even">
+<td><strong>Early Work authorized scope</strong></td>
+<td>{{EARLY_WORK_SCOPE_OR_NONE}}</td>
+</tr>
+<tr class="odd">
+<td><strong>Early Work price / NTE</strong></td>
+<td>${{EARLY_WORK_PRICE_OR_NTE}}</td>
+</tr>
+<tr class="even">
+<td><strong>Early Work insurance / bonds</strong></td>
+<td>{{EARLY_WORK_INSURANCE_AND_BONDS}}</td>
+</tr>
+<tr class="odd">
+<td><strong>Early Work schedule</strong></td>
+<td>{{EARLY_WORK_SCHEDULE}}</td>
+</tr>
+<tr class="even">
+<td><strong>Phase 2 credit treatment</strong></td>
+<td>{{PHASE_1_AND_EARLY_WORK_CREDITS}}</td>
+</tr>
+<tr class="odd">
+<td><strong>Phase 1 termination / license</strong></td>
+<td>{{PHASE_1_TERMINATION_AND_LICENSE_TERMS}}</td>
+</tr>
+</tbody>
+</table>
+<p><em>Owner authorizes only the scope and commitments stated above. A blank Early Work field means no Early Work is authorized.</em></p>
+<h1 id="exhibit-a---gmp-and-construction-authorization">EXHIBIT A - GMP AND CONSTRUCTION AUTHORIZATION</h1>
+<table>
+<colgroup>
+<col style="width: 100%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th><p><strong>PHASE 2 GATE</strong></p>
+<p>This Exhibit has no effect until every required field and attachment is complete, Accounting validates the price structure, the responsible Design Professional confirms the basis-of-design, Legal Review confirms the state addendum, and Owner and Design-Builder sign below.</p></th>
+</tr>
+</thead>
+<tbody>
+</tbody>
+</table>
+<h2 id="d.1-commercial-terms">D.1 Commercial Terms</h2>
+<table>
+<colgroup>
+<col style="width: 32%" />
+<col style="width: 67%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th><strong>AMENDMENT TERM</strong></th>
+<th><strong>FINAL APPROVED VALUE / RULE</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>Amendment number / version</strong></td>
+<td>{{DB_AMENDMENT_NUMBER_AND_VERSION}}</td>
+</tr>
+<tr class="even">
+<td><strong>Amendment effective date</strong></td>
+<td>{{DB_AMENDMENT_EFFECTIVE_DATE}}</td>
+</tr>
+<tr class="odd">
+<td><strong>Approved Owner Criteria</strong></td>
+<td>{{FINAL_OWNER_CRITERIA_ID_VERSION_AND_DATE}}</td>
+</tr>
+<tr class="even">
+<td><strong>Basis-of-design documents</strong></td>
+<td>{{BASIS_OF_DESIGN_DOCUMENT_INDEX_AND_DATES}}</td>
+</tr>
+<tr class="odd">
+<td><strong>Design completion status</strong></td>
+<td>{{DESIGN_COMPLETION_PERCENT_AND_REMAINING_SCOPE}}</td>
+</tr>
+<tr class="even">
+<td><strong>Compensation method</strong></td>
+<td>Cost of the Work Plus Design-Builder's Fee with GMP</td>
+</tr>
+<tr class="odd">
+<td><strong>Estimated Cost of the Work</strong></td>
+<td>${{ESTIMATED_COST_OF_THE_WORK}}</td>
+</tr>
+<tr class="even">
+<td><strong>Design compensation included</strong></td>
+<td>${{DESIGN_COMPENSATION_INCLUDED}}</td>
+</tr>
+<tr class="odd">
+<td><strong>General conditions included</strong></td>
+<td>${{GENERAL_CONDITIONS_INCLUDED}}</td>
+</tr>
+<tr class="even">
+<td><strong>Design-Builder's Fee</strong></td>
+<td>{{DESIGN_BUILDER_FEE_PERCENT_OR_AMOUNT}}</td>
+</tr>
+<tr class="odd">
+<td><strong>Allowances included</strong></td>
+<td>${{TOTAL_ALLOWANCES_INCLUDED}} | {{ALLOWANCE_SCHEDULE_ID}}</td>
+</tr>
+<tr class="even">
+<td><strong>Design-Builder contingency</strong></td>
+<td>${{DB_CONTINGENCY_AMOUNT}} | {{DB_CONTINGENCY_RULES}}</td>
+</tr>
+<tr class="odd">
+<td><strong>Owner contingency</strong></td>
+<td>${{OWNER_CONTINGENCY_AMOUNT}} | {{OWNER_CONTINGENCY_RULES}}</td>
+</tr>
+<tr class="even">
+<td><strong>Insurance / bonds included</strong></td>
+<td>${{INSURANCE_AND_BOND_COST_INCLUDED}}</td>
+</tr>
+<tr class="odd">
+<td><strong>Early Work / prior-payment credit</strong></td>
+<td>${{EARLY_WORK_AND_PRIOR_PAYMENT_CREDIT}}</td>
+</tr>
+<tr class="even">
+<td><strong>Guaranteed Maximum Price</strong></td>
+<td>${{GMP_AMOUNT}}</td>
+</tr>
+<tr class="odd">
+<td><strong>Schedule of Values</strong></td>
+<td>{{SOV_ID_VERSION_AND_DATE}}</td>
+</tr>
+<tr class="even">
+<td><strong>Buyout / savings treatment</strong></td>
+<td>{{BUYOUT_AND_FINAL_SAVINGS_TREATMENT}}</td>
+</tr>
+<tr class="odd">
+<td><strong>Accepted alternates / VE</strong></td>
+<td>{{ACCEPTED_ALTERNATES_AND_VE_INDEX}}</td>
+</tr>
+</tbody>
+</table>
+<h2 id="d.2-scope-schedule-and-execution">D.2 Scope, Schedule, and Execution</h2>
+<table>
+<colgroup>
+<col style="width: 32%" />
+<col style="width: 67%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th><strong>AMENDMENT TERM</strong></th>
+<th><strong>FINAL APPROVED VALUE / RULE</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>Assumptions / clarifications</strong></td>
+<td>{{GMP_ASSUMPTIONS_AND_CLARIFICATIONS}}</td>
+</tr>
+<tr class="even">
+<td><strong>Exclusions</strong></td>
+<td>{{GMP_EXCLUSIONS}}</td>
+</tr>
+<tr class="odd">
+<td><strong>Procurement / bid coverage</strong></td>
+<td>{{BID_PACKAGE_COVERAGE_AND_OPEN_PACKAGES}}</td>
+</tr>
+<tr class="even">
+<td><strong>Key Design Professionals</strong></td>
+<td>{{KEY_DESIGN_PROFESSIONALS}}</td>
+</tr>
+<tr class="odd">
+<td><strong>Key subcontractors / suppliers</strong></td>
+<td>{{KEY_SUBCONTRACTORS_AND_SUPPLIERS}}</td>
+</tr>
+<tr class="even">
+<td><strong>Construction commencement</strong></td>
+<td>{{CONSTRUCTION_COMMENCEMENT_DATE}}</td>
+</tr>
+<tr class="odd">
+<td><strong>Substantial Completion</strong></td>
+<td>{{SUBSTANTIAL_COMPLETION_DATE}}</td>
+</tr>
+<tr class="even">
+<td><strong>Final Completion</strong></td>
+<td>{{FINAL_COMPLETION_DATE}}</td>
+</tr>
+<tr class="odd">
+<td><strong>Other milestones</strong></td>
+<td>{{PHASE_2_MILESTONES}}</td>
+</tr>
+<tr class="even">
+<td><strong>Liquidated damages</strong></td>
+<td>{{LIQUIDATED_DAMAGES_AMOUNT_SCOPE_CAP_OR_NONE}}</td>
+</tr>
+<tr class="odd">
+<td><strong>Required attachments</strong></td>
+<td>{{DB_AMENDMENT_ATTACHMENT_INDEX}}</td>
+</tr>
+</tbody>
+</table>
+<p>Upon execution, this Amendment authorizes Phase 2 and modifies the Agreement only as expressly stated. All unchanged Agreement terms remain in effect.</p>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th><strong>DESIGN-BUILDER</strong></th>
+<th><strong>OWNER</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>Mefford Contracting, LLC</strong></td>
+<td>{{OWNER_LEGAL_NAME}}</td>
+</tr>
+<tr class="even">
+<td><strong>By: {{DB_AMENDMENT_DESIGN_BUILDER_SIGNATORY}}</strong></td>
+<td>By: {{DB_AMENDMENT_OWNER_SIGNATORY}}</td>
+</tr>
+<tr class="odd">
+<td><strong>Signature: {{DB_AMENDMENT_DESIGN_BUILDER_SIGNATURE}}</strong></td>
+<td>Signature: {{DB_AMENDMENT_OWNER_SIGNATURE}}</td>
+</tr>
+<tr class="even">
+<td><strong>Date: {{DB_AMENDMENT_DESIGN_BUILDER_DATE}}</strong></td>
+<td>Date: {{DB_AMENDMENT_OWNER_DATE}}</td>
+</tr>
+</tbody>
+</table>
+<h1 id="exhibit-e---cost-of-the-work-billing-and-savings-schedule">EXHIBIT E - COST OF THE WORK, BILLING, AND SAVINGS SCHEDULE</h1>
+<table>
+<colgroup>
+<col style="width: 32%" />
+<col style="width: 67%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th><strong>FINANCIAL CONTROL</strong></th>
+<th><strong>AGREED PROJECT RULE</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>Included Cost categories</strong></td>
+<td>{{INCLUDED_COST_OF_WORK_CATEGORIES}}</td>
+</tr>
+<tr class="even">
+<td><strong>Excluded Cost categories</strong></td>
+<td>{{EXCLUDED_COST_OF_WORK_CATEGORIES}}</td>
+</tr>
+<tr class="odd">
+<td><strong>Design Professional cost</strong></td>
+<td>{{DESIGN_PROFESSIONAL_COST_TREATMENT}}</td>
+</tr>
+<tr class="even">
+<td><strong>Field labor method / burden</strong></td>
+<td>{{FIELD_LABOR_COST_OR_RATE_METHOD}}</td>
+</tr>
+<tr class="odd">
+<td><strong>PM / superintendent method</strong></td>
+<td>{{PM_AND_SUPERINTENDENT_COST_OR_RATE_METHOD}}</td>
+</tr>
+<tr class="even">
+<td><strong>Owned / rented equipment</strong></td>
+<td>{{EQUIPMENT_RATE_AND_MARKUP_METHOD}}</td>
+</tr>
+<tr class="odd">
+<td><strong>Subcontractor cost markup</strong></td>
+<td>{{SUBCONTRACTOR_MARKUP_PERCENT_OR_INCLUDED_IN_FEE}}</td>
+</tr>
+<tr class="even">
+<td><strong>Material / equipment markup</strong></td>
+<td>{{MATERIAL_EQUIPMENT_MARKUP_PERCENT_OR_INCLUDED_IN_FEE}}</td>
+</tr>
+<tr class="odd">
+<td><strong>Change-order design / fee rule</strong></td>
+<td>{{CHANGE_ORDER_DESIGN_AND_FEE_RULES}}</td>
+</tr>
+<tr class="even">
+<td><strong>Insurance / bond / tax treatment</strong></td>
+<td>{{INSURANCE_BOND_AND_TAX_TREATMENT}}</td>
+</tr>
+<tr class="odd">
+<td><strong>Related-party transactions</strong></td>
+<td>{{RELATED_PARTY_APPROVAL_RULES}}</td>
+</tr>
+<tr class="even">
+<td><strong>Discounts / rebates / refunds</strong></td>
+<td>{{PROJECT_CREDIT_RULES}}</td>
+</tr>
+<tr class="odd">
+<td><strong>Owner direct purchase</strong></td>
+<td>{{DIRECT_PURCHASE_ORDER_RULES_OR_NONE}}</td>
+</tr>
+<tr class="even">
+<td><strong>Billing cutoff / application date</strong></td>
+<td>{{BILLING_CUTOFF_AND_APPLICATION_DATE}}</td>
+</tr>
+<tr class="odd">
+<td><strong>Payment due date</strong></td>
+<td>{{PAYMENT_DUE_DATE_AND_STATUTORY_OVERRIDE}}</td>
+</tr>
+<tr class="even">
+<td><strong>Owner-facing backup</strong></td>
+<td>{{OWNER_FACING_BACKUP_REQUIREMENTS}}</td>
+</tr>
+<tr class="odd">
+<td><strong>Audit method / masking</strong></td>
+<td>{{AUDIT_METHOD_AND_CONFIDENTIALITY}}</td>
+</tr>
+<tr class="even">
+<td><strong>Record-retention period</strong></td>
+<td>{{RECORD_RETENTION_PERIOD}}</td>
+</tr>
+<tr class="odd">
+<td><strong>Stored-material controls</strong></td>
+<td>{{STORED_MATERIAL_CONTROLS}}</td>
+</tr>
+<tr class="even">
+<td><strong>Retainage</strong></td>
+<td>{{RETAINAGE_TERMS_AND_RELEASE}}</td>
+</tr>
+<tr class="odd">
+<td><strong>Lien-waiver package</strong></td>
+<td>{{STATE_WAIVER_PROFILE_AND_REQUIRED_FORMS}}</td>
+</tr>
+<tr class="even">
+<td><strong>Contingency reporting</strong></td>
+<td>{{CONTINGENCY_REPORTING_AND_APPROVAL}}</td>
+</tr>
+<tr class="odd">
+<td><strong>Buyout / final savings</strong></td>
+<td>{{BUYOUT_AND_FINAL_SAVINGS_CALCULATION}}</td>
+</tr>
+<tr class="even">
+<td><strong>Final accounting</strong></td>
+<td>{{FINAL_ACCOUNTING_PROCESS_AND_DEADLINE}}</td>
+</tr>
+</tbody>
+</table>
+<h1 id="exhibit-f---insurance-bonds-schedule-and-project-controls">EXHIBIT F - INSURANCE, BONDS, SCHEDULE, AND PROJECT CONTROLS</h1>
+<table>
+<colgroup>
+<col style="width: 32%" />
+<col style="width: 67%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th><strong>PROJECT CONTROL</strong></th>
+<th><strong>PROJECT REQUIREMENT</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>Workers' compensation / employers' liability</strong></td>
+<td>{{WC_AND_EMPLOYERS_LIABILITY_LIMITS}}</td>
+</tr>
+<tr class="even">
+<td><strong>Commercial general liability</strong></td>
+<td>{{CGL_LIMITS_AND_COMPLETED_OPERATIONS_TERM}}</td>
+</tr>
+<tr class="odd">
+<td><strong>Automobile liability</strong></td>
+<td>{{AUTO_LIABILITY_LIMIT}}</td>
+</tr>
+<tr class="even">
+<td><strong>Umbrella / excess</strong></td>
+<td>{{UMBRELLA_OR_EXCESS_LIMIT}}</td>
+</tr>
+<tr class="odd">
+<td><strong>Professional liability</strong></td>
+<td>{{PROFESSIONAL_LIABILITY_LIMIT_AND_TERM}}</td>
+</tr>
+<tr class="even">
+<td><strong>Pollution / cyber / other</strong></td>
+<td>{{POLLUTION_CYBER_AND_OTHER_COVERAGE}}</td>
+</tr>
+<tr class="odd">
+<td><strong>Additional insured / primary</strong></td>
+<td>{{ADDITIONAL_INSURED_AND_PRIMARY_NONCONTRIBUTORY}}</td>
+</tr>
+<tr class="even">
+<td><strong>Builder's risk responsible party</strong></td>
+<td>{{BUILDERS_RISK_RESPONSIBLE_PARTY}}</td>
+</tr>
+<tr class="odd">
+<td><strong>Builder's risk deductible / exclusions</strong></td>
+<td>{{BUILDERS_RISK_DEDUCTIBLE_AND_EXCLUSIONS}}</td>
+</tr>
+<tr class="even">
+<td><strong>Waiver of subrogation</strong></td>
+<td>{{WAIVER_OF_SUBROGATION_REQUIREMENTS}}</td>
+</tr>
+<tr class="odd">
+<td><strong>Payment / performance bonds</strong></td>
+<td>{{BOND_REQUIREMENTS_OR_NONE}}</td>
+</tr>
+<tr class="even">
+<td><strong>Integrated schedule / update cycle</strong></td>
+<td>{{SCHEDULE_ID_AND_UPDATE_FREQUENCY}}</td>
+</tr>
+<tr class="odd">
+<td><strong>Excusable / compensable delay rules</strong></td>
+<td>{{PROJECT_DELAY_RULES}}</td>
+</tr>
+<tr class="even">
+<td><strong>Permits and fees allocation</strong></td>
+<td>{{PERMIT_AND_FEE_ALLOCATION}}</td>
+</tr>
+<tr class="odd">
+<td><strong>Testing / special inspections</strong></td>
+<td>{{TESTING_AND_INSPECTION_ALLOCATION}}</td>
+</tr>
+<tr class="even">
+<td><strong>Commissioning / training</strong></td>
+<td>{{COMMISSIONING_AND_TRAINING_REQUIREMENTS}}</td>
+</tr>
+<tr class="odd">
+<td><strong>Site logistics / operations</strong></td>
+<td>{{SITE_LOGISTICS_AND_OWNER_OPERATIONS}}</td>
+</tr>
+<tr class="even">
+<td><strong>Safety / access controls</strong></td>
+<td>{{SAFETY_AND_SITE_ACCESS_CONTROLS}}</td>
+</tr>
+<tr class="odd">
+<td><strong>Progress-report frequency</strong></td>
+<td>{{PROGRESS_REPORT_FREQUENCY}}</td>
+</tr>
+<tr class="even">
+<td><strong>Closeout package</strong></td>
+<td>{{CLOSEOUT_DOCUMENT_REQUIREMENTS}}</td>
+</tr>
+<tr class="odd">
+<td><strong>Substantial Completion prerequisites</strong></td>
+<td>{{SUBSTANTIAL_COMPLETION_PREREQUISITES}}</td>
+</tr>
+</tbody>
+</table>
+<h1 id="exhibit-g---notices-state-addendum-and-document-control">EXHIBIT G - NOTICES, STATE ADDENDUM, AND DOCUMENT CONTROL</h1>
+<h2 id="g.1-notice-addresses">G.1 Notice Addresses</h2>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th><strong>DESIGN-BUILDER</strong></th>
+<th><strong>OWNER</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>Mefford Contracting, LLC</strong></td>
+<td>{{OWNER_LEGAL_NAME}}</td>
+</tr>
+<tr class="even">
+<td><strong>1585 Mercer Road, Suite 110</strong></td>
+<td>{{OWNER_NOTICE_ADDRESS_LINE_1}}</td>
+</tr>
+<tr class="odd">
+<td><strong>Lexington, KY 40511</strong></td>
+<td>{{OWNER_NOTICE_ADDRESS_LINE_2}}</td>
+</tr>
+<tr class="even">
+<td><strong>Attn: {{DESIGN_BUILDER_NOTICE_CONTACT}}</strong></td>
+<td>Attn: {{OWNER_NOTICE_CONTACT}}</td>
+</tr>
+<tr class="odd">
+<td><strong>Email: {{DESIGN_BUILDER_NOTICE_EMAIL}}</strong></td>
+<td>Email: {{OWNER_NOTICE_EMAIL}}</td>
+</tr>
+</tbody>
+</table>
+<h2 id="g.2-state-addendum">G.2 State Addendum</h2>
+<p>Required addendum: {{STATE_ADDENDUM_ID_AND_VERSION}}. A Project outside Kentucky may not proceed under this master until the applicable counsel-approved state addendum is attached. Mandatory Project-state law controls over an inconsistent provision.</p>
+<h2 id="g.3-controlled-attachment-index">G.3 Controlled Attachment Index</h2>
+<p>{{CONTROLLED_ATTACHMENT_INDEX_WITH_IDS_VERSIONS_AND_HASHES}}</p>
+<h2 id="g.4-project-specific-amendments">G.4 Project-Specific Amendments</h2>
+<p>{{PROJECT_SPECIFIC_AMENDMENTS_OR_NONE}}</p>
+<h2 id="g.5-optional-arbitration-election">G.5 Optional Arbitration Election</h2>
+<p>{{ARBITRATION_ELECTED_YES_OR_NO}}. If YES, attach the counsel-approved arbitration provision and obtain separate initials from both parties. A blank field means NO and litigation remains the binding forum.</p>
+<h2 id="g.6-optional-personal-guaranty">G.6 Optional Personal Guaranty</h2>
+<p>Required: {{PERSONAL_GUARANTY_REQUIRED_YES_OR_NO}}. If YES, a separate counsel-approved guaranty must identify the guarantor, guaranteed obligations, cap, duration, and signature. No guaranty arises from this Agreement alone.</p>
+<h2 id="g.7-template-and-execution-record">G.7 Template and Execution Record</h2>
+<table>
+<colgroup>
+<col style="width: 32%" />
+<col style="width: 67%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th><strong>CONTROL FIELD</strong></th>
+<th><strong>IMMUTABLE RECORD</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>Template ID / version</strong></td>
+<td>MC-OWN-DBGMP-001 | v0.2 Counsel Review Draft</td>
+</tr>
+<tr class="even">
+<td><strong>Legal approval record</strong></td>
+<td>{{LEGAL_APPROVAL_ID_DATE_AND_APPROVER}}</td>
+</tr>
+<tr class="odd">
+<td><strong>Owner/Admin activation</strong></td>
+<td>{{OWNER_ADMIN_ACTIVATION_ID_DATE_AND_APPROVER}}</td>
+</tr>
+<tr class="even">
+<td><strong>Generated project document ID</strong></td>
+<td>{{PROJECT_DOCUMENT_ID}}</td>
+</tr>
+<tr class="odd">
+<td><strong>Template / attachment hashes</strong></td>
+<td>{{TEMPLATE_AND_ATTACHMENT_HASHES}}</td>
+</tr>
+<tr class="even">
+<td><strong>Executed document hash</strong></td>
+<td>{{DOCUMENT_HASH_AT_EXECUTION}}</td>
+</tr>
+<tr class="odd">
+<td><strong>Signature audit record</strong></td>
+<td>{{SIGNATURE_AUDIT_RECORD_ID}}</td>
+</tr>
+</tbody>
+</table>
+</body>
+</html>

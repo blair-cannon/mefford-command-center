@@ -1,0 +1,550 @@
+{
+  "scenario": {
+    "tradeCode": "2600.00",
+    "trade": "Electrical",
+    "scopeLines": [
+      "Distribution panels",
+      "Branch circuit wiring",
+      "Lighting fixtures"
+    ],
+    "exclusion": "Utility company connection fees",
+    "id": "EST-PRESSURE-001",
+    "index": 0,
+    "months": 15.5,
+    "miles": 60,
+    "sf": 60931,
+    "cleanup": 15865,
+    "q": 14,
+    "pmBill": 142,
+    "pmCost": 52,
+    "superBill": 139,
+    "superCost": 50,
+    "profit": 0.14,
+    "includeProfit": false,
+    "bond": true,
+    "cleanupOverride": 0,
+    "architectOverride": 0,
+    "material": 17193.06,
+    "credit": -106.46,
+    "quote": 1250,
+    "secondQuote": 450.67
+  },
+  "estimate": {
+    "templateVersion": "MEFFORD-ESTIMATE-2026.08.10-V1",
+    "status": "Approved",
+    "entries": {
+      "3400.00:200": {
+        "quantity": 14,
+        "unit": "EA",
+        "material": 0,
+        "labor": 0,
+        "equipment": 0,
+        "subcontract": 0,
+        "other": 0
+      },
+      "3400.00:300": {
+        "quantity": 14,
+        "unit": "EA",
+        "material": 0,
+        "labor": 0,
+        "equipment": 0,
+        "subcontract": 0,
+        "other": 0
+      },
+      "0153.00:100": {
+        "quantity": 14,
+        "unit": "EA",
+        "material": 0,
+        "labor": 0,
+        "equipment": 0,
+        "subcontract": 0,
+        "other": 0
+      },
+      "0174.19": {
+        "quantity": 14,
+        "unit": "EA",
+        "material": 0,
+        "labor": 0,
+        "equipment": 0,
+        "subcontract": 0,
+        "other": 0
+      },
+      "0813.00:100": {
+        "quantity": 14,
+        "unit": "EA",
+        "material": 0,
+        "labor": 0,
+        "equipment": 0,
+        "subcontract": 0,
+        "other": 0
+      },
+      "0813.00:200": {
+        "quantity": 14,
+        "unit": "EA",
+        "material": 0,
+        "labor": 0,
+        "equipment": 0,
+        "subcontract": 0,
+        "other": 0
+      },
+      "0814.00:100": {
+        "quantity": 14,
+        "unit": "EA",
+        "material": 0,
+        "labor": 0,
+        "equipment": 0,
+        "subcontract": 0,
+        "other": 0
+      },
+      "0814.00:200": {
+        "quantity": 14,
+        "unit": "EA",
+        "material": 0,
+        "labor": 0,
+        "equipment": 0,
+        "subcontract": 0,
+        "other": 0
+      },
+      "0871.00:100": {
+        "quantity": 14,
+        "unit": "EA",
+        "material": 0,
+        "labor": 0,
+        "equipment": 0,
+        "subcontract": 0,
+        "other": 0
+      },
+      "0871.00:200": {
+        "quantity": 14,
+        "unit": "EA",
+        "material": 0,
+        "labor": 0,
+        "equipment": 0,
+        "subcontract": 0,
+        "other": 0
+      },
+      "0131.00:100": {
+        "quantity": 1240,
+        "unit": "HR",
+        "material": 0,
+        "labor": 64480,
+        "equipment": 7.5,
+        "subcontract": 0,
+        "other": 111600
+      },
+      "2600.00": {
+        "quantity": 1,
+        "unit": "EA",
+        "material": 17193.06,
+        "labor": 0,
+        "equipment": 0,
+        "subcontract": 1900.67,
+        "other": -106.46
+      }
+    },
+    "entryOverrides": {
+      "3400.00:200": [
+        "quantity"
+      ],
+      "3400.00:300": [
+        "quantity"
+      ],
+      "0153.00:100": [
+        "quantity"
+      ],
+      "0174.19": [
+        "quantity"
+      ],
+      "0813.00:100": [
+        "quantity"
+      ],
+      "0813.00:200": [
+        "quantity"
+      ],
+      "0814.00:100": [
+        "quantity"
+      ],
+      "0814.00:200": [
+        "quantity"
+      ],
+      "0871.00:100": [
+        "quantity"
+      ],
+      "0871.00:200": [
+        "quantity"
+      ],
+      "0131.00:100": [
+        "equipment"
+      ],
+      "2600.00": [
+        "material",
+        "subcontract",
+        "other"
+      ]
+    },
+    "settings": {
+      "baseProfitRate": 0.14,
+      "includeBaseProfit": false,
+      "includePerformanceBond": true,
+      "projectManagerBillableRate": 142,
+      "projectManagerCostRate": 52,
+      "superintendentBillableRate": 139,
+      "superintendentCostRate": 50
+    },
+    "projectInputs": {
+      "projectDurationMonths": 15.5,
+      "distanceToFromJobMiles": 60,
+      "distanceCalculatedMiles": null,
+      "distanceCalculationAddress": "",
+      "distanceManuallyOverridden": true,
+      "buildingSquareFeet": 60931,
+      "cleanupSquareFeet": 15865,
+      "cleanupFeeOverride": 0,
+      "architecturalFeeOverride": 0
+    },
+    "cellFormulas": {},
+    "notes": "Synthetic estimating pressure test EST-PRESSURE-001. Maintain safe owner access throughout construction.",
+    "savedAt": "2026-09-16T12:15:03.974Z",
+    "savedBy": "Jordan Mefford",
+    "submittedAt": "2026-09-16T12:15:03.887Z",
+    "submittedOverrideReport": [
+      {
+        "lineKey": "0131.00:100",
+        "code": "0131.00 · 100",
+        "description": "Management",
+        "changedFields": [
+          "Equipment"
+        ],
+        "automaticAmount": 176080,
+        "enteredAmount": 176087.5,
+        "difference": 7.5
+      },
+      {
+        "lineKey": "3400.00:200",
+        "code": "3400.00 · 200",
+        "description": "Lodging",
+        "changedFields": [
+          "Quantity",
+          "Other"
+        ],
+        "automaticAmount": 0,
+        "enteredAmount": 3500,
+        "difference": 3500
+      },
+      {
+        "lineKey": "3400.00:300",
+        "code": "3400.00 · 300",
+        "description": "Meals",
+        "changedFields": [
+          "Quantity",
+          "Other"
+        ],
+        "automaticAmount": 0,
+        "enteredAmount": 910,
+        "difference": 910
+      },
+      {
+        "lineKey": "0153.00:100",
+        "code": "0153.00 · 100",
+        "description": "Sticky Mats",
+        "changedFields": [
+          "Quantity",
+          "Material"
+        ],
+        "automaticAmount": 0,
+        "enteredAmount": 2800,
+        "difference": 2800
+      },
+      {
+        "lineKey": "0174.19",
+        "code": "0174.19",
+        "description": "Dumpster (full size, normal wt.)",
+        "changedFields": [
+          "Quantity",
+          "Material"
+        ],
+        "automaticAmount": 0,
+        "enteredAmount": 16800,
+        "difference": 16800
+      },
+      {
+        "lineKey": "0813.00:100",
+        "code": "0813.00 · 100",
+        "description": "Flush",
+        "changedFields": [
+          "Quantity",
+          "Mefford Labor"
+        ],
+        "automaticAmount": 0,
+        "enteredAmount": 1365,
+        "difference": 1365
+      },
+      {
+        "lineKey": "0813.00:200",
+        "code": "0813.00 · 200",
+        "description": "Half-lite",
+        "changedFields": [
+          "Quantity",
+          "Mefford Labor"
+        ],
+        "automaticAmount": 0,
+        "enteredAmount": 1365,
+        "difference": 1365
+      },
+      {
+        "lineKey": "0814.00:100",
+        "code": "0814.00 · 100",
+        "description": "Hollow Core",
+        "changedFields": [
+          "Quantity",
+          "Mefford Labor"
+        ],
+        "automaticAmount": 0,
+        "enteredAmount": 1365,
+        "difference": 1365
+      },
+      {
+        "lineKey": "0814.00:200",
+        "code": "0814.00 · 200",
+        "description": "Solid Core",
+        "changedFields": [
+          "Quantity",
+          "Mefford Labor"
+        ],
+        "automaticAmount": 0,
+        "enteredAmount": 1365,
+        "difference": 1365
+      },
+      {
+        "lineKey": "0871.00:100",
+        "code": "0871.00 · 100",
+        "description": "Door Hardware Sets",
+        "changedFields": [
+          "Quantity",
+          "Mefford Labor"
+        ],
+        "automaticAmount": 0,
+        "enteredAmount": 630,
+        "difference": 630
+      },
+      {
+        "lineKey": "0871.00:200",
+        "code": "0871.00 · 200",
+        "description": "Storefront Hardware Sets",
+        "changedFields": [
+          "Quantity",
+          "Mefford Labor"
+        ],
+        "automaticAmount": 0,
+        "enteredAmount": 630,
+        "difference": 630
+      },
+      {
+        "lineKey": "projectInputs.cleanupFeeOverride",
+        "code": "0174.23",
+        "description": "Cleanup Fee Override",
+        "changedFields": [
+          "Fee Setting"
+        ],
+        "automaticAmount": 31730,
+        "enteredAmount": 0,
+        "difference": -31730
+      },
+      {
+        "lineKey": "projectInputs.architecturalFeeOverride",
+        "code": "0172.00",
+        "description": "Architectural Fee Override",
+        "changedFields": [
+          "Fee Setting"
+        ],
+        "automaticAmount": 26457.88,
+        "enteredAmount": 0,
+        "difference": -26457.88
+      },
+      {
+        "lineKey": "settings.projectManagerBillableRate",
+        "code": "SETUP",
+        "description": "project Manager Billable Rate · contract impact",
+        "changedFields": [
+          "120 → 142"
+        ],
+        "automaticAmount": 644813.62,
+        "enteredAmount": 672400.86,
+        "difference": 27587.24
+      },
+      {
+        "lineKey": "settings.projectManagerCostRate",
+        "code": "SETUP",
+        "description": "project Manager Cost Rate · contract impact",
+        "changedFields": [
+          "65 → 52"
+        ],
+        "automaticAmount": 672400.86,
+        "enteredAmount": 672400.86,
+        "difference": 0
+      },
+      {
+        "lineKey": "settings.superintendentBillableRate",
+        "code": "SETUP",
+        "description": "superintendent Billable Rate · contract impact",
+        "changedFields": [
+          "85 → 139"
+        ],
+        "automaticAmount": 525686.9,
+        "enteredAmount": 672400.86,
+        "difference": 146713.96
+      },
+      {
+        "lineKey": "settings.superintendentCostRate",
+        "code": "SETUP",
+        "description": "superintendent Cost Rate · contract impact",
+        "changedFields": [
+          "45 → 50"
+        ],
+        "automaticAmount": 672400.87,
+        "enteredAmount": 672400.86,
+        "difference": -0.01
+      },
+      {
+        "lineKey": "settings.baseProfitRate",
+        "code": "SETUP",
+        "description": "base Profit Rate · contract impact",
+        "changedFields": [
+          "0.1 → 0.14"
+        ],
+        "automaticAmount": 672400.86,
+        "enteredAmount": 672400.86,
+        "difference": 0
+      }
+    ],
+    "approvedAt": "2026-09-16T12:15:03.974Z",
+    "approvedBy": "Jordan Mefford",
+    "approvedByEmail": "jmefford@meffcon.com",
+    "approvalNote": "Synthetic cap sheet independently reconciled"
+  },
+  "expected": {
+    "directJobCost": 661446.94,
+    "contractOnlyFees": 0,
+    "baseProfit": 0,
+    "performanceBond": 10114.47,
+    "technologyFee": 839.45,
+    "materialMarkup": 1719.31,
+    "originalBudget": 671561.41,
+    "contractValue": 672400.86,
+    "grossProfit": 839.45,
+    "grossMargin": 0.0012484368327547947,
+    "constructionManagementFees": 549534.16,
+    "insuranceFees": 25.51,
+    "totalContractorFees": 550399.12,
+    "totalContractorFeeRate": 0.8185580250447627,
+    "costPerSquareFoot": 11.04,
+    "budgetRollups": [
+      {
+        "code": "0131.00",
+        "description": "Construction Management Fees",
+        "division": "001 - General Requirements",
+        "budgetable": true,
+        "amount": 549534.16
+      },
+      {
+        "code": "3400.00",
+        "description": "Transportation",
+        "division": "001 - General Requirements",
+        "budgetable": true,
+        "amount": 16570
+      },
+      {
+        "code": "0142.00",
+        "description": "Insurance",
+        "division": "001 - General Requirements",
+        "budgetable": true,
+        "amount": 25.51
+      },
+      {
+        "code": "0151.00",
+        "description": "Temporary Utilities",
+        "division": "001 - General Requirements",
+        "budgetable": true,
+        "amount": 14725
+      },
+      {
+        "code": "0152.00",
+        "description": "Construction Facilities",
+        "division": "001 - General Requirements",
+        "budgetable": true,
+        "amount": 31775
+      },
+      {
+        "code": "0152.19",
+        "description": "Temporary Toilet",
+        "division": "001 - General Requirements",
+        "budgetable": true,
+        "amount": 1860
+      },
+      {
+        "code": "0153.00",
+        "description": "Temporary Construction",
+        "division": "001 - General Requirements",
+        "budgetable": true,
+        "amount": 2800
+      },
+      {
+        "code": "0154.00",
+        "description": "Construction Aids & PPE",
+        "division": "001 - General Requirements",
+        "budgetable": true,
+        "amount": 1000
+      },
+      {
+        "code": "0158.00",
+        "description": "Project Sign",
+        "division": "001 - General Requirements",
+        "budgetable": true,
+        "amount": 650
+      },
+      {
+        "code": "0174.19",
+        "description": "Dumpster (full size, normal wt.)",
+        "division": "001 - General Requirements",
+        "budgetable": true,
+        "amount": 16800
+      },
+      {
+        "code": "0813.00",
+        "description": "Metal Doors & Frames",
+        "division": "008 - Doors & Windows",
+        "budgetable": true,
+        "amount": 2730
+      },
+      {
+        "code": "0814.00",
+        "description": "Wood Doors",
+        "division": "008 - Doors & Windows",
+        "budgetable": true,
+        "amount": 2730
+      },
+      {
+        "code": "0871.00",
+        "description": "Door Hardware",
+        "division": "008 - Doors & Windows",
+        "budgetable": true,
+        "amount": 1260
+      },
+      {
+        "code": "2600.00",
+        "description": "Electrical",
+        "division": "026 - Electrical",
+        "budgetable": true,
+        "amount": 18987.27
+      },
+      {
+        "code": "0178.33",
+        "description": "Performance Bond",
+        "division": "001 - General Requirements",
+        "budgetable": true,
+        "amount": 10114.47
+      }
+    ],
+    "reconciliationDifference": 0
+  }
+}

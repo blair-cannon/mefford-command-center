@@ -1,0 +1,368 @@
+{
+  "title": "Mefford Command Center User Manual",
+  "subtitle": "Step-by-step operating guide for employees, managers, accounting, administration, and company owners",
+  "version": "September 2026",
+  "chapters": [
+    {
+      "id": "start",
+      "title": "1. First Login and Daily Start",
+      "audience": "All employees",
+      "purpose": "Use one starting point for employment tasks and assigned company work.",
+      "steps": [
+        "Sign in with the company login issued through the normal IT process. An employee record alone does not create access.",
+        "Project Managers start in Project Workspace; company leadership starts in Company Dashboard. My Work remains available for assigned work and employee resources. New employees start with required onboarding.",
+        "Complete the first required item shown at the top before moving to optional resources.",
+        "Review My Work for overdue, due-soon, and newly assigned actions. Open an item to go directly to the controlling record.",
+        "Use the notification bell for new assignments, approvals, returned work, and system notices. Marking a notice read does not complete the underlying work.",
+        "Use the always-available Command Center AI button for instructions, record lookup, or help drafting. Review every suggested action before applying it."
+      ],
+      "notes": [
+        "Permission-locked employees can use the employee portal but cannot enter the wider system until onboarding is approved.",
+        "Email and calendar show Microsoft 365 information when the connection is healthy; Teams may open the Microsoft application for meetings and calls."
+      ]
+    },
+    {
+      "id": "navigation",
+      "title": "2. Navigation, Search, and Record Rules",
+      "audience": "All users",
+      "purpose": "Find the correct workspace and understand how permanent records behave.",
+      "steps": [
+        "Use Projects in the left menu to open Project Workspace. Select the job from the Project dropdown at the top.",
+        "Open a work area: Plan, Coordinate, Field Work, Costs & Changes, or Closeout. Choose a tool, or use Next and Back to move between areas. These areas organize tools; they do not change project status.",
+        "Use Project Workspace above an open project tool to return to the same work area. The top dropdown switches jobs and returns to the workspace.",
+        "Open Project Files, Project Summary, or Project Information from the workspace header. Project Summary contains the detailed project dashboard, photos, and activity.",
+        "Use All Tools to open the searchable tool directory. Pin frequently used tools there; only tools allowed by your access are shown.",
+        "Use the search button at the top to search accessible projects, records, files, and tools. Use My Work for assigned actions and the bell for notifications.",
+        "When a project tool opens Owner Billing or Lien Waivers, it retains the selected job. Return to Project Workspace or use the top dropdown to switch projects.",
+        "Check the project name and record before saving. Approval, signature, and release controls still apply in each tool."
+      ],
+      "notes": [
+        "Access is role-based. Everyone in Sales, Estimating, or Accounting can see department work while a primary person remains assigned to each record.",
+        "Project Managers and Superintendents see only their assigned project responsibilities unless another company role grants broader access."
+      ]
+    },
+    {
+      "id": "employee",
+      "title": "3. My Work and the Employee Lifecycle",
+      "audience": "All employees; HR and administrators",
+      "purpose": "Manage employment tasks from hire through ongoing development and offboarding.",
+      "steps": [
+        "New employee: open My Work and follow the guided onboarding sequence. Complete each fillable form, acknowledgment, training item, and signature in order.",
+        "Open Email & Calendar to read Outlook mail, manage folders, review spam, create calendar items, and open Teams when the Microsoft connection is available.",
+        "Open Time to enter or review time using the period and project or overhead coding shown to the employee.",
+        "Open Benefits for company information and links to UnitedHealthcare, dental and vision resources, Northwestern Mutual life insurance, Edward Jones retirement resources, and Paylocity payroll access.",
+        "Use Requests for vacation, benefits questions, IT support, access changes, training, clothing, business cards, or another employee need. The current live role determines the recipient.",
+        "Open Goals & Reviews to see personal goals, current progress, completed reviews, and the operational evidence available to the employee.",
+        "Keep profile dates and contact information current. Birthday, hire anniversary, benefit renewals, and company milestones feed the company calendar when applicable."
+      ],
+      "notes": [
+        "Benefits accounts are administered outside Command Center; the portal provides live links and a controlled request channel.",
+        "Employees cannot self-grant access. Protected access requests require the configured approval path."
+      ]
+    },
+    {
+      "id": "dashboard",
+      "title": "4. Dashboard, Project Health, and Project Workspace",
+      "audience": "Owners, administrators, project leaders, and assigned staff",
+      "purpose": "Review company decisions and project operating conditions before opening detailed records.",
+      "steps": [
+        "Open Dashboard for company-level decisions, milestones, active project status, contract value, schedule risk, and daily-log completion.",
+        "Open the highest-priority decision. The item identifies the responsible role, due date, reason, project, and destination workspace.",
+        "Open Project Health to review the weighted score, active deductions, required actions, rule source, responsible person, and due date.",
+        "Use Rules to understand company standards. Owners and administrators may add controlled rules; automation can create work or alerts but cannot approve contracts or financial transactions.",
+        "Use Exceptions only for noncritical rules. Record a specific reason, mitigation, and expiration; protected safety and financial guardrails remain active.",
+        "Open Project Summary from Project Workspace for the selected project's open items, progress, pending changes, field count, recent photos, cameras, and quick links to project tools.",
+        "Site Superintendent outcome: build safely and keep field production on the current schedule. The operating promise is no silent safety condition and no silent schedule miss.",
+        "Project Manager outcome: hit the contract schedule and protect or improve forecast profit. No project is allowed to drift into a loss without immediate recovery action.",
+        "Estimator outcome: deliver complete, competitive, defensible proposals by the promised deadline so the company puts its best foot forward on every qualified opportunity.",
+        "Sales outcome: maintain a qualified pipeline large enough to hit the goal and convert it into profitable work. Every real opportunity must have an owner, next move, and close strategy.",
+        "Accounting outcome: give Project Managers current, reconciled cost and cash truth early enough to change the outcome. Accounting information must improve project decisions, not merely report history.",
+        "Company leadership outcome: remove barriers, enforce accountability, and act only where operating risk requires leadership. Ownership sees the consequence, accountable role, recovery action, and deadline instead of undifferentiated noise.",
+        "Read every alert in the same order: accountable role, operating outcome, business consequence, required action, assistance from another role, due date, and why ownership should or should not see it. Company ownership removes barriers and enforces accountability without taking over normal execution."
+      ],
+      "notes": [
+        "A health score explains each deduction; it is not a substitute for reviewing the source record.",
+        "Project Health history preserves daily snapshots and material changes for later review and employee performance evidence.",
+        "Role outcomes and operating promises are maintained in this User Guide rather than repeated as banners across working screens.",
+        "The company profitability floor is 15% forecast gross margin. A forecast at or below zero profit is an immediate protected ownership red flag and cannot be suspended through a Project Health exception.",
+        "Accounting assists the Project Manager with reconciled truth; the Project Manager owns the operating forecast and recovery decision. The Superintendent owns field execution; the Project Manager owns the contract completion result."
+      ]
+    },
+    {
+      "id": "sales",
+      "title": "5. Contacts, Companies, and the Sales Funnel",
+      "audience": "Sales, estimating, administrators, and owners",
+      "purpose": "Create the client relationship once and carry it through opportunity, estimate, and project.",
+      "steps": [
+        "Search Contacts before creating a company or person. The duplicate-company guard compares abbreviations, legal suffixes, spacing, and similar names.",
+        "For a business card, choose the card capture option, take or upload a clear image, review the OCR fields, and confirm the company match before saving.",
+        "If the system suggests an existing company, select it. Confirm a separate company only when it is truly a different organization, not another spelling or office name.",
+        "Create an opportunity from the contact or Sales Funnel. Existing company, contact, address, owner, and sales assignment should be reused instead of retyped.",
+        "If complete qualification information is not yet available, enter an opportunity name and select Save Sales Draft. The draft remains visible in the Sales Funnel and can be completed later.",
+        "Send To Estimating remains unavailable until the primary company, company contact, salesperson, lead source, expected award date, and assigned estimator are complete. The server checks the same handoff requirements before creating the permanent Estimating record.",
+        "Enter the estimated contract value in dollars. Currency fields format commas and cents as the amount is entered.",
+        "Use the standard stage probability or override it for the specific opportunity. The weighted pipeline updates from the saved probability.",
+        "Drag the opportunity card between sales stages. Moving a card to the Estimating stage does not release work by itself.",
+        "When the opportunity is ready for estimating, use the explicit estimating handoff. If it is moved back before estimating work begins, it leaves the estimating queue; established estimate work remains protected.",
+        "A direct estimate always creates one connected Sales Funnel card at the Estimating stage. A contact is optional at creation; add Sales details as they become known without creating a second opportunity.",
+        "Use Sales Design only for floor plans and renderings needed to sell the opportunity. Assign an authorized architect; completed work follows the opportunity into estimating if the sale advances."
+      ],
+      "notes": [
+        "Department visibility and primary assignment are separate: the department can see the work while one salesperson or estimator remains accountable.",
+        "Temporary-approved vendors remain available in architect and subcontractor menus. Incomplete compliance can hold payment but cannot stop selection, contracting, scheduling, or project progress."
+      ]
+    },
+    {
+      "id": "estimating",
+      "title": "6. Estimating, Bid Management, Proposals, and Award",
+      "audience": "Estimators, sales leaders, administrators, and owners",
+      "purpose": "Build one controlled basis of sale and convert it without re-entering project information.",
+      "steps": [
+        "Open Estimating and select the opportunity released from Sales, or create a direct estimate when no sales opportunity exists.",
+        "Assign the primary estimator from the employee dropdown and confirm the bid due date on the estimating calendar.",
+        "Complete the estimate inputs. The Sales Opportunity project address automatically maps the round-trip distance from the Mefford estimating origin. Type a different mileage to override it, or choose Use Automatic Mileage to restore the mapped value.",
+        "Every editable numeric estimate cell accepts arithmetic. Type a number or a formula such as 4x3, =1200/4, or (8+2)x6; Command Center stores the expression and uses the calculated result in every connected total.",
+        "Cleanup calculates from cleanup square feet at $2.00 per square foot and remains overridable as one total. Architectural fees calculate at 4% of construction cost and also remain overridable. Clear either override to return to its automatic formula.",
+        "Building square feet drive cost per square foot. Confirm mapped mileage, cleanup basis, formula results, and hourly rates before sending the estimate for review.",
+        "Review the sticky estimate headings while scrolling. The summary shows total contract price, contractor fees in dollars, contractor fees as a percent of price, and cost per square foot.",
+        "Open Bid Management and create packages by trade or cost code. Issue invitations, record addenda, and track received revisions.",
+        "Upload subcontractor quotes as PDF or image files. OCR extracts price and scope while retaining the original in the estimate Quotes folder for review.",
+        "Compare quotes side by side for price, scope, exclusions, alternates, and coverage. Select the intended proposal basis; selection does not award the subcontractor.",
+        "Open Proposal Studio. Selected trade scopes are rewritten into owner-facing cost-code sections without exposing vendor names or raw subcontractor pricing.",
+        "In Photos & Drawings, upload JPG or PNG proposal photos or select existing PDFs from 02-Design & Drawings and the estimate reconstruction files. Choose After Cover, After Project Read, After Delivery Plan, After Scope, or Appendix for each visual.",
+        "For a selected drawing PDF, enter All or a controlled page list such as 1-3, 7. The preview imports those exact pages; one packet may include up to 20 visual files and 30 drawing pages.",
+        "Review the letter of engagement, proposal, project approach, inclusions, exclusions, alternates, schedule, and commercial terms. Preview before issuing the controlled owner copy.",
+        "Open 07-Contract to prepare an internal pre-award owner contract draft. It can be saved with incomplete fields and previewed with a pre-award watermark, but it cannot be issued, signed, shared with the owner, synchronized to Accounting, billed, or treated as a project commitment.",
+        "At formal award, a matching pre-award draft carries into the project's controlled owner contract record. Final project identity, dates, and lump-sum award value replace preliminary placeholders, while drafted scope and terms remain intact.",
+        "After owner acceptance, complete the award gate. Command Center creates the project, carries contacts, design files, estimate folders, budget basis, contract information, and selected bid scope forward.",
+        "After project award, the system may prepare draft subcontracts for selected low or preferred bidders. The Project Manager must still review and decide whether to award each subcontract."
+      ],
+      "notes": [
+        "An issued proposal is a controlled owner document. Its selected photos, drawing pages, placement, source snapshot, and finished PDF are frozen with that revision; start a new revision to change them.",
+        "The award process must complete atomically. If project creation fails, no partial project should remain; resolve the displayed validation and try again."
+      ]
+    },
+    {
+      "id": "marketing",
+      "title": "7. Marketing",
+      "audience": "Marketing, sales leadership, administrators, and owners",
+      "purpose": "Manage social campaigns, email campaigns, customer surveys, calendar activity, and verified results in separate workflows.",
+      "steps": [
+        "Social Campaigns: create the campaign plan, audience, objective, dates, budget, owner, KPI, and content requirements.",
+        "Create LinkedIn and Facebook posts using the appropriate template, copy, image, alt text, link, hashtags, channel, and planned publish time.",
+        "Route the post for approval. Direct publishing and provider analytics operate only when the company account connections are healthy; drafts and approvals remain available before connection.",
+        "Email Campaigns: select an external-contact or internal-employee audience, choose the template, complete subject, preview text, body, CTA, and schedule, then send a test before approval.",
+        "Review consent, unsubscribe, and suppression status before release. Recipient eligibility is recalculated at send time.",
+        "Customer Surveys: Design-Build sends after the executed owner contract, after construction starts, at the weighted schedule midpoint, and after substantial completion with owner turnover; Plan & Spec sends at midpoint and completion; T&M sends after each monthly owner invoice.",
+        "In Project Summary, confirm the primary customer survey recipient. The primary contact is always included; the Project Manager may add more recipients, and each person receives an independent single-use link.",
+        "Each survey uses five one-to-five-star questions, a comment box, and optional project photos. Every rating enters the review totals; the customer must explicitly consent before their name, project, comment, or photos appear on the review display.",
+        "Open the Customer Review Dashboard to see the average, total reviews, five-star reviews, response rate, and the complete review rotation. Every review displays for at least five seconds; reviews averaging four stars or better display for thirty seconds.",
+        "Marketing may create a one-off secure survey for older completed projects by entering the historical project and customer information. Use the Marketing Calendar to review campaigns, posts, newsletters, and survey milestones together."
+      ],
+      "notes": [
+        "Automatic survey delivery and one reminder begin only after the approved delivery provider accepts the request. The system records provider acceptance separately from proven inbox delivery.",
+        "Current-project automation uses bounded trigger windows to prevent old contracts or invoices from producing an unexpected retroactive email batch; older completed projects use Marketing's one-off survey control.",
+        "Customer feedback can support marketing, sales follow-up, project improvement, Project Health, and owner-only employee reviews when consent and access rules allow.",
+        "Manual analytics are labeled as snapshots and remain separate from connected provider data."
+      ]
+    },
+    {
+      "id": "project-start",
+      "title": "8. Creating and Setting Up a Project",
+      "audience": "Project Managers, administrators, and owners",
+      "purpose": "Create one reusable project profile and establish controlled operating records.",
+      "steps": [
+        "Create the project from the awarded estimate whenever possible. Use New Project only when there is no estimate to convert.",
+        "Confirm the project number, name, owner, primary contact, site address, contract dates, Project Manager, Superintendent, architect, and timezone. Address Line 2 is optional.",
+        "Save the project profile. The same information populates contracts, subcontracts, change orders, schedules, daily logs, safety records, files, and closeout documents.",
+        "Open Team & Access to assign project-specific responsibility. Department members may have visibility while the Project Manager and Superintendent remain limited to assigned projects.",
+        "Open Budget, select company cost codes, enter original amounts, and lock the original budget when it reconciles to the approved estimate.",
+        "Open Owner Contract. Award creates a dormant owner-access record only; it does not give the customer a login or send an invitation.",
+        "PM or Admin completes and saves the controlled draft, then selects Submit Internal Review. A Company Owner selects Approve Owner Review before any customer release.",
+        "Enter the authorized Project Owner name and exact login email, then create the secure invite. If Microsoft 365 is connected the invitation sends from the signed-in Mefford account; otherwise copy the displayed link and one-time code.",
+        "The Project Owner reviews only the assigned project, compares released revisions, accepts the language or requests clause-level replacement, addition, deletion, or comment. Mefford accepts, rejects, or revises each request without overwriting prior versions.",
+        "After the Project Owner accepts the current revision, the Company Owner selects Approve Final & Freeze. The Project Owner signs the frozen revision first in the portal; Mefford countersigns second. Execution updates project, accounting, owner billing, and contract schedule milestones.",
+        "Review draft subcontracts prepared from selected estimate quotes. Confirm scope, cost-code allocations, exhibits, signer, countersigner, and release authority before distribution.",
+        "Establish the baseline schedule and connect activities to pre-work checklist categories, responsible trades, drawing references, and milestones."
+      ],
+      "notes": [
+        "Project information should be corrected in Project Information so downstream documents continue using the controlled profile.",
+        "Executed contracts and posted accounting records require controlled correction; they are not silently rewritten when profile data changes.",
+        "Project Owner access never includes internal estimates, margins, bid comparisons, internal budgets, journal entries, employee records, internal notes, or restricted safety records."
+      ]
+    },
+    {
+      "id": "project-management",
+      "title": "9. Project Management Workflows",
+      "audience": "Project Managers, administrators, owners, and assigned office staff",
+      "purpose": "Control commitments, correspondence, procurement, design, schedule, and closeout from one project record.",
+      "steps": [
+        "Budget: compare original budget, commitments, actual cost, approved changes, forecast, and variance by cost code.",
+        "Subcontracts: create or open the prepared draft, confirm project data, answer contract questions, define scope, allocate cost codes, review the packet, approve release, and follow the required signature order.",
+        "Change Orders: record the potential change, collect pricing, complete internal pricing, release the owner document, and obtain execution. Executed changes update the owner contract; approved schedule dates create a Project Manager-controlled schedule adjustment.",
+        "Purchase Orders: create the branded document with vendor, price, material or scope description, required delivery date, payment terms, cost coding, review, release, and status tracking.",
+        "Procurement: manage project bid packages and selected vendors without duplicating estimate records.",
+        "Design & Drawings: manage design/build packages, assigned architects, revision narratives, review decisions, current-set release, and drawing OCR metadata. Sales design files automatically enter the estimate Design and Drawings folder before following an awarded project.",
+        "RFIs: issue the formal question, assign responsibility, connect drawings, track response, and record cost or schedule impact before closure.",
+        "Submittals: track responsible trade, required date, revisions, reviewer disposition, distribution, and impacts.",
+        "Schedule: maintain baseline and look-ahead activities, predecessors, responsible trades, progress, milestones, and schedule change controls.",
+        "Selections: use the spreadsheet-style register for cost code, material, source, vendor, manufacturer, color, size, quantity, cost, required delivery, and order status. Generate a purchase order from a ready selection.",
+        "Closeout: manage requirements, owner punch, equipment, manuals, warranties, training, lien records, approval gates, consolidated owner PDF, and complete media package."
+      ],
+      "notes": [
+        "Selecting a vendor or quote does not bypass contract approval, signature, invoice approval, or payment controls.",
+        "A pre-work checklist is tied to schedule activity and quality category; activity readiness should show the required checklist before work begins."
+      ]
+    },
+    {
+      "id": "site",
+      "title": "10. Site Management",
+      "audience": "Superintendents, Project Managers, Safety, Quality, and assigned project staff",
+      "purpose": "Complete daily field records, safety controls, and quality evidence from the project site.",
+      "steps": [
+        "Daily Logs: choose Add Daily Log or Add Photo from the field shortcuts. Confirm the project, date, work completed, crew, incidents, photos, and weather before finalizing.",
+        "Daily logs save unfinished work, original photos, and photo markups as encrypted drafts on this device. Use Save Draft On Device or Save & Close; reopen Add Daily Log and choose Resume Saved Draft. A device draft is not shared with the project team and does not upload automatically.",
+        "Finalize Daily Log shares a completed record. If offline, the explicit upload queue retains the finalized entry until a connection returns. Read the save or upload status before leaving; keep the form open if device storage is unavailable.",
+        "Use the project street address for automatic weather. Coordinates are not required. If weather is unavailable, enter the observed conditions without blocking the log.",
+        "Finalize the daily weather report with daily rainfall, average temperature, average wind speed, and average conditions. Finalization locks those values with the log.",
+        "Upload original photos and use markup only on a working copy. The unaltered original remains available.",
+        "Safety: complete toolbox talks, collect attendee signatures, manage visitor waivers, record incidents, attach evidence, and route required review to the current Safety Director role.",
+        "Quality Pre-Work: complete the checklist linked to the schedule activity before the planned start. A qualified override requires a specific alternate full-scope review and Superintendent attestation.",
+        "Quality Items: document the exact condition and location, responsible trade, before evidence, correction package, after evidence, Superintendent verification, Project Manager acceptance, and designer acceptance when required.",
+        "Punch & Closeout: carry accepted quality work into owner punch and final acceptance without losing the correction history."
+      ],
+      "notes": [
+        "Safety role names in forms are live. Reassigning the Safety Director changes future routing without rewriting form templates.",
+        "Offline field records and photos queue on the trusted device and resume syncing when service returns."
+      ]
+    },
+    {
+      "id": "accounting",
+      "title": "11. Accounting",
+      "audience": "Accountants, financial administrators, accounting managers, and owners",
+      "purpose": "Perform real accounting work from coordinated contracts, budgets, payables, receivables, payroll, cash, and ledger records.",
+      "steps": [
+        "Accounting Command: begin with exceptions, current cash, AP, AR, payroll, WIP, and close readiness.",
+        "Chart of Accounts: maintain the permanent account structure and mapping used by journal entries, assets, project costs, and reports.",
+        "General Ledger: create balanced journal drafts, attach support, route independent approval, post once approved, and correct posted work by reversal. Use Opening Balances for the controlled system cutover.",
+        "Accounts Payable: capture the invoice, use OCR where available, verify vendor and duplicate status, code project or overhead allocations, collect approvals, confirm lien requirements, and prepare the payment batch.",
+        "Lien Waivers: collect conditional and unconditional forms by vendor, billing, and payment. Missing required waivers hold payment without stopping project work.",
+        "Owner Billing: prepare the current application from contract, schedule of values, approved changes, stored materials, prior billings, retainage, and supporting records; route project, accounting, and owner approvals.",
+        "Cash Management: maintain the 13-week forecast, expected payments, bank transactions, reconciliation, and controlled payment methods.",
+        "Payroll Reports: generate the payroll processing file for Paylocity and import the returned payroll report for accounting distribution. Employees use only the Paylocity login link for personal payroll access.",
+        "WIP and Close: review cost-to-cost revenue, percent complete, billings in excess or costs in excess, projected profit, period status, and project close requirements.",
+        "Financial Reports: select the report and date; amounts recalculate from the coordinated permanent record.",
+        "Vendor Management: approve vendors temporarily when needed, assign project scopes, and review compliance. All vendor types remain selectable; unresolved compliance creates a payment hold rather than a project-progress block.",
+        "Fixed Assets and Assets & Fleet: distinguish operational tracking from book treatment and tax treatment. Record capitalization, depreciation, expense, impairment, Section 179, bonus depreciation, or tracking-only treatment subject to accountant review."
+      ],
+      "notes": [
+        "Command Center is Mefford Contracting's accounting and operational system of record. Legacy accounting files may be imported as opening evidence, but all current coding, posting, approvals, reconciliations, and reporting occur in Command Center.",
+        "The preparer cannot approve their own journal entry. Posted entries are immutable and corrected through audited reversal.",
+        "Tax treatment records the accountant-approved election and amount; Command Center does not replace current tax-law review."
+      ]
+    },
+    {
+      "id": "admin",
+      "title": "12. Administration",
+      "audience": "Administrators, HR, benefits, IT, reviewers, and owners",
+      "purpose": "Manage company direction, employee lifecycle, requests, templates, access, and recurring operations through defined responsibility.",
+      "steps": [
+        "Admin Command: review the current company actions and the responsibility boundaries between Administrator, live role holders, and Company Owner.",
+        "Goal Setting: set company priorities, translate them into department scorecards, and create measurable employee quarterly goals. Owner final authority remains protected.",
+        "HR & Benefits: create employee records without granting access, record company login issuance, monitor onboarding, activate eligible employees, manage renewals, and complete offboarding.",
+        "Employee Requests: review the central queue. Vacation routes to Owner/Admin, HR and benefits questions to HR, clothing and business cards to Marketing/Admin, IT issues to IT, training requests to Owner, and access requests through dual approval.",
+        "Template Review: manage legal, HR, benefits, safety, accounting, and operating templates. Upload a new source version, assign the live reviewer role, record review, publish the approved version, and schedule annual review.",
+        "Team & Access: manage company access level, live company roles, project assignment, department visibility, guest or subcontractor invitations, and protected Owner overrides.",
+        "A Company Owner can assign every company-default and project role. The active Company Owner remains selectable in every role-based employee dropdown even when that responsibility is not also stored as a separate designation on the Owner profile.",
+        "Company Operations: manage the company calendar, assets and fleet, IT and integrations, employee dates, recurring reviews, and operating cadence.",
+        "Performance Reviews: Company Owners generate quarterly employee reviews from role-specific operational evidence, customer voice, safety, schedule, budget, profitability, onboarding, and project health; the Owner reviews context before finalizing."
+      ],
+      "notes": [
+        "Physical employee names should not be hard-coded into reusable forms. Assign the responsible company role and allow the current role holder to populate future records.",
+        "Confidential HR and benefits information remains restricted even when an Administrator monitors overall queue status."
+      ]
+    },
+    {
+      "id": "documents-ai",
+      "title": "13. Documents, OCR, Search, and Command Center AI",
+      "audience": "All authorized users",
+      "purpose": "Preserve source documents, extract useful data, and assist work without bypassing human review.",
+      "steps": [
+        "Open Documents at the bottom of the navigation after selecting a project.",
+        "Search the project file structure before uploading. Choose the correct category and revision so related records remain together.",
+        "Upload only the source file that should become part of the permanent project or company record. New revisions preserve earlier versions.",
+        "Drawing OCR extracts drawing number, title, discipline, revision date, and other available sheet metadata. Review the values before relying on them.",
+        "Quote OCR extracts price, scope, exclusions, alternates, and coverage suggestions while keeping the original quote attached to the estimate.",
+        "Invoice OCR and business-card OCR prefill reviewable fields; they do not approve invoices, create final contacts without confirmation, or override duplicate detection.",
+        "Ask Command Center AI to locate a record, explain a workflow, draft a scope, compare information, or propose a drawing-based schedule.",
+        "For AI schedule generation, select the project drawings, request a draft, review every activity, date, duration, trade, predecessor, quality category, assumption, risk, and drawing reference, then explicitly apply the reviewed activities.",
+        "Use original files and permanent record data as the governing source. AI and OCR outputs are suggestions until a person confirms them."
+      ],
+      "notes": [
+        "AI cannot execute a contract, award a vendor, approve an invoice, post accounting, release payment, or finalize a protected decision.",
+        "The assistant should identify the source record or connection boundary when live external information is not available."
+      ]
+    },
+    {
+      "id": "statuses",
+      "title": "14. Statuses, Approvals, and Payment Holds",
+      "audience": "All users",
+      "purpose": "Interpret workflow status without assuming that visible or selected means approved.",
+      "steps": [
+        "Draft: work can be edited and is not released to another party.",
+        "In Review or Awaiting Approval: the record is routed to the named role; no protected outcome has occurred.",
+        "Approved for Release: the content is authorized for the next distribution or signature step but may not be executed.",
+        "Issued or Sent: the controlled version has been distributed and remains part of the permanent record.",
+        "Executed: all required signatures are complete; contract value, dates, and downstream contract controls may update.",
+        "Posted: the accounting entry is permanent and must be corrected through reversal.",
+        "Temporary Approval: the vendor may be selected and work may progress for the approved period; unresolved compliance still holds payment.",
+        "Payment Hold: bidding, selection, contract preparation, scheduling, field work, invoice intake, and AP review continue; payment approval or release does not.",
+        "Returned or Rejected: read the required correction, revise the working record, and resubmit. Do not create a duplicate to avoid the history.",
+        "Cancelled or Void: the number and audit history remain searchable even though the record no longer advances."
+      ],
+      "notes": [
+        "Each approval screen identifies the person or live role holding the current decision.",
+        "When a control appears blocked, open the displayed prerequisite instead of recreating the record."
+      ]
+    },
+    {
+      "id": "testing",
+      "title": "15. Owner Testing and Permanent Deletion",
+      "audience": "Company Owners",
+      "purpose": "Test complete workflows while preventing accidental removal of live company records.",
+      "steps": [
+        "Create clearly named test contacts, opportunities, estimates, and projects so they are not confused with live work.",
+        "Run the complete workflow being tested, including approvals and downstream records when relevant.",
+        "Delete a test estimate from its Owner control. Review the displayed related records and enter the required confirmation exactly.",
+        "Delete a test project from Project Information. Review the full cascade, including project records, files, budget, schedule, meetings, vendor access, accounting links, notifications, and project audit history.",
+        "Confirm deletion only after verifying the project number and name. Deletion is permanent and is recorded as an Owner action.",
+        "Re-run search after deletion to confirm the test records no longer appear in active or archived results."
+      ],
+      "notes": [
+        "Only Company Owners can permanently delete projects and estimates with related data.",
+        "Do not use deletion to correct an executed contract, posted journal entry, or other permanent production record. Use the workflow's revision, reversal, cancellation, or void action."
+      ]
+    },
+    {
+      "id": "troubleshooting",
+      "title": "16. Troubleshooting and Support",
+      "audience": "All users; IT and administrators",
+      "purpose": "Resolve common problems without losing work or bypassing a control.",
+      "steps": [
+        "Read the complete message at the top of the workspace. It should identify the missing field, prerequisite, role, connection, or record state.",
+        "Confirm the correct project and section before entering information.",
+        "Refresh the workspace once. Do not submit the same action repeatedly while a save or upload is still in progress.",
+        "For weather issues, confirm the project street address and optional Address Line 2; then open Daily Logs and retry conditions.",
+        "For a missing vendor in a dropdown, search Vendor Management, confirm the vendor type and temporary approval status, then reopen the destination menu.",
+        "For an award failure, review required project setup, contact, estimate, contract value, dates, Project Manager, Superintendent, architect, and budget data. The system should not leave a partial project.",
+        "For Microsoft email, calendar, Teams, marketing, analytics, or other external-service issues, open IT & Integrations and review connection status, cause, owner, last check, incident, and recovery action.",
+        "Submit an IT request from My Work when the issue affects a device, account, permissions, or a connection you cannot manage.",
+        "Use Command Center AI to ask where a record belongs or what the next gate requires; include the project and record number, but do not paste passwords or private credentials."
+      ],
+      "notes": [
+        "IT performance records uptime, acknowledgement, time to resolve, recurrence, and provider-caused downtime separately.",
+        "If a workflow still fails after the displayed prerequisite is complete, preserve the exact error and record number in the IT request."
+      ]
+    }
+  ]
+}

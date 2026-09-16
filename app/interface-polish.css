@@ -1,0 +1,814 @@
+/* Shared screen controls. Document and print layouts retain their own geometry. */
+@media screen {
+  .proposal-studio-shell { grid-template-rows: auto auto auto auto minmax(0, 1fr) auto; }
+  .proposal-studio-shell > .proposal-word-actions { grid-row: 4; }
+  .proposal-studio-shell > .proposal-studio-body { grid-row: 5; }
+  .proposal-studio-shell > .proposal-studio-footer { grid-row: 6; }
+  .proposal-word-actions { display: flex; align-items: center; flex-wrap: wrap; gap: .75rem; padding: .75rem 1.5rem; border-bottom: 1px solid #dfe3e6; background: #fff; }
+  .proposal-word-actions > span { flex: 1 1 22rem; min-width: 0; font-size: .875rem; line-height: 1.5; }
+  .proposal-word-actions label { position: relative; cursor: pointer; }
+  .proposal-word-actions input[type="file"] { position: absolute; inset: 0; opacity: 0; width: 100%; cursor: pointer; }
+  .app-shell .financial-report-hero > span { max-width: 100%; white-space: normal; overflow-wrap: anywhere; border-radius: 12px; }
+  .app-shell .financial-report-hero > span > b { flex: 0 0 8px; }
+  .app-shell :is(.financial-report-hero, .admin-command-hero) { background: linear-gradient(115deg, #252528, #393b3f); }
+  .app-shell .asset-hero { background: linear-gradient(115deg, #252528, #393b3f) !important; }
+  /* Screen workspaces share a readable control scale, including older modules
+     whose controls never used the common primary/secondary action classes. */
+  .app-shell :is(.po-workspace, .selection-workspace, .design-lifecycle-workspace,
+    .closeout-command, .admin-command-workspace, .meetings-center,
+    .financial-reports-workspace, .accounting-advanced-workspace,
+    .vendor-management, .access-workspace, .asset-workspace) :is(p, label, dt, dd, li) {
+    font-size: .875rem;
+    line-height: 1.5;
+    letter-spacing: normal;
+    overflow-wrap: anywhere;
+  }
+  .app-shell :is(.po-workspace, .selection-workspace, .design-lifecycle-workspace,
+    .closeout-command, .admin-command-workspace, .meetings-center,
+    .financial-reports-workspace, .accounting-advanced-workspace,
+    .vendor-management, .access-workspace, .asset-workspace) :is(span, small) {
+    font-size: .75rem;
+    line-height: 1.45;
+    letter-spacing: normal;
+  }
+  .app-shell :is(.po-workspace, .selection-workspace, .design-lifecycle-workspace,
+    .closeout-command, .admin-command-workspace, .meetings-center,
+    .financial-reports-workspace, .accounting-advanced-workspace,
+    .vendor-management, .access-workspace, .asset-workspace) button,
+  .app-shell :is(.records-tools, .change-order-view-toggle) > button {
+    min-height: 2.625rem;
+    height: auto;
+    max-width: 100%;
+    font-size: .875rem;
+    line-height: 1.45;
+    letter-spacing: normal;
+    word-spacing: normal;
+    white-space: normal;
+  }
+  .app-shell :is(.po-workspace, .selection-workspace, .design-lifecycle-workspace,
+    .closeout-command, .admin-command-workspace, .meetings-center,
+    .financial-reports-workspace, .accounting-advanced-workspace,
+    .vendor-management, .access-workspace, .asset-workspace) :is(header, footer, article, section, aside, label) {
+    min-width: 0;
+  }
+  .app-shell :is(.subcontract-workflow-banner, .records-tools) :is(p, span) { font-size: .875rem; line-height: 1.5; }
+  .app-shell :is(.change-order-controls, .change-order-view-toggle) { flex-wrap: wrap; gap: .625rem; }
+  .app-shell .change-order-view-toggle > button { padding: .625rem .875rem; }
+  /* A bounded list scrolls; its records must never shrink to fit the queue. */
+  .app-shell .company-dashboard :is(.executive-decision-list, .dashboard-today-list, .dashboard-log-list) > button {
+    flex: 0 0 auto;
+    height: auto;
+  }
+  .app-shell .decision-priority {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: max-content;
+    min-width: max-content;
+    max-width: none;
+    flex-shrink: 0;
+    padding: .4375rem .625rem;
+    white-space: nowrap;
+    line-height: 1.4;
+  }
+  .app-shell .decision-priority.critical { background: #a52228; color: #fff; box-shadow: none; }
+  .app-shell .funnel-board {
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+    grid-auto-columns: clamp(17rem, 23vw, 21rem);
+    align-items: stretch;
+    scroll-snap-type: none;
+    overflow: auto;
+    overscroll-behavior-x: contain;
+  }
+  .app-shell .sales-workspace[data-mode="funnel"] > .sales-notice {
+    position: fixed;
+    bottom: 1.5rem;
+    right: 1.5rem;
+    z-index: 1400;
+    width: min(34rem, calc(100vw - 3rem));
+    margin: 0;
+    gap: 1rem;
+    box-shadow: 0 6px 24px #20212426;
+    font-size: .875rem;
+    line-height: 1.5;
+  }
+  @media (max-width: 720px) {
+    .app-shell .sales-workspace[data-mode="funnel"] > .sales-notice { bottom: 7rem; right: 1rem; width: calc(100vw - 2rem); }
+  }
+  .app-shell .funnel-column {
+    display: grid;
+    grid-template-rows: 6rem minmax(0, 1fr);
+    height: clamp(30rem, 65dvh, 48rem);
+    min-height: 0;
+    min-width: 0;
+    overflow: hidden;
+  }
+  .app-shell .funnel-column > header { min-width: 0; overflow-wrap: anywhere; }
+  .app-shell .funnel-column > header small { font-size: .75rem; line-height: 1.45; }
+  .app-shell .funnel-column .funnel-card-list {
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior-y: contain;
+    scrollbar-gutter: stable;
+  }
+  .app-shell .funnel-column.drag-ready { background: #f0f2f3; border-color: #d0d5d9; }
+  .app-shell .funnel-column.drop-target { background: #f8ecea; border-color: #96372f; box-shadow: inset 0 0 0 1px #96372f; }
+  .app-shell .funnel-card-shell { min-width: 0; flex: 0 0 auto; }
+  .app-shell .funnel-card { min-width: 0; overflow-wrap: anywhere; border-radius: .5rem .5rem 0 0; }
+  .app-shell .funnel-card.is-dragging { opacity: .45; }
+  .app-shell .funnel-card:disabled { cursor: progress; }
+  .app-shell .funnel-card-top { gap: .5rem; }
+  .app-shell .funnel-card-top > * { min-width: 0; }
+  .app-shell .funnel-meta { flex-wrap: wrap; }
+  .app-shell .funnel-move-control {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: center;
+    gap: .5rem;
+    padding: .5rem;
+    border: 1px solid #dfe3e0;
+    border-top: 0;
+    border-radius: 0 0 .5rem .5rem;
+    background: #f8f9fa;
+  }
+  .app-shell .funnel-move-control > span { font-size: .75rem; white-space: nowrap; }
+  .app-shell .funnel-move-control select { width: 100%; min-height: 2.625rem; padding: .375rem; border: 1px solid #cdd2d7; border-radius: .375rem; background: white; }
+  /* Expanded navigation must scroll without compressing the logo or footer. */
+  .app-shell .sidebar > :is(.brand, .sidebar-bottom) { flex-shrink: 0; }
+  .app-shell .main-nav { min-height: 0; }
+  .app-shell .nav-subitem { height: auto; padding-block: .625rem; }
+  .app-shell .nav-subitem b { white-space: normal; overflow-wrap: anywhere; }
+  .app-shell .accounting-hero { background: linear-gradient(115deg, #252528, #393b3f); }
+  .app-shell .accounting-hero p:last-child { font-size: .875rem; line-height: 1.5; }
+  .app-shell .accounting-hero .eyebrow { color: #f1b0a9; }
+  /* Independent workspaces use their own controls instead of primary-action. */
+  .app-shell :is(.marketing-workspace, .marketing-modal, .procurement-workspace,
+    .procurement-modal, .general-ledger-workspace) {
+    min-width: 0;
+    font-size: 1rem;
+    line-height: 1.5;
+  }
+  .app-shell :is(.marketing-workspace, .marketing-modal, .procurement-workspace,
+    .procurement-modal) button {
+    min-height: 2.625rem;
+    height: auto;
+    max-width: 100%;
+    padding: .625rem .875rem;
+    border-radius: .5rem;
+    font-size: .875rem;
+    line-height: 1.4;
+    letter-spacing: normal;
+    word-spacing: normal;
+    white-space: normal;
+  }
+  .app-shell :is(.marketing-workspace, .marketing-modal, .procurement-workspace,
+    .procurement-modal) :is(p, label, dt, dd, li) {
+    font-size: .875rem;
+    line-height: 1.5;
+    letter-spacing: normal;
+  }
+  .app-shell :is(.marketing-workspace, .marketing-modal) :is(span, small, i),
+  .app-shell .marketing-template-library :is(header > b, dt),
+  .app-shell .marketing-calendar-weekdays b {
+    font-size: .75rem;
+    line-height: 1.45;
+    letter-spacing: normal;
+  }
+  .app-shell :is(.marketing-template-library, .marketing-inline-template-picker,
+    .marketing-requirements, .marketing-calendar-days) b {
+    font-size: .875rem;
+    line-height: 1.4;
+  }
+  .app-shell .marketing-template-library article > p { min-height: 0; }
+  .app-shell :is(.marketing-hero, .procurement-hero,
+    .marketing-template-library > header, .marketing-register > header,
+    .marketing-domain-connections > header, .journal-editor-toolbar,
+    .ledger-hero-actions, .journal-editor-toolbar > div:last-child) {
+    flex-wrap: wrap;
+    gap: .75rem;
+    min-width: 0;
+  }
+  .app-shell :is(.marketing-hero, .procurement-hero) > div:first-child {
+    flex: 1 1 24rem;
+    min-width: 0;
+  }
+  .app-shell .marketing-hero,
+  .app-shell .marketing-modal > section > header {
+    background: linear-gradient(115deg, #252528, #393b3f);
+  }
+  .app-shell .marketing-hero::after { display: none; }
+  .app-shell .marketing-hero span { color: #d5d7da; font-size: 1rem; }
+  .app-shell .marketing-scorecards article,
+  .app-shell .marketing-social-templates > header { border-color: #96372f; }
+  .app-shell .marketing-template-library article > button {
+    color: #34383e;
+    border-color: #cdd2d7;
+  }
+  .app-shell .marketing-calendar-weekdays { background: #34383e; }
+  .app-shell .marketing-calendar > header nav {
+    grid-template-columns: 2.625rem minmax(9rem, 1fr) 2.625rem;
+  }
+  .app-shell .marketing-calendar > header nav button {
+    width: 2.625rem;
+    padding: .375rem;
+  }
+  .app-shell :is(.marketing-form-grid, .procurement-form-grid,
+    .marketing-composer-layout, .marketing-inline-template-picker) > * { min-width: 0; }
+  .app-shell :is(.marketing-modal, .procurement-modal) { z-index: 1200; }
+  .app-shell :is(.marketing-modal, .procurement-modal) > section {
+    max-height: calc(100dvh - 2rem);
+    border-radius: .875rem;
+  }
+  .app-shell :is(.marketing-modal, .procurement-modal) header > button {
+    flex-shrink: 0;
+    min-width: 2.625rem;
+    font-size: 1.5rem;
+  }
+  .app-shell :is(.marketing-modal, .procurement-modal) footer {
+    flex-wrap: wrap;
+    gap: .625rem;
+  }
+  .app-shell .ledger-tabs {
+    min-width: 0;
+    max-width: 100%;
+    overflow-x: auto;
+  }
+  .app-shell .ledger-tabs button {
+    flex: 0 0 auto;
+    min-height: 2.625rem;
+    padding: .625rem .875rem;
+    font-size: .875rem;
+    line-height: 1.4;
+    white-space: nowrap;
+  }
+  .app-shell :is(.journal-register, .trial-balance-table) { overflow-x: auto; }
+  .app-shell :is(.journal-register-row, .trial-balance-row) {
+    grid-template-columns: 9rem 10rem minmax(17rem, 1fr) repeat(2, 10rem) 8rem;
+    min-width: 72rem;
+    font-size: .875rem;
+    line-height: 1.45;
+  }
+  .app-shell .trial-balance-row {
+    grid-template-columns: 6rem minmax(17rem, 1fr) repeat(4, 11rem);
+  }
+  .app-shell .journal-register-row :is(b, strong) { font-size: .875rem; }
+  .app-shell .journal-register-row small { font-size: .75rem; overflow-wrap: anywhere; }
+  .app-shell .journal-editor-toolbar span { font-size: .75rem; line-height: 1.45; }
+  @media (max-width: 900px) {
+    .app-shell .marketing-composer-layout { grid-template-columns: minmax(0, 1fr); }
+    .app-shell .marketing-requirements { border-left: 0; border-top: 1px solid #dce0e4; }
+    .app-shell .marketing-form-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  }
+  @media (max-width: 680px) {
+    .app-shell .marketing-form-grid { grid-template-columns: minmax(0, 1fr); }
+    .app-shell :is(.marketing-modal, .procurement-modal) :is(input, select, textarea) { font-size: 1rem; }
+    .app-shell :is(.marketing-modal, .procurement-modal) footer button { flex: 1 1 12rem; }
+  }
+}
+@media screen {
+  .app-shell {
+    --ink: #202124;
+    --muted: #62676e;
+    --line: #dce0e4;
+    --canvas: #f3f4f5;
+    --surface-soft: #f8f9fa;
+    --orange: #96372f;
+    --orange-soft: #f8ecea;
+    --font-xxs: .75rem;
+    --font-xs: .8125rem;
+    background: var(--canvas);
+  }
+
+  .app-shell .sidebar {
+    background: linear-gradient(180deg, #252528, #17181b);
+    border-right-color: #34363b;
+  }
+
+  .app-shell .nav-item,
+  .app-shell .nav-folder,
+  .app-shell .nav-subfolder {
+    min-height: 2.875rem;
+    height: auto;
+    padding-block: .625rem;
+    font-size: .875rem;
+    line-height: 1.35;
+    color: #d5d7da;
+  }
+
+  .app-shell .nav-subitem b { font-size: .875rem; line-height: 1.35; }
+  .app-shell .nav-item:hover,
+  .app-shell .nav-folder:hover { transform: none; }
+  .app-shell .nav-item.active,
+  .app-shell .nav-folder.active,
+  .app-shell .nav-subitem.active {
+    color: #fff;
+    background: #49312f;
+    box-shadow: inset 3px 0 #bf5b50;
+  }
+
+  .app-shell :is(button, input, select, textarea) {
+    font-family: inherit;
+    letter-spacing: normal;
+    word-spacing: normal;
+  }
+
+  .app-shell :is(.primary-action, .secondary-action, .danger-action) {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 auto;
+    gap: .5rem;
+    min-height: 2.625rem;
+    height: auto;
+    max-width: 100%;
+    padding: .625rem .9375rem;
+    border: 1px solid transparent;
+    border-radius: .5rem;
+    font-size: .875rem;
+    font-weight: 650;
+    line-height: 1.35;
+    text-align: center;
+    white-space: normal;
+    text-transform: none;
+    box-shadow: none;
+  }
+
+  .app-shell .primary-action { background: #96372f; color: #fff; }
+  .app-shell .primary-action:hover:not(:disabled) {
+    background: #7e2d27;
+    transform: none;
+    box-shadow: none;
+  }
+  .app-shell .secondary-action { border-color: #cdd2d7; background: #fff; color: #34383e; }
+  .app-shell .secondary-action:hover:not(:disabled) { border-color: #9ca4ad; background: #f5f6f7; }
+  .app-shell .danger-action { border-color: #d9a7a1; background: #fff5f3; color: #96372f; }
+  .app-shell :is(.primary-action, .secondary-action, .danger-action):disabled {
+    cursor: not-allowed;
+    opacity: .55;
+    box-shadow: none;
+    transform: none;
+  }
+
+  .app-shell :is(button, a, input, select, textarea, summary):focus-visible {
+    outline: 2px solid #96372f;
+    outline-offset: 3px;
+  }
+
+  .app-shell .workspace,
+  .app-shell .content,
+  .app-shell .content > *,
+  .app-shell .content :is(section, article, fieldset) { min-width: 0; }
+
+  .app-shell .content :is(label, input, select, textarea, th, td) {
+    font-size: .875rem;
+    line-height: 1.45;
+  }
+  .app-shell .content small { font-size: .75rem; line-height: 1.45; }
+  .app-shell .content :is(input, select, textarea) { max-width: 100%; min-width: 0; }
+  .app-shell .content textarea { resize: vertical; }
+
+  .app-shell :is(.workspace-heading, .sales-heading, .estimating-heading,
+    .panel-heading, .sales-panel-heading, .records-tools, .funnel-toolbar) {
+    min-width: 0;
+    height: auto;
+    gap: .875rem;
+    flex-wrap: wrap;
+  }
+  .app-shell :is(.workspace-heading, .sales-heading, .estimating-heading) > div:first-child {
+    min-width: 0;
+    flex: 1 1 18rem;
+  }
+  .app-shell :is(.workspace-heading-actions, .modal-actions, .form-actions,
+    .sales-heading-actions, .estimating-heading-actions, .formal-preview-actions) {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: .625rem;
+    max-width: 100%;
+    min-width: 0;
+  }
+
+  .app-shell :is(.field-grid, .form-grid, .accounting-form-grid,
+    .quality-form-grid, .owner-contract-form-grid) > * { min-width: 0; }
+
+  .app-shell :is(.quality-tabs, .selection-tabs, .safety-command-tabs,
+    .closeout-tabs, .vendor-tabs, .people-tabs, .sales-tabs, .accounting-tabs, .employee-home-nav) {
+    display: flex;
+    min-width: 0;
+    max-width: 100%;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    gap: .375rem;
+    padding-bottom: .375rem;
+    scrollbar-gutter: auto;
+  }
+  .app-shell :is(.quality-tabs, .selection-tabs, .safety-command-tabs,
+    .closeout-tabs, .vendor-tabs, .people-tabs, .sales-tabs, .accounting-tabs, .employee-home-nav) button {
+    flex: 0 0 auto;
+    min-width: max-content;
+    min-height: 2.625rem;
+    height: auto;
+    padding: .625rem .875rem;
+    font-size: .875rem;
+    line-height: 1.35;
+    white-space: nowrap;
+  }
+
+  .app-shell .record-head { height: auto; min-height: 2.625rem; padding-block: .625rem; }
+  .app-shell .record-row { font-size: .875rem; line-height: 1.45; }
+  .app-shell .record-title strong { font-size: .9375rem; }
+  .app-shell .record-id { font-size: .8125rem; }
+  .app-shell .status-badge { height: auto; font-size: .75rem; line-height: 1.35; }
+  .app-shell .record-row > * { min-width: 0; }
+
+  .app-shell .topbar { gap: 1rem; }
+  .app-shell .project-switcher { min-width: 0; flex: 0 1 auto; }
+  .app-shell .project-switcher > button { min-width: 0; max-width: 100%; }
+  .app-shell .topbar-actions { min-width: 0; gap: .625rem; }
+  .app-shell .site-wide-search { min-width: 9rem; width: clamp(9rem, 20vw, 24rem); flex: 1 1 14rem; }
+  .app-shell .site-wide-search input { min-width: 0; width: 100%; font-size: .8125rem; }
+  .app-shell .topbar-actions > :is(.primary-action, .icon-button) { flex-shrink: 0; }
+  .app-shell .project-menu { max-width: calc(100vw - 2rem); }
+  .app-shell :is(.sync-state, .assistant-launcher) { min-height: 2.625rem; height: auto; font-size: .875rem; }
+  .app-shell .project-switcher small { font-size: .75rem; }
+
+  .app-shell .summary-drilldown-trigger::after { display: none; }
+  .app-shell .summary-drilldown-trigger > span,
+  .app-shell .sales-goal-hero span,
+  .app-shell .sales-dashboard-card > header > span,
+  .app-shell .quarter-grid :is(span, b),
+  .app-shell .month-value,
+  .app-shell .funnel-toolbar span,
+  .app-shell .funnel-column .stage-number,
+  .app-shell .funnel-empty,
+  .app-shell .funnel-card :is(span, b) { font-size: .75rem; line-height: 1.45; }
+  .app-shell .funnel-toolbar button { min-height: 2.625rem; padding: .625rem .75rem; font-size: .875rem; }
+  .app-shell .monthly-sales-chart { grid-template-columns: repeat(12, minmax(5.5rem, 1fr)); }
+  .app-shell .sector-history-table :is(strong, span) { font-size: .875rem; line-height: 1.45; }
+  .app-shell .sales-dashboard-metrics .profit-card { border-top-color: #96372f; }
+  .app-shell .sales-dashboard-card > header { flex-wrap: wrap; }
+
+  /* Standard forms must sit above navigation and floating mobile controls. */
+  .app-shell .modal-layer { z-index: 1200; }
+  .app-shell .modal-layer.nested-form-layer { z-index: 1300; }
+  :is(.app-shell, .nested-form-layer) .modal-heading > button {
+    flex-shrink: 0;
+    min-width: 2.625rem;
+    min-height: 2.625rem;
+    font-size: 1.25rem;
+  }
+
+  /* Nested contact dialogs render at the document root, outside the shell. */
+  .nested-form-layer .record-modal {
+    border-radius: 1rem;
+    background: #fff;
+    color: #202124;
+    padding: 1.5rem;
+    max-height: calc(100dvh - 2rem);
+    overflow: auto;
+  }
+  .nested-form-layer :is(label, input, select, textarea, button) {
+    font-size: .875rem;
+    line-height: 1.45;
+    letter-spacing: normal;
+    word-spacing: normal;
+  }
+  .nested-form-layer :is(.primary-action, .secondary-action) {
+    min-height: 2.625rem;
+    height: auto;
+    padding: .625rem .9375rem;
+    border-radius: .5rem;
+    white-space: normal;
+  }
+  .nested-form-layer .primary-action { background: #96372f; color: #fff; }
+  .nested-form-layer small { font-size: .75rem; }
+  :is(.app-shell, .nested-form-layer) .business-card-intake :is(p, span),
+  .nested-form-layer .eyebrow { font-size: .75rem; line-height: 1.45; }
+  :is(.app-shell, .nested-form-layer) .business-card-capture b { font-size: .875rem; line-height: 1.4; }
+
+  :is(.app-shell, .nested-form-layer) .modal-heading > div > span,
+  .app-shell .eyebrow,
+  .app-shell :is(.sales-summary-card, .sales-metric-card) > span,
+  .app-shell .sales-dashboard-card header p,
+  .app-shell .role-outcome-command span,
+  .app-shell .decision-project,
+  .app-shell .decision-owner b { font-size: .75rem; line-height: 1.45; }
+  .app-shell .company-dashboard :is(.decision-priority, .decision-copy > b, .dashboard-field-photos > header > strong) {
+    font-size: .75rem;
+    line-height: 1.4;
+  }
+  .app-shell :is(.estimating-lock-warning, .role-outcome-mission) :is(strong, span),
+  .app-shell .sales-goal-alert :is(strong, span),
+  .app-shell .funnel-column header strong,
+  .app-shell .funnel-card > strong,
+  .app-shell .sales-dashboard-card h2,
+  .app-shell .executive-decision-list .decision-copy strong,
+  .app-shell .decision-owner strong,
+  .app-shell .dashboard-operational-empty strong,
+  .app-shell .dashboard-photo-empty strong,
+  .app-shell .executive-clear-state strong { font-size: .875rem; line-height: 1.45; }
+  .app-shell .empty-attention-state strong { font-size: .875rem; }
+  .app-shell .empty-attention-state span { font-size: .75rem; }
+
+  .app-shell .opportunity-contact-select { display: flex; flex-wrap: wrap; gap: .5rem; }
+  .app-shell .opportunity-contact-select select { flex: 1 1 12rem; min-width: 0; }
+  .app-shell .opportunity-contact-select button {
+    flex: 0 0 auto;
+    min-height: 2.625rem;
+    height: auto;
+    padding: .625rem .75rem;
+    border: 1px solid #d9b7b2;
+    border-radius: .5rem;
+    font-size: .875rem;
+    line-height: 1.35;
+    white-space: nowrap;
+  }
+  .app-shell .probability-input b { font-size: .875rem; }
+  :is(.app-shell, .nested-form-layer) .sales-modal-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: .625rem;
+    height: auto;
+  }
+
+  .app-shell .company-dashboard .dashboard-role-card > div > span {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    justify-items: start;
+    align-content: center;
+    gap: .25rem;
+  }
+  .app-shell .company-dashboard .dashboard-role-card > div {
+    min-height: 0;
+    overflow: auto;
+    overscroll-behavior: contain;
+  }
+  .app-shell .company-dashboard .dashboard-role-card :is(header, b, strong) {
+    min-width: 0;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .app-shell .company-dashboard .dashboard-role-card > div strong { line-height: 1.25; }
+  .app-shell .company-dashboard .dashboard-role-card > footer { flex-shrink: 0; }
+  .app-shell .company-dashboard .dashboard-role-card.on-track { border-top-color: #6c747c; }
+  .app-shell .company-dashboard .dashboard-role-card header strong { font-size: .875rem; }
+  .app-shell .company-dashboard .dashboard-role-grid { scrollbar-gutter: auto; }
+
+  .app-shell .calendar-controls { flex-wrap: wrap; gap: .875rem; }
+  .app-shell .calendar-controls > div { flex-wrap: wrap; gap: .375rem; min-width: 0; }
+  .app-shell .calendar-controls button { min-height: 2.625rem; font-size: .875rem; }
+  .app-shell .calendar-controls nav { margin-left: auto; flex-shrink: 0; gap: .625rem; }
+  .app-shell .master-calendar-grid { min-width: 0; max-width: 100%; overflow-x: auto; }
+  .app-shell .calendar-event { min-width: 0; min-height: 2.5rem; height: auto; }
+  .app-shell .calendar-event span { font-size: .8125rem; line-height: 1.4; }
+  .app-shell .calendar-event i { font-size: .75rem; }
+  .app-shell .calendar-agenda article > div { min-width: 0; }
+  .app-shell .calendar-agenda article :is(strong, time) { font-size: .875rem; line-height: 1.45; }
+  .app-shell .calendar-agenda article span { font-size: .75rem; }
+  .app-shell .calendar-outlook-boundary strong { font-size: .875rem; line-height: 1.45; }
+  .app-shell .calendar-outlook-boundary :is(span, i),
+  .app-shell .calendar-weekdays span,
+  .app-shell .calendar-days > article > b,
+  .app-shell .calendar-agenda :is(header span, article > i) { font-size: .75rem; line-height: 1.45; }
+
+  .app-shell .estimate-template-note :is(strong, span),
+  .app-shell .estimate-row span,
+  .app-shell .estimate-editor-header > div > span,
+  .app-shell .estimate-state,
+  .app-shell .estimate-workbook-heading :is(span, strong),
+  .app-shell .estimate-setup-grid :is(label, .estimate-setup-field) > div > b,
+  .app-shell .estimate-formula-help,
+  .app-shell .estimate-table-header,
+  .app-shell .estimate-footer span { font-size: .75rem; line-height: 1.45; }
+  .app-shell .estimate-row > div > strong,
+  .app-shell .estimate-setup-field > span,
+  .app-shell .estimate-division-heading :is(strong, b),
+  .app-shell .estimate-line strong,
+  .app-shell .estimate-footer strong { font-size: .875rem; line-height: 1.45; }
+  .app-shell .estimate-row-actions button { min-height: 2.625rem; font-size: .875rem; padding: .625rem .75rem; }
+  .app-shell .estimate-editor {
+    min-width: 0;
+    min-height: 0;
+    height: 100dvh;
+    display: grid;
+    grid-template-rows: auto minmax(0, 1fr) auto;
+  }
+  .app-shell .estimate-editor-header { position: static; min-width: 0; flex-wrap: wrap; gap: .75rem; }
+  .app-shell .estimate-editor-header > div:first-child { flex: 1 1 18rem; min-width: 0; }
+  .app-shell .estimate-editor-header h1 { overflow-wrap: anywhere; }
+  .app-shell .estimate-header-actions { flex-shrink: 0; }
+  .app-shell .estimate-editor-content { min-width: 0; min-height: 0; overflow: auto; overscroll-behavior: contain; }
+  .app-shell .estimate-notice { top: 0; }
+  .app-shell .estimate-controls { flex-wrap: wrap; gap: .875rem; }
+  .app-shell .estimate-controls .estimate-search { flex-wrap: wrap; min-width: 0; }
+  .app-shell .estimate-workbook-heading { flex-wrap: wrap; }
+  .app-shell .estimate-table-shell { overflow: auto; max-height: 65dvh; }
+  .app-shell .content .estimate-table-shell > * { min-width: 72rem; }
+  .app-shell .estimate-table-header { min-height: 3rem; padding-block: .625rem; }
+  .app-shell .estimate-line > * { min-width: 0; }
+  .app-shell .estimate-footer {
+    position: static;
+    min-width: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: .625rem;
+    padding-block: .75rem;
+  }
+  .app-shell .estimate-footer > div { flex: 1 1 18rem; min-width: 0; }
+  .app-shell .estimate-footer > span:empty { display: none; }
+
+  .app-shell :is(.workspace-heading, .sales-heading, .estimating-heading, .panel-heading, .sales-panel-heading) p:not(.eyebrow) { font-size: .875rem; line-height: 1.5; }
+  .app-shell .people-hero-status strong,
+  .app-shell .employee-home-focus > div > button strong { font-size: .875rem; }
+  .app-shell .employee-live-header p,
+  .app-shell .employee-live-vitals em,
+  .app-shell .employee-live-empty span,
+  .app-shell .employee-home-focus > div > button :is(b, i) { font-size: .75rem; line-height: 1.45; }
+
+  .app-shell .accounting-command-hero { background: linear-gradient(112deg, #252528, #393b3f); }
+  .app-shell .accounting-hero { flex-wrap: wrap; gap: 1rem; }
+  .app-shell .accounting-hero > div { min-width: 0; }
+  .app-shell .accounting-command-hero h1 { color: #fff; }
+  .app-shell .accounting-command-hero p:last-child { color: #d5d7da; font-size: .875rem; line-height: 1.5; }
+  .app-shell .accounting-command-hero .eyebrow { color: #f1b0a9; }
+  .app-shell .coordinated-project-ledger { overflow-x: auto; }
+  .app-shell .coordination-table { min-width: 0; overflow-x: auto; }
+  .app-shell .coordination-row { min-width: 72rem; }
+  .app-shell .coordination-row :is(span, b, strong) { font-size: .875rem; line-height: 1.4; }
+  .app-shell .accounting-ledger-heading { flex-wrap: wrap; gap: .75rem; }
+  .app-shell .accounting-ledger-heading span { font-size: .75rem; line-height: 1.45; }
+  .app-shell .accounting-command-summary article { border-top-color: #96372f; }
+  .app-shell .accounting-live-badge { max-width: 100%; white-space: normal; font-size: .75rem; line-height: 1.45; background: #34383c; color: #eef0f2; border-color: #6a737b; }
+  .app-shell .accounting-exceptions > header { flex-wrap: wrap; }
+  .app-shell .accounting-exceptions :is(header > span, article b, article > strong) { font-size: .75rem; line-height: 1.45; }
+  .app-shell .permission-note strong { font-size: .875rem; }
+  .app-shell .permission-note span,
+  .app-shell .ap-upload-row i { font-size: .75rem; line-height: 1.45; }
+  .app-shell .allocation-reconciliation b { font-size: .875rem; }
+  .app-shell .stat-card > div > span,
+  .app-shell .weather-card span,
+  .app-shell .survey-recipient-control :is(p, span, b),
+  .app-shell .recent-photos-heading p,
+  .app-shell .gantt-toolbar span,
+  .app-shell .gantt-header,
+  .app-shell .gantt-legend { font-size: .75rem; line-height: 1.45; }
+  .app-shell .survey-additional-recipients strong,
+  .app-shell .recent-photos-empty strong,
+  .app-shell .schedule-summary strong,
+  .app-shell .gantt-toolbar strong { font-size: .875rem; line-height: 1.45; }
+  .app-shell :is(.survey-recipient-control, .recent-photos-empty, .gantt-toolbar) button {
+    min-height: 2.625rem;
+    height: auto;
+    padding: .625rem .75rem;
+    font-size: .875rem;
+    line-height: 1.35;
+    white-space: normal;
+  }
+  .app-shell .gantt-toolbar,
+  .app-shell .gantt-toolbar > div:last-child { display: flex; flex-wrap: wrap; gap: .625rem; }
+  .app-shell .gantt-toolbar { height: auto; min-height: 3.5rem; padding-block: .75rem; }
+  .app-shell .gantt-toolbar > div:first-child { min-width: 0; }
+  .app-shell .survey-additional-recipients > header,
+  .app-shell .survey-recipient-body > footer { flex-wrap: wrap; gap: .625rem; }
+
+  .app-shell :is(.owner-approval-center, .safety-command) :is(p, span),
+  .app-shell .safety-boundary b,
+  .app-shell .safety-command-empty,
+  .app-shell .quality-register > header > span,
+  .app-shell .quality-file-picker span,
+  .app-shell .quality-modal header p,
+  .app-shell .signature-roster > div > span { font-size: .75rem; line-height: 1.5; }
+  .app-shell .owner-approval-empty strong,
+  .app-shell .signature-roster > div > strong,
+  .app-shell .people-fieldset :is(legend, label > span),
+  .app-shell .form-rule strong { font-size: .875rem; line-height: 1.45; }
+  .app-shell :is(.owner-approval-center, .safety-command) button {
+    min-height: 2.625rem;
+    height: auto;
+    font-size: .875rem;
+    line-height: 1.4;
+  }
+  .app-shell :is(.quality-modal, .review-modal) > footer { flex-wrap: wrap; gap: .625rem; }
+  .app-shell :is(.quality-modal, .review-modal) header button { min-width: 2.625rem; min-height: 2.625rem; flex-shrink: 0; }
+  .app-shell .admin-command-hero aside > span,
+  .app-shell .admin-today-bar span,
+  .app-shell .admin-responsibility-copy :is(p, dt, dd) { font-size: .75rem; line-height: 1.5; }
+  .app-shell .admin-command-tabs { min-width: 0; overflow-x: auto; }
+  .app-shell .admin-command-tabs button { min-height: 2.625rem; height: auto; flex-shrink: 0; }
+  .app-shell .admin-command-tabs :is(span, i),
+  .app-shell .admin-today-bar button,
+  .app-shell .admin-responsibility-flow article > button { font-size: .875rem; line-height: 1.4; }
+  .app-shell .admin-today-bar { flex-wrap: wrap; gap: .75rem; }
+
+  @media (max-width: 900px) {
+    .app-shell .estimate-summary-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .app-shell .estimate-setup-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  }
+
+  @media (min-width: 1181px) and (pointer: fine) {
+    .operations-app-mode .company-dashboard .dashboard-stack-board {
+      grid-template-rows: clamp(17rem, 34dvh, 20rem) minmax(0, 1fr);
+    }
+    .operations-app-mode .company-dashboard .dashboard-role-grid {
+      grid-template-columns: repeat(6, minmax(0, 1fr));
+      overflow-x: hidden;
+    }
+    .operations-app-mode .company-dashboard .dashboard-command-section,
+    .operations-app-mode .company-dashboard .executive-decision-panel {
+      grid-template-rows: auto minmax(0, 1fr);
+    }
+    .operations-app-mode .company-dashboard .dashboard-command-header,
+    .operations-app-mode .company-dashboard .executive-decision-panel > header {
+      min-height: 2.75rem;
+    }
+  }
+
+  @media (max-width: 1180px) {
+    .app-shell .topbar { flex-wrap: wrap; padding-block: .625rem; height: auto; min-height: 4.5rem; }
+    .app-shell .topbar-actions { flex: 1 1 auto; justify-content: flex-end; }
+    .app-shell .site-wide-search { flex-basis: 10rem; }
+  }
+
+  /* Compact desktop navigation gives the working area more room. */
+  @media (min-width: 901px) and (pointer: fine) {
+    .app-shell .sidebar .brand { padding-inline: 16px; }
+    .app-shell .sidebar .brand strong { font-size: 1rem; }
+    .app-shell .sidebar .main-nav { padding: 18px 10px; gap: 4px; }
+    .app-shell .sidebar :is(.nav-item, .nav-folder, .nav-subfolder) {
+      min-height: 2.5rem;
+      padding-block: .4375rem;
+      font-size: .8125rem;
+      line-height: 1.4;
+      gap: 9px;
+    }
+    .app-shell .sidebar .nav-folder-items { padding-left: 8px; }
+    .app-shell .sidebar .nav-subitem {
+      min-height: 2.25rem;
+      padding-block: .4375rem;
+      gap: 6px;
+    }
+    .app-shell .sidebar .nav-subitem b { font-size: .8125rem; line-height: 1.4; }
+  }
+
+  @media (min-width: 901px) and (max-width: 1180px) and (pointer: fine) {
+    .operations-app-mode .sidebar { width: 232px; flex-basis: 232px; }
+    .accounting-app-mode .sidebar { width: 220px; flex-basis: 220px; }
+  }
+
+  @media (max-width: 680px) {
+    .app-shell .topbar { gap: .625rem; }
+    .app-shell .topbar-actions { flex: 0 0 auto; }
+    .app-shell .content :is(input, select, textarea) { font-size: 1rem; }
+    .app-shell :is(.workspace-heading, .sales-heading, .estimating-heading) > div:first-child { flex-basis: auto; }
+    .app-shell :is(.workspace-heading-actions, .modal-actions, .form-actions) > :is(button, a) {
+      flex: 1 1 9rem;
+      min-width: 0;
+    }
+    .app-shell .record-modal { max-height: calc(100dvh - 1rem); }
+  }
+
+  @media (max-width: 720px) {
+    .app-shell .topbar { height: 4.5rem; min-height: 4.5rem; flex-wrap: nowrap; }
+    .app-shell .content { padding-top: 3.125rem; }
+    .app-shell .mobile-connectivity { top: 4.5rem; }
+    .app-shell .mobile-connectivity :is(strong, small, button) { font-size: .75rem; }
+    .app-shell .mobile-bottom-nav button > small {
+      max-width: 100%;
+      font-size: .75rem;
+      line-height: 1.4;
+    }
+    .app-shell .mobile-bottom-nav button:not(.quick) > span { font-size: .875rem; }
+    .app-shell .mobile-dictation-fab { font-size: .75rem; }
+    .app-shell .topbar .primary-action {
+      width: 2.625rem;
+      min-width: 2.625rem;
+      height: 2.625rem;
+      padding: 0;
+      gap: 0;
+      font-size: 0;
+      white-space: nowrap;
+    }
+    .app-shell .topbar .primary-action::after { font-size: 1.25rem; }
+    .nested-form-layer :is(input, select, textarea) { font-size: 1rem; }
+    .app-shell :is(.estimate-editor-header, .estimate-summary-grid, .estimate-footer) { padding-inline: 1rem; }
+    .app-shell :is(.estimate-controls, .estimate-workbook-setup, .estimate-table-shell, .estimate-notes-section) { margin-inline: 1rem; }
+    .app-shell .estimate-editor-header h1 { font-size: 1.125rem; }
+    .app-shell .estimate-summary-grid,
+    .app-shell .estimate-setup-grid { grid-template-columns: minmax(0, 1fr); }
+    .app-shell .estimate-setup-grid .estimate-distance-field { grid-column: auto; }
+    .app-shell .estimate-footer > div { flex-basis: 100%; }
+    .app-shell .estimate-footer > button { flex: 1 1 8rem; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .app-shell *, .app-shell *::before, .app-shell *::after {
+      scroll-behavior: auto;
+      transition: none;
+    }
+  }
+}

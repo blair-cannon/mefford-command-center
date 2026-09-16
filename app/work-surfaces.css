@@ -1,0 +1,155 @@
+/* Internal work screens lead with controls and records. My Work and document
+   previews keep their own presentation. */
+@media screen {
+  .app-shell :is(.accounting-hero, .sales-heading, .workspace-heading,
+    .financial-report-hero, .admin-command-hero, .asset-hero, .health-hero,
+    .closeout-hero, .waiver-hero, .vendor-admin-hero, .integration-hero,
+    .performance-hero, .procurement-hero, .quality-hero, .review-hero,
+    .safety-command-hero, .po-hero, .meetings-hero, .marketing-module-hero,
+    .owner-approval-hero, .microsoft-access-hero) {
+    min-height: 0;
+    padding: 0;
+    margin-bottom: 0;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+    background: transparent !important;
+    color: #24272b;
+    gap: .75rem;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+  .app-shell :is(.accounting-hero, .sales-heading, .workspace-heading,
+    .financial-report-hero, .admin-command-hero, .asset-hero, .health-hero,
+    .closeout-hero, .waiver-hero, .vendor-admin-hero, .integration-hero,
+    .performance-hero, .procurement-hero, .quality-hero, .review-hero,
+    .safety-command-hero, .po-hero, .meetings-hero, .marketing-module-hero,
+    .owner-approval-hero, .microsoft-access-hero) :is(h1, h2) {
+    margin: 0;
+    color: #24272b;
+    font-size: 1.5rem;
+    line-height: 1.3;
+    letter-spacing: normal;
+  }
+  .app-shell :is(.accounting-hero, .sales-heading, .workspace-heading,
+    .financial-report-hero, .admin-command-hero, .asset-hero, .health-hero,
+    .closeout-hero, .waiver-hero, .vendor-admin-hero, .integration-hero,
+    .performance-hero, .procurement-hero, .quality-hero, .review-hero,
+    .safety-command-hero, .po-hero, .meetings-hero, .marketing-module-hero,
+    .owner-approval-hero, .microsoft-access-hero) > div:first-child > :is(p, span) {
+    margin: .25rem 0 0;
+    color: #555d66;
+  }
+  .app-shell :is(.sales-workspace, .accounting-workspace, .admin-command-workspace,
+    .financial-reports-workspace, .vendor-management) {
+    gap: 1rem;
+  }
+  .app-shell .role-outcome-command {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    margin: 0;
+    box-shadow: none;
+    border-radius: 8px;
+  }
+  .app-shell .role-outcome-command > div {
+    min-width: 0;
+    min-height: 0;
+    padding: .625rem .875rem;
+    gap: .2rem;
+  }
+  .app-shell .sales-outcome-command {
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 11rem), 1fr));
+  }
+  .app-shell .role-outcome-command > div > strong { font-size: 1.375rem; }
+  .app-shell :is(.sales-summary-grid, .sales-dashboard-metrics, .accounting-summary-grid) > article {
+    min-height: 0;
+    padding: .875rem 1rem;
+  }
+  .app-shell .sales-goal-save { display: flex; justify-content: flex-end; }
+  .app-shell .admin-responsibility-flow article {
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: .75rem;
+    min-height: 0;
+    padding: 1rem;
+  }
+  .app-shell .admin-responsibility-copy h2 { margin: 0; font-size: 1rem; }
+  .app-shell :is(.admin-section-intro, .admin-today-bar) {
+    min-height: 0;
+    padding-block: .75rem;
+  }
+  .app-shell :is(.admin-goal-cascade, .admin-access-grid) > article {
+    min-height: 0;
+    padding: 1rem;
+  }
+  .app-shell :is(.integration-overview, .safety-program-grid) { grid-template-columns: minmax(0, 1fr); }
+  .app-shell .billing-controls { grid-template-columns: minmax(0, 1fr) minmax(10rem, 1fr); }
+  .app-shell :is(.permission-note, .budget-lock-banner, .date-lock-banner, .owner-action-banner,
+    .quality-failure-banner, .calendar-outlook-boundary, .financial-boundary-grid article) {
+    min-height: 0;
+    padding: .625rem .875rem;
+    gap: .5rem;
+    box-shadow: none;
+  }
+  .app-shell .financial-boundary-grid:empty { display: none; }
+  .app-shell .health-critical-banner b { background: #ae2d26; color: #fff; padding: .25rem .5rem; border-radius: 4px; }
+
+  .estimate-workspace-intro { max-width: none; padding: 1rem 1.25rem; gap: 1rem; }
+  .estimate-workspace-intro h1 { font-size: 1.375rem; }
+  .estimate-workbook-heading { padding-bottom: .75rem; }
+  .estimate-workbook-heading h2 { margin: 0; font-size: 1.125rem; }
+  .estimate-summary-grid > article { min-height: 0; padding: .75rem 1rem; }
+
+  /* A single action row, navigation, and the full-width editor. */
+  .proposal-studio-shell { grid-template-rows: auto auto auto minmax(0, 1fr) auto; }
+  .proposal-studio-shell > .proposal-studio-header { grid-row: 1; }
+  .proposal-studio-shell > .proposal-notice { grid-row: 2; }
+  .proposal-studio-shell > :is(.proposal-word-actions, .proposal-source-strip) { grid-row: 3; }
+  .proposal-studio-shell > .proposal-studio-body {
+    grid-row: 4;
+    grid-template-columns: 176px minmax(0, 1fr);
+  }
+  .proposal-studio-shell > .proposal-studio-footer { grid-row: 5; }
+  .proposal-studio-shell .proposal-studio-header { min-height: 0; padding: .75rem 1rem; }
+  .proposal-studio-shell :is(.proposal-word-actions, .proposal-source-strip) {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: .625rem;
+    padding: .625rem 1rem;
+    background: #fff;
+  }
+  .proposal-studio-shell .proposal-source-strip > button {
+    margin: 0;
+    min-height: 2.5rem;
+    padding: .5rem .875rem;
+    border: 1px solid #c8ccd1;
+    background: #fff;
+    color: #24272b;
+    font-size: .875rem;
+    line-height: 1.4;
+  }
+  .proposal-studio-shell .proposal-source-strip > .studio-open-items {
+    display: inline;
+    padding: 0;
+    border: 0;
+    color: #982f27;
+    font-size: .875rem;
+  }
+  .proposal-studio-shell .proposal-editor-panel { padding: 1.25rem 1.5rem 2rem; }
+  .proposal-studio-shell .proposal-editor-heading { padding-bottom: .75rem; margin: 0; }
+  .proposal-studio-shell .proposal-editor-heading h2 { margin: 0; font-size: 1.25rem; line-height: 1.4; }
+  .proposal-studio-shell .proposal-step-rail { padding: .75rem .5rem; }
+  .proposal-studio-shell .proposal-field > span { min-height: 0; margin-bottom: .375rem; }
+  .proposal-studio-shell :is(.contract-studio-view, .project-contract-studio-view) { gap: 1rem; }
+  .proposal-studio-shell .proposal-contract-handoff { min-height: 0; padding: .75rem 1rem; }
+}
+
+@media screen and (max-width: 960px) {
+  .proposal-studio-shell > .proposal-studio-body { grid-template-columns: minmax(0, 1fr); }
+}
+
+@media screen and (max-width: 600px) {
+  .app-shell .role-outcome-command { grid-template-columns: minmax(0, 1fr); }
+  .app-shell .admin-responsibility-flow article { grid-template-columns: minmax(0, 1fr); }
+  .proposal-studio-shell .proposal-editor-panel { padding: 1rem; }
+  .estimate-workspace-intro { flex-direction: column; align-items: stretch; }
+}

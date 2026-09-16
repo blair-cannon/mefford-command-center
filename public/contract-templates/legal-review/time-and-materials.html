@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Mefford Small Project Construction Contract</title>
+  <style>
+    @page { size: letter portrait; margin: .7in; }
+    body { margin: 0; color: #000; background: #fff; font-family: Arial, Helvetica, sans-serif; font-size: 10pt; line-height: 1.42; }
+    .brand { display: flex; align-items: flex-end; justify-content: space-between; gap: 20px; margin-bottom: 22px; border-bottom: 1px solid #000; padding-bottom: 8px; }
+    .brand strong, .brand span { font-size: 8pt; font-weight: 700; letter-spacing: .04em; }
+    h1 { margin: 0 0 5px; font-size: 18pt; line-height: 1.15; text-align: center; }
+    .project-title { margin: 0 0 22px; font-size: 10.5pt; font-weight: 700; text-align: center; overflow-wrap: anywhere; }
+    .opening { margin-bottom: 10px; text-align: left; }
+    h2 { margin: 20px 0 7px; font-size: 11pt; line-height: 1.25; break-after: avoid; }
+    p { margin: 0 0 9px; overflow-wrap: anywhere; }
+    .subsection { margin-left: 22px; }
+    .detail-table { width: 100%; margin: 10px 0 14px; border-collapse: collapse; table-layout: fixed; }
+    .detail-table th, .detail-table td { border: 1px solid #555; padding: 7px 8px; vertical-align: top; }
+    .detail-table th { width: 31%; background: #fff; font-size: 8.5pt; text-align: left; text-transform: uppercase; }
+    .detail-table td { overflow-wrap: anywhere; }
+    .scope-block { min-height: 0; white-space: pre-wrap; overflow-wrap: anywhere; }
+    .signature { width: 100%; margin-top: 28px; border-collapse: collapse; table-layout: fixed; break-inside: avoid; }
+    .signature td { width: 50%; height: auto; border: 0; border-bottom: 1px solid #000; padding: 8px 14px 2px 0; overflow-wrap: anywhere; vertical-align: bottom; }
+    .signature .label td { border-bottom: 0; padding-top: 0; font-size: 8pt; font-weight: 700; text-transform: uppercase; }
+    .signature .signature-image td { height: auto; vertical-align: bottom; }
+    .signature img { max-width: 220px; max-height: 48px; }
+    .page-break-before { break-before: page; page-break-before: always; }
+    @media print {
+      body { color: #000 !important; background: #fff !important; }
+      .detail-table th, .detail-table td { color: #000 !important; background: #fff !important; }
+    }
+  </style>
+</head>
+<body>
+<!-- Controlled replacement based on the Simple Contract draft supplied by Mefford Contracting on September 9, 2026. -->
+<header class="brand">
+  <strong>MEFFORD CONTRACTING, LLC</strong>
+  <span>SMALL PROJECT CONSTRUCTION CONTRACT · REV. 2.0</span>
+</header>
+
+<h1>Small Project Construction Contract</h1>
+<p class="project-title">{{PROJECT_NAME}} · Project {{PROJECT_NUMBER}}</p>
+
+<p class="opening">This Construction Contract (the “Contract”) is effective {{EFFECTIVE_DATE}} between Mefford Contracting, LLC, a Kentucky limited liability company (“Contractor”), and {{OWNER_LEGAL_NAME}} (“Owner”).</p>
+<p class="opening"><strong>Property and Project.</strong> Owner is the {{OWNER_PROPERTY_INTEREST}} for the real property located at {{PROJECT_SITE_ADDRESS}} (the “Property”). Owner engages Contractor to perform the improvements described in this Contract and its Contract Documents (the “Project”).</p>
+<p class="opening">Owner and Contractor therefore agree as follows.</p>
+
+<h2>1. Allowances</h2>
+<p>“Allowances” are amounts included for items whose actual price may vary because final scope, quantity, or material selection has not been completed. Unless the allowance schedule states otherwise, an allowance includes both material and installation. A “Material Allowance” covers the item to be installed but not installation labor. Allowance differences are reconciled by written Change Order.</p>
+<table class="detail-table">
+  <tr><th>Allowance Schedule</th><td>{{ALLOWANCE_SCHEDULE_OR_NONE}}</td></tr>
+  <tr><th>Total Included Allowances</th><td>{{ALLOWANCES_AMOUNT}}</td></tr>
+</table>
+
+<h2>2. Contract Price and Pricing Arrangement</h2>
+<p><strong>Selected Pricing Arrangement:</strong> {{SMALL_PROJECT_PRICING_METHOD_LABEL}}</p>
+<p>{{SMALL_PROJECT_PRICE_TERMS}}</p>
+
+{{#IF_SMALL_PROJECT_PRICING_METHOD_CODE:TIME_AND_MATERIALS}}
+<div class="subsection">
+  <p><strong>2.1 Time and Materials Rate Schedule.</strong> The following rates and cost rules apply. A stated labor rate must identify whether payroll burden, small tools, supervision, overhead, and profit are included.</p>
+  <div class="scope-block">{{TIME_AND_MATERIALS_RATE_SCHEDULE}}</div>
+  <p><strong>2.2 Contractor Fee and Reimbursable Costs.</strong> Contractor may apply a fee of {{CONTRACTOR_FEE_PROFIT_PERCENTAGE}} to direct Project costs not already included in a stated rate. Reimbursable direct costs are actual labor, payroll burden, materials and consumables, rented equipment, subcontractors and suppliers, permits, testing, freight, and other costs incurred specifically for the Project. No cost or fee may be charged twice.</p>
+  <p><strong>2.3 Weekly T&amp;M Tickets and Reconciliation.</strong> Contractor will provide weekly tickets and a weekly reconciliation showing labor, materials, equipment, subcontractors, reimbursable costs, fee, and approved changes. Owner will identify a representative authorized to review tickets. Review of a ticket confirms the work record only; it is not a forecast, a fixed-price commitment, or a guarantee of final cost.</p>
+</div>
+{{/IF_SMALL_PROJECT_PRICING_METHOD_CODE}}
+
+{{#IF_SMALL_PROJECT_PRICING_METHOD_CODE:TIME_AND_MATERIALS_NTE}}
+<div class="subsection">
+  <p><strong>2.1 Time and Materials Not-to-Exceed Amount.</strong> The not-to-exceed amount is {{SMALL_PROJECT_CONTRACT_AMOUNT}}. It is a maximum control, not a lump-sum entitlement. Owner pays only properly documented Time and Materials charges actually incurred, plus the agreed fee, if the final amount is less.</p>
+  <p><strong>2.2 Time and Materials Rate Schedule.</strong> The following rates and cost rules apply. A stated labor rate must identify whether payroll burden, small tools, supervision, overhead, and profit are included.</p>
+  <div class="scope-block">{{TIME_AND_MATERIALS_RATE_SCHEDULE}}</div>
+  <p><strong>2.3 Contractor Fee and Reimbursable Costs.</strong> Contractor may apply a fee of {{CONTRACTOR_FEE_PROFIT_PERCENTAGE}} to direct Project costs not already included in a stated rate. Reimbursable direct costs are actual labor, payroll burden, materials and consumables, rented equipment, subcontractors and suppliers, permits, testing, freight, and other costs incurred specifically for the Project. No cost or fee may be charged twice.</p>
+  <p><strong>2.4 Weekly T&amp;M Tickets and Reconciliation.</strong> Contractor will provide weekly tickets and a weekly reconciliation showing labor, materials, equipment, subcontractors, reimbursable costs, fee, approved changes, and remaining not-to-exceed balance. Owner will identify a representative authorized to review tickets. Review of a ticket confirms the work record only; it is not a forecast, a fixed-price commitment, or a guarantee of final cost.</p>
+</div>
+{{/IF_SMALL_PROJECT_PRICING_METHOD_CODE}}
+
+{{#IF_SMALL_PROJECT_PRICING_METHOD_CODE:LUMP_SUM}}
+<div class="subsection">
+  <p><strong>2.1 Lump Sum Contract Price.</strong> The Contract Price is {{SMALL_PROJECT_CONTRACT_AMOUNT}}, subject only to allowance reconciliation and written Change Orders under this Contract. The Lump Sum is not subject to cost reconciliation unless the Parties expressly agree otherwise in writing.</p>
+</div>
+{{/IF_SMALL_PROJECT_PRICING_METHOD_CODE}}
+
+<h2>3. Contract Documents</h2>
+<p>The Contract Documents consist of this Contract, the scope and exclusions below, the listed proposals and documents, and written Change Orders signed by Owner and Contractor. Together they form the complete Contract and are incorporated as if fully stated here. If a conflict exists, a later signed Change Order controls, followed by this Contract, followed by the remaining listed documents.</p>
+<div class="scope-block">{{CONTRACT_DOCUMENTS_AND_PROPOSALS}}</div>
+
+<h2>4. Scope of Work</h2>
+<p>Contractor shall furnish the labor, materials, supervision, and services necessary to perform the following work, except for items expressly excluded or assigned to Owner.</p>
+<div class="scope-block">{{CONSTRUCTION_SCOPE_OF_WORK}}</div>
+<p><strong>Exclusions and Owner-Supplied Items.</strong></p>
+<div class="scope-block">{{CONSTRUCTION_EXCLUSIONS}}</div>
+
+<h2>5. Contractor Status</h2>
+<p>Contractor is an independent contractor and is not an employee, representative, partner, or agent of Owner.</p>
+
+<h2>6. Standard of Performance and Undisputed Work</h2>
+<p>Contractor shall perform the Work with the care and skill customarily provided by contractors performing similar work in the Project region. Owner shall not arbitrarily withhold acceptance or payment for work reasonably performed. If Owner disputes part of the Work or an invoice, Owner shall timely pay the properly supported, undisputed portion, and the Parties shall address only the disputed portion under this Contract.</p>
+
+<h2>7. Contract Arrangement</h2>
+<p>{{SMALL_PROJECT_CONTRACT_ARRANGEMENT}}</p>
+
+<h2>8. Change Orders</h2>
+<p>No material change in scope, Contract Documents, price, or Contract Time will be performed until Owner and Contractor approve a written Change Order, except emergency work reasonably necessary to protect persons or property. Each Change Order will address the direct Cost of the Work, general conditions and overhead, schedule impacts, and profit or fee. {{SMALL_PROJECT_CHANGE_ORDER_TERMS}}</p>
+
+<h2>9. Periodic Meetings and Owner Information</h2>
+<p>Project meetings will occur no less frequently than every {{OWNER_MEETING_INTERVAL_DAYS}} calendar days unless the Parties agree otherwise. Owner shall make the representatives needed for decisions available at the agreed time. Contractor is not responsible for claims, costs, or delays arising from Owner’s failure to disclose information or conditions that Owner or its representatives knew or reasonably should have known concerning the Project.</p>
+
+<h2>10. Invoicing and Payment</h2>
+<p>Invoices will be issued {{INVOICE_FREQUENCY}} and delivered to {{INVOICE_DELIVERY_METHOD_RECIPIENT}}. Payment terms are {{PAYMENT_TERMS}}. Retainage is {{RETAINAGE_TERMS}}. An initial deposit or advance of {{INITIAL_DEPOSIT_OR_ADVANCE}} is due as stated in the invoice or Contract Documents.</p>
+<p>Owner shall release every properly supported, undisputed portion of an invoice when due even if another portion is disputed. Overdue undisputed amounts accrue interest at {{LATE_PAYMENT_INTEREST_PERCENTAGE}} per annum or the maximum lawful rate, whichever is less. If an undisputed amount remains unpaid for {{STOP_WORK_AFTER_DAYS}} days after the invoice date and any notice required by applicable law has been given, Contractor may suspend the Work until all past-due amounts, interest, demobilization, remobilization, and schedule impacts are paid or resolved.</p>
+<p>Contractor will provide documentation reasonably required to support each payment request. {{SMALL_PROJECT_COST_REPORTING_TERMS}}</p>
+
+<h2>11. Pay if Paid Owner Acknowledgment</h2>
+<p>Owner acknowledges that Contractor’s payment obligations to subcontractors and suppliers are expressly conditioned upon Contractor’s receipt of corresponding payment from Owner for their Work, to the fullest extent permitted by applicable law. Owner’s delayed or withheld payment may delay downstream payment and Project performance. This paragraph does not waive any right that cannot lawfully be waived.</p>
+
+<h2>12. Contract Time</h2>
+<table class="detail-table">
+  <tr><th>Notice to Proceed or Start</th><td>{{NOTICE_TO_PROCEED_DATE}}</td></tr>
+  <tr><th>Expected Duration</th><td>{{CONTRACT_TIME_OR_DURATION}}</td></tr>
+  <tr><th>Substantial Completion</th><td>{{SUBSTANTIAL_COMPLETION_DATE_OR_TBD}}</td></tr>
+  <tr><th>Final Completion</th><td>{{FINAL_COMPLETION_DATE_OR_TBD}}</td></tr>
+</table>
+<p>The schedule is based on the stated scope and timely Owner decisions, access, approvals, and payments. Changes, concealed conditions, material unavailability, labor disruption, unusually severe weather, acts of public authority, casualty, force majeure, and Owner or design-professional delay may extend the Contract Time and increase the Contract Price to the extent allowed by the Contract and applicable law. Contractor may make reasonable substitutions of equal or better quality when specified materials are unavailable, subject to required Owner approval.</p>
+
+<h2>13. Inspections and Final Payment</h2>
+<p>After Contractor gives written notice that the Project is substantially complete, Owner shall inspect the Property within {{INSPECTION_PERIOD_DAYS}} business days and provide one written list of Contract items reasonably requiring completion or correction (the “Owner’s Inspection Report”). After Contractor completes the agreed items, Owner shall pay all remaining undisputed sums within {{FINAL_PAYMENT_DUE_DAYS}} business days, subject to retainage release requirements and {{ADDITIONAL_FINAL_PAYMENT_CONDITIONS}}.</p>
+
+<h2>14. Insurance</h2>
+<p>Beginning when construction starts, Contractor shall maintain workers’ compensation insurance as required by applicable law and commercial general liability insurance with limits of not less than {{PUBLIC_LIABILITY_INSURANCE_AMOUNT}} per occurrence, unless the Contract Documents state different limits. Any additional insurance, bond, endorsement, or builder’s risk requirement must be stated in the Contract Documents.</p>
+
+<h2>15. Permits</h2>
+<p>{{PERMIT_RESPONSIBILITY}}</p>
+
+<h2>16. Indemnity</h2>
+<p>To the fullest extent permitted by law, Owner shall defend, indemnify, and hold harmless Contractor and its employees, agents, representatives, and subcontractors from claims, damages, losses, and expenses to the extent caused by the acts or omissions of Owner, its employees, consultants, design professionals, agents, or other representatives. This obligation does not require Owner to indemnify Contractor for Contractor’s own negligence to the extent prohibited by law.</p>
+
+<h2>17. Other Contractors and Subcontractors</h2>
+<p>Owner shall not negotiate additional Project work directly with Contractor’s subcontractors or suppliers. Owner shall not engage another contractor whose work may interfere with Contractor’s Work without Contractor’s prior written consent. At least ten business days before engaging another contractor, Owner shall provide the proposed scope, schedule, and contract information reasonably needed for coordination.</p>
+
+<h2>18. Correction of Defective Work</h2>
+<p>For {{WARRANTY_PERIOD_MONTHS}} months after substantial completion or issuance of the certificate of occupancy, whichever is stated in the Contract Documents, Contractor will correct Work that fails to meet the Contract requirements because of defective materials or workmanship. This obligation excludes design furnished by others, normal wear, misuse, lack of maintenance, Owner-furnished items, and work altered by others. Owner must give prompt written notice and a reasonable opportunity to inspect and correct.</p>
+
+<h2>19. Personal Guaranty</h2>
+<p>{{SMALL_PROJECT_GUARANTEE_TERMS}}</p>
+
+<h2>20. Suspension and Termination</h2>
+<p>Contractor may suspend Work for nonpayment as provided above, unsafe conditions, denied access, or material Owner breach after any notice and cure period required by law. If Owner terminates Contractor without Contractor default, Owner shall pay all outstanding invoices, Work performed, demobilization and cancellation costs, properly procured or committed materials and equipment, amounts due to subcontractors and suppliers, and Contractor’s fee or profit on the remaining Work to the extent stated in the selected pricing arrangement or an approved termination schedule. Contractor retains all other lawful remedies.</p>
+
+<h2>21. Notices</h2>
+<p>Notices must be in writing and will be effective when personally delivered, sent by confirmed email, or deposited in the United States mail by certified or registered mail, postage prepaid, to the following addresses.</p>
+<table class="detail-table">
+  <tr><th>Contractor</th><td>Mefford Contracting, LLC<br>109 Fieldview Drive, Suite 100<br>Versailles, KY 40383<br>Attn: {{CONTRACTOR_SIGNATORY}}<br>{{CONTRACTOR_NOTICE_EMAIL}}</td></tr>
+  <tr><th>Owner</th><td>{{OWNER_LEGAL_NAME}}<br>{{OWNER_NOTICE_ADDRESS_LINE_1}}<br>{{OWNER_NOTICE_ADDRESS_LINE_2}}<br>Attn: {{OWNER_NOTICE_CONTACT}}<br>{{OWNER_NOTICE_EMAIL}}<br>{{OWNER_NOTICE_PHONE}}</td></tr>
+</table>
+
+<h2>22. Dispute Resolution Governing Law and Venue</h2>
+<p>This Contract is governed by {{GOVERNING_LAW}}, without regard to conflict-of-law principles. The Parties consent to the state and federal courts located in {{VENUE}}, subject to any nonwaivable Project-state law.</p>
+<p>Before filing suit, the Parties shall submit a dispute to nonbinding mediation before a mutually agreed mediator. If they cannot agree, a neutral third party selected jointly by the Parties will select the mediator. Unless the mediator requires otherwise, mediation will occur at {{MEDIATION_LOCATION}}. A Party may seek temporary or emergency relief when necessary to protect persons, property, lien rights, or a claim from an expiring limitations period. After mediation, the prevailing Party in litigation may recover reasonable attorneys’ fees and costs to the extent permitted by law.</p>
+
+<h2>23. Limitation of Liability</h2>
+<p>To the fullest extent permitted by law, Contractor is not liable for consequential, incidental, indirect, special, exemplary, or punitive damages, including loss of use, income, revenue, financing, business, reputation, or profits. Contractor’s aggregate liability arising from this Contract or the Project will not exceed amounts actually paid to Contractor under this Contract. This Section controls over any inconsistent provision.</p>
+
+<h2>24. Miscellaneous</h2>
+<p>This Contract is the complete agreement concerning its subject matter and supersedes prior or contemporaneous oral and written understandings not incorporated into the Contract Documents. It binds and benefits the Parties and their lawful successors and assigns. An unenforceable provision is severed without affecting the remainder. The Contract will not be construed against either Party as drafter. Counterparts and electronic signatures form one original instrument. A modification or waiver is effective only when written and signed by the Party against whom it is enforced. Each signer represents that the signer is authorized, has obtained necessary approvals, enters voluntarily, and has had the opportunity to obtain independent legal advice.</p>
+
+<h2 class="page-break-before">Signatures</h2>
+<p>The Parties execute this Contract effective as of the date stated above. Each electronic signature is attached to the exact controlled Contract revision identified by the Command Center.</p>
+<table class="signature">
+  <tr class="label"><td>Contractor</td><td>Owner</td></tr>
+  <tr class="signature-image"><td>{{CONTRACTOR_SIGNATURE}}</td><td>{{OWNER_SIGNATURE}}</td></tr>
+  <tr><td>{{CONTRACTOR_SIGNATORY}}</td><td>{{OWNER_SIGNATORY}}</td></tr>
+  <tr class="label"><td>Printed Name</td><td>Printed Name</td></tr>
+  <tr><td>{{CONTRACTOR_SIGNATORY_TITLE}}</td><td>{{OWNER_SIGNATORY_TITLE}}</td></tr>
+  <tr class="label"><td>Title and Authority</td><td>Title and Authority</td></tr>
+  <tr><td>{{CONTRACTOR_SIGNATURE_DATE}}</td><td>{{OWNER_SIGNATURE_DATE}}</td></tr>
+  <tr class="label"><td>Date</td><td>Date</td></tr>
+</table>
+
+</body>
+</html>

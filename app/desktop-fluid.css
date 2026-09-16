@@ -1,0 +1,229 @@
+/*
+ * Main Command Center desktop scaling.
+ *
+ * Fixed pixel typography made large monitors show more whitespace without
+ * improving legibility. All application type is rem-based; this root scale
+ * grows continuously from the compact desktop baseline and stops at 125%.
+ * Mobile, touch-first layouts, and printed records retain their established
+ * 16px baseline.
+ */
+
+html {
+  font-size: clamp(1rem, calc(0.625rem + 0.4167vw), 1.25rem);
+}
+
+@media (max-width: 1180px), (pointer: coarse) {
+  html {
+    font-size: 1rem;
+  }
+}
+
+@media print {
+  html {
+    font-size: 1rem;
+  }
+}
+
+@media (min-width: 1181px) and (pointer: fine) {
+  :root {
+    --desktop-operations-sidebar: clamp(232px, 12.5vw, 300px);
+    --desktop-accounting-sidebar: clamp(220px, 11.5vw, 280px);
+  }
+
+  .operations-app-mode .sidebar {
+    width: var(--desktop-operations-sidebar);
+    flex-basis: var(--desktop-operations-sidebar);
+  }
+
+  .accounting-app-mode .sidebar {
+    width: var(--desktop-accounting-sidebar);
+    flex-basis: var(--desktop-accounting-sidebar);
+  }
+
+  .operations-app-mode .content {
+    width: 100%;
+    max-width: min(
+      calc(100vw - var(--desktop-operations-sidebar)),
+      clamp(1520px, 88vw, 2400px)
+    );
+    padding-inline: clamp(38px, 2.35vw, 68px);
+  }
+
+  .accounting-app-mode .content {
+    width: 100%;
+    max-width: min(
+      calc(100vw - var(--desktop-accounting-sidebar)),
+      clamp(1640px, 90vw, 2400px)
+    );
+    padding-inline: clamp(26px, 2vw, 58px);
+  }
+
+  /*
+   * These command surfaces carried their own fixed 1600–1660px ceilings,
+   * which canceled the fluid shell on larger desktop monitors. Keep their
+   * compact breakpoints, but let the live workspace use all available room.
+   */
+  .operations-app-mode .company-dashboard,
+  .operations-app-mode .company-calendar-workspace,
+  .accounting-app-mode .accounting-control-workspace {
+    width: 100%;
+    max-width: none;
+    margin-inline: 0;
+  }
+
+  /*
+   * The Company Dashboard is a bounded command surface on desktop. Its major
+   * panels remain visible together while each live record region owns its
+   * overflow, so a long queue never pushes the other operating sections away.
+   */
+  .operations-app-mode .company-dashboard {
+    height: calc(100dvh - clamp(88px, 5.1vw, 108px) - 82px);
+    min-height: 0;
+    display: grid;
+    grid-template-rows: minmax(0, 1fr);
+    overflow: hidden;
+  }
+
+  .operations-app-mode .company-dashboard .dashboard-stack-board {
+    min-height: 0;
+    margin: 0;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-rows: clamp(220px, 18dvh, 235px) minmax(0, 1fr);
+    gap: 10px;
+    overflow: hidden;
+  }
+
+  .operations-app-mode .company-dashboard .dashboard-role-status,
+  .operations-app-mode .company-dashboard .dashboard-command-section,
+  .operations-app-mode .company-dashboard .executive-decision-panel {
+    position: relative;
+    min-height: 0;
+    margin: 0;
+    display: grid;
+    grid-template-rows: 44px minmax(0, 1fr);
+  }
+
+  .operations-app-mode .company-dashboard .dashboard-command-header,
+  .operations-app-mode .company-dashboard .executive-decision-panel > header {
+    min-height: 0;
+    padding: 8px 11px;
+  }
+
+  .operations-app-mode .company-dashboard .dashboard-role-status {
+    grid-column: 1 / -1;
+    grid-row: 1;
+    grid-template-rows: minmax(0, 1fr);
+  }
+
+  .operations-app-mode .company-dashboard .dashboard-today-command {
+    grid-column: 1;
+    grid-row: 2;
+  }
+
+  .operations-app-mode .company-dashboard .dashboard-action-queue {
+    grid-column: 2;
+    grid-row: 2;
+  }
+
+  .operations-app-mode .company-dashboard .dashboard-field-command {
+    grid-column: 3;
+    grid-row: 2;
+  }
+
+  .operations-app-mode .company-dashboard .dashboard-role-grid {
+    min-height: 0;
+    grid-template-columns:
+      minmax(250px, 1.05fr)
+      repeat(3, minmax(210px, 1fr))
+      minmax(300px, 1.25fr)
+      minmax(240px, 1.08fr);
+    align-items: stretch;
+    align-content: stretch;
+    overflow-x: auto;
+    overflow-y: hidden;
+    overscroll-behavior: contain;
+    scrollbar-gutter: auto;
+  }
+
+  .operations-app-mode .company-dashboard .dashboard-role-card {
+    height: 100%;
+    min-width: 0;
+    min-height: 0;
+    padding: 10px 11px 9px;
+    overflow: hidden;
+  }
+
+  .operations-app-mode .company-dashboard .dashboard-portfolio-card {
+    min-height: 0;
+  }
+
+  .operations-app-mode .company-dashboard .operating-data-warning {
+    position: absolute;
+    z-index: 2;
+    inset: 0 0 auto;
+  }
+
+  .operations-app-mode .company-dashboard .dashboard-today-list,
+  .operations-app-mode .company-dashboard .executive-decision-list,
+  .operations-app-mode .company-dashboard .dashboard-log-list,
+  .operations-app-mode .company-dashboard .dashboard-field-photo-grid {
+    min-height: 0;
+    overflow: auto;
+    overscroll-behavior: contain;
+    scrollbar-gutter: stable;
+  }
+
+  .operations-app-mode .company-dashboard .dashboard-field-layout {
+    min-height: 0;
+    grid-template-columns: 1fr;
+    grid-template-rows: minmax(0, 1.15fr) minmax(0, .85fr);
+    overflow: hidden;
+  }
+
+  .operations-app-mode .company-dashboard .dashboard-field-photos {
+    min-height: 0;
+    display: grid;
+    grid-template-rows: auto minmax(0, 1fr);
+  }
+
+  .operations-app-mode .company-dashboard .dashboard-field-photo-grid {
+    grid-template-columns: 1fr;
+    align-content: start;
+  }
+
+  .operations-app-mode .company-dashboard .dashboard-log-list {
+    border-right: 0;
+    border-bottom: 1px solid #e8ebe8;
+  }
+
+  .operations-app-mode .company-dashboard .dashboard-today-row,
+  .operations-app-mode .company-dashboard .dashboard-log-row,
+  .operations-app-mode .company-dashboard .executive-decision-list > button {
+    min-height: 0;
+  }
+
+  .operations-app-mode .company-dashboard .executive-clear-state,
+  .operations-app-mode .company-dashboard .dashboard-operational-empty,
+  .operations-app-mode .company-dashboard .dashboard-photo-empty {
+    min-height: 0;
+  }
+
+  .operations-app-mode .company-calendar-workspace .calendar-days article {
+    min-height: clamp(118px, 7vw, 172px);
+  }
+
+  .operations-app-mode .brand,
+  .operations-app-mode .topbar {
+    height: clamp(88px, 5.1vw, 108px);
+  }
+
+  .operations-app-mode .nav-item,
+  .operations-app-mode .nav-folder {
+    min-height: clamp(46px, 2.55vw, 56px);
+  }
+
+  .operations-app-mode .nav-subitem {
+    min-height: clamp(41px, 2.25vw, 50px);
+  }
+}

@@ -1,0 +1,52 @@
+[
+  {
+    "file": "small-quote.png",
+    "price": 850.25,
+    "scope": [
+      "branch circuit wiring",
+      "occupancy sensors",
+      "electrical panel"
+    ],
+    "exclusions": [
+      "Utility company service fees"
+    ]
+  },
+  {
+    "file": "tilted-quote.jpg",
+    "price": 187450,
+    "scope": [
+      "rooftop HVAC equipment",
+      "ductwork and controls",
+      "startup and commissioning"
+    ],
+    "exclusions": [
+      "Electrical service and utility fees"
+    ]
+  },
+  {
+    "file": "image-only-quote.pdf",
+    "price": 37500,
+    "scope": [
+      "domestic water distribution",
+      "sanitary waste",
+      "plumbing fixtures",
+      "disinfect water piping"
+    ],
+    "exclusions": [
+      "Municipal tap",
+      "Landscape restoration"
+    ]
+  },
+  {
+    "file": "hybrid-quote.pdf",
+    "price": 850.25,
+    "scope": [
+      "branch circuit wiring",
+      "occupancy sensors",
+      "electrical panel"
+    ],
+    "exclusions": [
+      "Utility company service fees"
+    ]
+  }
+]
