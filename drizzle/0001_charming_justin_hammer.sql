@@ -1,0 +1,23 @@
+CREATE TABLE `projects` (
+	`number` text PRIMARY KEY NOT NULL,
+	`name` text NOT NULL,
+	`status` text NOT NULL,
+	`site` text NOT NULL,
+	`owner_name` text NOT NULL,
+	`owner_contract_date` text NOT NULL,
+	`architect` text DEFAULT '' NOT NULL,
+	`project_type` text NOT NULL,
+	`contract_amount` text DEFAULT '' NOT NULL,
+	`current_contract_amount` text DEFAULT '' NOT NULL,
+	`start_date` text NOT NULL,
+	`substantial_date` text NOT NULL,
+	`final_date` text NOT NULL,
+	`time_zone` text DEFAULT 'America/New_York' NOT NULL,
+	`latitude_millionths` integer,
+	`longitude_millionths` integer,
+	`project_manager` text NOT NULL,
+	`superintendent` text NOT NULL,
+	`camera_count` integer DEFAULT 0 NOT NULL,
+	`created_at` text DEFAULT CURRENT_TIMESTAMP NOT NULL,
+	`updated_at` text DEFAULT CURRENT_TIMESTAMP NOT NULL
+);

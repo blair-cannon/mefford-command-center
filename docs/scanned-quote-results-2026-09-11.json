@@ -1,0 +1,49 @@
+{
+  "runAt": "2026-09-16T12:17:13.698Z",
+  "recognition": "Actual Tesseract 6.0.1 / core 6.1.2 / English 1.0.0 on image pixels; PDF rasterization by Poppler",
+  "assetPath": "/ocr/tesseract-6.0.1-core-6.1.2-eng-1.0.0",
+  "applicationRuntime": "compiled Worker",
+  "browserUploadVerified": false,
+  "results": [
+    {
+      "file": "small-quote.png",
+      "pages": 1,
+      "price": 850.25,
+      "scopeRequirements": 3,
+      "exclusions": 1,
+      "originalRetained": true,
+      "retryDidNotDuplicate": true,
+      "passed": true
+    },
+    {
+      "file": "tilted-quote.jpg",
+      "pages": 1,
+      "price": 187450,
+      "scopeRequirements": 3,
+      "exclusions": 1,
+      "originalRetained": true,
+      "retryDidNotDuplicate": true,
+      "passed": true
+    },
+    {
+      "file": "image-only-quote.pdf",
+      "pages": 2,
+      "price": 37500,
+      "scopeRequirements": 4,
+      "exclusions": 2,
+      "originalRetained": true,
+      "retryDidNotDuplicate": true,
+      "passed": true
+    },
+    {
+      "file": "hybrid-quote.pdf",
+      "pages": 1,
+      "price": 850.25,
+      "scopeRequirements": 3,
+      "exclusions": 1,
+      "originalRetained": true,
+      "retryDidNotDuplicate": true,
+      "passed": true
+    }
+  ]
+}

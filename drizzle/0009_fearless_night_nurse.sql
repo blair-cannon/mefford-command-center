@@ -1,0 +1,1 @@
+ALTER TABLE `meeting_action_items` ADD `item_kind` text DEFAULT 'To-Do' NOT NULL;

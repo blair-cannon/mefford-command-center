@@ -1,0 +1,124 @@
+{
+  "recordedAt": "2026-09-16T04:39:52.600390+00:00",
+  "sourceFingerprint": "d0c45d9e42dea1356592944b27acb22e2a120704c2f4b84251f0eaa9e07824f8",
+  "runtime": "compiled Worker",
+  "releaseGate": {
+    "tests": 821,
+    "pass": 821,
+    "fail": 0,
+    "cancelled": 0,
+    "skipped": 0
+  },
+  "durationMilliseconds": 190170.105653,
+  "criticalModuleCoverage": {
+    "lines": 89.07,
+    "branches": 70.19,
+    "functions": 90.65,
+    "scope": [
+      "lib/accounting-ledger.ts",
+      "lib/project-health-core.js",
+      "lib/scheduler-reliability.js",
+      "lib/system-health-evidence.js"
+    ]
+  },
+  "criticalMutations": {
+    "detected": 7,
+    "total": 7
+  },
+  "typecheck": "passed",
+  "artifactValidation": "passed",
+  "lint": {
+    "errors": 0,
+    "warnings": 20
+  },
+  "browserRecheckAfterEnvironmentRestart": {
+    "estimateWorkspace375": {
+      "documentClientWidth": 365,
+      "documentScrollWidth": 365,
+      "workspaceClientWidth": 355,
+      "workspaceScrollWidth": 355
+    },
+    "capSheet375": {
+      "documentClientWidth": 365,
+      "documentScrollWidth": 365,
+      "headerHeight": 169,
+      "headerActionsBottom": 154,
+      "bodyTop": 169,
+      "bodyHeight": 583.703125,
+      "footerTop": 752.703125,
+      "footerBottom": 850
+    },
+    "savedDurationEdit": {
+      "monthsBefore": 1,
+      "monthsAfter": 3,
+      "contractBefore": 122122.95,
+      "contractAfter": 182580.68,
+      "savedValueVerified": true,
+      "proposalScopeAndSourceEstimate": 182580.68,
+      "preawardContractPrice": 182580.68
+    },
+    "proposalWidths": [
+      {
+        "viewport": 375,
+        "client": 365,
+        "scroll": 365,
+        "editorHeight": 1589.921875
+      },
+      {
+        "viewport": 768,
+        "client": 758,
+        "scroll": 758,
+        "editorHeight": 1037.875
+      },
+      {
+        "viewport": 1100,
+        "client": 1100,
+        "scroll": 1100,
+        "editorHeight": 630
+      }
+    ],
+    "preawardContract375": {
+      "client": 365,
+      "scroll": 365,
+      "editorHeight": 3279.234375,
+      "logoComplete": true,
+      "logoNaturalWidth": 222
+    }
+  },
+  "limits": [
+    "The browser check used a managed preview with synthetic records, not physical mobile devices.",
+    "The release suite mixes runtime integrations, unit/property tests, migrations/storage tests and static checks.",
+    "The 1,000-project final run and subsequent accounting recheck are recorded separately."
+  ],
+  "finalPressureRun": {
+    "runAt": "2026-09-16T05:00:23.859Z",
+    "sourceFingerprint": "d0c45d9e42dea1356592944b27acb22e2a120704c2f4b84251f0eaa9e07824f8",
+    "runtime": "compiled Worker",
+    "projects": 1000,
+    "passed": 1000,
+    "failed": 0,
+    "httpRequests": 305080,
+    "databaseStatements": 28658320,
+    "durationSeconds": 1381,
+    "externalRequestsAttempted": 0,
+    "companies": 20,
+    "publicBids": 250,
+    "contactProjects": 750,
+    "contractPaths": {
+      "Plan & Spec Lump Sum / ": 250,
+      "Design-Build GMP / ": 250,
+      "Time & Materials / Lump Sum": 250,
+      "Time & Materials / Time & Materials Not To Exceed": 250
+    },
+    "changedContractValues": 1000
+  },
+  "accountingAuditAfterPressure": {
+    "tests": 14,
+    "pass": 14,
+    "fail": 0,
+    "cancelled": 0,
+    "skipped": 0,
+    "durationMilliseconds": 2025.823578,
+    "ranAfterPressureCompletion": true
+  }
+}
