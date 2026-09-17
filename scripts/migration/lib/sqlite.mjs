@@ -30,6 +30,16 @@ export function tableColumns(sqlitePath, tableName) {
   return rows.map((row) => row.name);
 }
 
+/** Returns the table's primary key column names, in key order (empty if none declared). */
+export function tablePrimaryKey(sqlitePath, tableName) {
+  const quoted = tableName.replace(/"/g, '""');
+  const rows = querySqliteJson(sqlitePath, `PRAGMA table_info("${quoted}")`);
+  return rows
+    .filter((row) => row.pk > 0)
+    .sort((a, b) => a.pk - b.pk)
+    .map((row) => row.name);
+}
+
 /** Fetches every row of a table as an array of plain objects. */
 export function tableRows(sqlitePath, tableName) {
   const quoted = tableName.replace(/"/g, '""');

@@ -10,6 +10,7 @@
 import { createHash } from "node:crypto";
 import { writeFileSync } from "node:fs";
 import { listUserTables, tableRows } from "./lib/sqlite.mjs";
+import { hashTable } from "./lib/hash.mjs";
 
 function parseArgs(argv) {
   const args = { sqlite: null, out: null, label: "" };
@@ -28,19 +29,6 @@ function parseArgs(argv) {
 
 function sha256(text) {
   return createHash("sha256").update(text).digest("hex");
-}
-
-/** Stable per-row hash: keys sorted so column order never affects the hash. */
-function hashRow(row) {
-  const sortedKeys = Object.keys(row).sort();
-  const canonical = JSON.stringify(row, sortedKeys);
-  return sha256(canonical);
-}
-
-/** Order-independent table hash: sort per-row hashes before combining, so re-insertion order and D1 vs sqlite3 row ordering never matter. */
-function hashTable(rows) {
-  const rowHashes = rows.map(hashRow).sort();
-  return sha256(rowHashes.join("\n"));
 }
 
 function buildBaseline(sqlitePath, label) {

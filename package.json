@@ -20,7 +20,8 @@
     "db:generate": "bash scripts/sites-env.sh -- drizzle-kit generate",
     "migration:baseline": "node scripts/migration/baseline.mjs",
     "migration:verify": "node scripts/migration/verify.mjs",
-    "migration:manifest": "node scripts/migration/file-manifest.mjs"
+    "migration:manifest": "node scripts/migration/file-manifest.mjs",
+    "migration:import": "node scripts/migration/import-json-export.mjs"
   },
   "dependencies": {
     "@pdf-lib/fontkit": "^1.1.1",
