@@ -42,3 +42,6 @@ next-env.d.ts
 /outputs/
 /work/
 /public/ocr/
+
+# raw production data exports (see docs/DATA_MIGRATION_PLAN.md) — never committed
+/.data-migration/

@@ -29,6 +29,7 @@ No operator may use recovery, integration, or administrative access to assume a 
 - [Operator Handbook](docs/OPERATOR_HANDBOOK.md)
 - [Deployment and Rollback](docs/DEPLOYMENT_AND_ROLLBACK.md)
 - [Backup, Restore, and Disaster Recovery](docs/BACKUP_RESTORE_DR.md)
+- [ChatGPT Sites to Self-Hosted Data Migration](docs/DATA_MIGRATION_PLAN.md)
 - [Retention and Legal Hold](docs/RETENTION_POLICY.md)
 - [Integration Cutover](docs/INTEGRATION_CUTOVER.md)
 - [Architecture Decisions](docs/architecture/ADR-0001-BOUNDARIES_AND_OWNERSHIP.md)

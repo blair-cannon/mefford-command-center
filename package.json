@@ -17,7 +17,10 @@
     "typecheck": "bash scripts/sites-env.sh -- ./node_modules/.bin/tsc --noEmit --pretty false",
     "validate:artifact": "bash scripts/validate-artifact.sh",
     "lint": "bash scripts/sites-env.sh -- eslint . --ignore-pattern dist --ignore-pattern .next",
-    "db:generate": "bash scripts/sites-env.sh -- drizzle-kit generate"
+    "db:generate": "bash scripts/sites-env.sh -- drizzle-kit generate",
+    "migration:baseline": "node scripts/migration/baseline.mjs",
+    "migration:verify": "node scripts/migration/verify.mjs",
+    "migration:manifest": "node scripts/migration/file-manifest.mjs"
   },
   "dependencies": {
     "@pdf-lib/fontkit": "^1.1.1",
