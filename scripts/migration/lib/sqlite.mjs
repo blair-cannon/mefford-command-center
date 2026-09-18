@@ -10,7 +10,7 @@ export function querySqliteJson(sqlitePath, sql) {
   return trimmed.length ? JSON.parse(trimmed) : [];
 }
 
-const SYSTEM_TABLE_PATTERNS = [/^sqlite_/, /^d1_/, /^_cf_/, /^__drizzle_migrations$/];
+export const SYSTEM_TABLE_PATTERNS = [/^sqlite_/, /^d1_/, /^_cf_/, /^__drizzle_migrations$/, /^__appgarden_migrations$/];
 
 /** Lists user tables, excluding SQLite/D1/drizzle bookkeeping tables. */
 export function listUserTables(sqlitePath) {

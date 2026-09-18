@@ -1879,3 +1879,172 @@ export const meetingAgendaRefreshGuards = sqliteTable("meeting_agenda_refresh_gu
   token: text("token").notNull(),
   expiresAt: text("expires_at").notNull(),
 });
+
+// The following tables were previously created only at runtime (`CREATE TABLE
+// IF NOT EXISTS` in lib/dashboard-display-auth.ts, lib/sharepoint-storage.ts,
+// lib/clean-start.ts, and app/api/owner-delete/route.ts) instead of through a
+// numbered migration. Captured here from the live production schema so they
+// follow the same append-only migration discipline as every other table.
+
+export const dashboardDisplayCredentials = sqliteTable("dashboard_display_credentials", {
+  email: text("email").primaryKey(),
+  passwordSalt: text("password_salt").notNull(),
+  passwordHash: text("password_hash").notNull(),
+  iterations: integer("iterations").notNull().default(100000),
+  updatedAt: text("updated_at").notNull().default(sql`CURRENT_TIMESTAMP`),
+  updatedBy: text("updated_by").notNull(),
+});
+
+export const dashboardDisplaySessions = sqliteTable(
+  "dashboard_display_sessions",
+  {
+    tokenHash: text("token_hash").primaryKey(),
+    email: text("email").notNull(),
+    expiresAt: text("expires_at").notNull(),
+    createdAt: text("created_at").notNull().default(sql`CURRENT_TIMESTAMP`),
+  },
+  (table) => [index("dashboard_display_sessions_expiry_idx").on(table.expiresAt)],
+);
+
+export const dashboardDisplayAudits = sqliteTable("dashboard_display_audits", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  action: text("action").notNull(),
+  actor: text("actor").notNull(),
+  detail: text("detail").notNull().default(""),
+  createdAt: text("created_at").notNull().default(sql`CURRENT_TIMESTAMP`),
+});
+
+export const dashboardDisplayLoginFailures = sqliteTable(
+  "dashboard_display_login_failures",
+  {
+    fingerprintHash: text("fingerprint_hash").notNull(),
+    failedAt: text("failed_at").notNull(),
+  },
+  (table) => [index("dashboard_display_login_failures_lookup_idx").on(table.fingerprintHash, table.failedAt)],
+);
+
+export const systemDataResets = sqliteTable("system_data_resets", {
+  id: text("id").primaryKey(),
+  status: text("status").notNull(),
+  requestedBy: text("requested_by").notNull(),
+  requestedByEmail: text("requested_by_email").notNull(),
+  preservationPolicy: text("preservation_policy").notNull(),
+  claimToken: text("claim_token").notNull().default(""),
+  leaseExpiresAt: text("lease_expires_at").notNull().default(""),
+  inventoryJson: text("inventory_json").notNull().default("{}"),
+  countsJson: text("counts_json").notNull().default("{}"),
+  errorMessage: text("error_message").notNull().default(""),
+  startedAt: text("started_at").notNull().default(""),
+  completedAt: text("completed_at").notNull().default(""),
+  createdAt: text("created_at").notNull().default(sql`CURRENT_TIMESTAMP`),
+  updatedAt: text("updated_at").notNull().default(sql`CURRENT_TIMESTAMP`),
+});
+
+export const ownerDeletionReceipts = sqliteTable("owner_deletion_receipts", {
+  id: text("id").primaryKey(),
+  targetKind: text("target_kind").notNull(),
+  targetId: text("target_id").notNull(),
+  targetName: text("target_name").notNull(),
+  actorName: text("actor_name").notNull(),
+  actorEmail: text("actor_email").notNull(),
+  countsJson: text("counts_json").notNull().default("{}"),
+  deletedAt: text("deleted_at").notNull().default(sql`CURRENT_TIMESTAMP`),
+});
+
+export const sharepointWorkspaces = sqliteTable(
+  "sharepoint_workspaces",
+  {
+    id: text("id").primaryKey(),
+    entityType: text("entity_type").notNull(),
+    entityId: text("entity_id").notNull(),
+    displayName: text("display_name").notNull(),
+    libraryKey: text("library_key").notNull(),
+    logicalRootPath: text("logical_root_path").notNull(),
+    sourceProjectId: text("source_project_id").notNull().default(""),
+    sourceRecordId: text("source_record_id").notNull().default(""),
+    status: text("status").notNull().default("Mapping Pending"),
+    siteId: text("site_id").notNull().default(""),
+    driveId: text("drive_id").notNull().default(""),
+    rootItemId: text("root_item_id").notNull().default(""),
+    webUrl: text("web_url").notNull().default(""),
+    folderManifestJson: text("folder_manifest_json").notNull().default("[]"),
+    noDeleteGuard: integer("no_delete_guard", { mode: "boolean" }).notNull().default(true),
+    lastAttemptAt: text("last_attempt_at").notNull().default(""),
+    verifiedAt: text("verified_at").notNull().default(""),
+    errorMessage: text("error_message").notNull().default(""),
+    createdBy: text("created_by").notNull(),
+    createdAt: text("created_at").notNull().default(sql`CURRENT_TIMESTAMP`),
+    updatedAt: text("updated_at").notNull().default(sql`CURRENT_TIMESTAMP`),
+  },
+  (table) => [
+    uniqueIndex("sharepoint_workspace_entity_idx").on(table.entityType, table.entityId),
+    index("sharepoint_workspace_status_idx").on(table.status, table.entityType),
+  ],
+);
+
+export const sharepointFolderMappings = sqliteTable(
+  "sharepoint_folder_mappings",
+  {
+    id: text("id").primaryKey(),
+    workspaceId: text("workspace_id").notNull(),
+    folderKey: text("folder_key").notNull(),
+    label: text("label").notNull(),
+    parentKey: text("parent_key").notNull().default(""),
+    relativePath: text("relative_path").notNull(),
+    permissionClass: text("permission_class").notNull(),
+    driveItemId: text("drive_item_id").notNull().default(""),
+    webUrl: text("web_url").notNull().default(""),
+    status: text("status").notNull().default("Mapping Pending"),
+    lastVerifiedAt: text("last_verified_at").notNull().default(""),
+    errorMessage: text("error_message").notNull().default(""),
+    createdAt: text("created_at").notNull().default(sql`CURRENT_TIMESTAMP`),
+    updatedAt: text("updated_at").notNull().default(sql`CURRENT_TIMESTAMP`),
+  },
+  (table) => [
+    uniqueIndex("sharepoint_folder_workspace_key_idx").on(table.workspaceId, table.folderKey),
+    index("sharepoint_folder_status_idx").on(table.status, table.permissionClass),
+  ],
+);
+
+export const sharepointFileMappings = sqliteTable(
+  "sharepoint_file_mappings",
+  {
+    id: text("id").primaryKey(),
+    projectFileId: integer("project_file_id").notNull().unique(),
+    workspaceId: text("workspace_id").notNull(),
+    folderKey: text("folder_key").notNull(),
+    sourceProjectId: text("source_project_id").notNull(),
+    sourceStorageKey: text("source_storage_key").notNull(),
+    sourceName: text("source_name").notNull(),
+    sourceSizeBytes: integer("source_size_bytes").notNull().default(0),
+    driveItemId: text("drive_item_id").notNull().default(""),
+    webUrl: text("web_url").notNull().default(""),
+    eTag: text("e_tag").notNull().default(""),
+    sha256: text("sha256").notNull().default(""),
+    state: text("state").notNull().default("Local Primary · Mapping Pending"),
+    noSourceDelete: integer("no_source_delete", { mode: "boolean" }).notNull().default(true),
+    lastSyncedAt: text("last_synced_at").notNull().default(""),
+    verifiedAt: text("verified_at").notNull().default(""),
+    errorMessage: text("error_message").notNull().default(""),
+    createdAt: text("created_at").notNull().default(sql`CURRENT_TIMESTAMP`),
+    updatedAt: text("updated_at").notNull().default(sql`CURRENT_TIMESTAMP`),
+  },
+  (table) => [index("sharepoint_file_state_idx").on(table.state, table.workspaceId)],
+);
+
+export const sharepointSyncEvents = sqliteTable(
+  "sharepoint_sync_events",
+  {
+    id: text("id").primaryKey(),
+    workspaceId: text("workspace_id").notNull().default(""),
+    fileMappingId: text("file_mapping_id").notNull().default(""),
+    action: text("action").notNull(),
+    status: text("status").notNull(),
+    detail: text("detail").notNull().default(""),
+    actorName: text("actor_name").notNull(),
+    actorEmail: text("actor_email").notNull().default(""),
+    providerId: text("provider_id").notNull().default(""),
+    createdAt: text("created_at").notNull().default(sql`CURRENT_TIMESTAMP`),
+  },
+  (table) => [index("sharepoint_sync_event_status_idx").on(table.status, table.createdAt)],
+);

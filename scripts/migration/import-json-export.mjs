@@ -25,7 +25,7 @@
 import { execFileSync } from "node:child_process";
 import { readdirSync, readFileSync } from "node:fs";
 import path from "node:path";
-import { listUserTables, tableRows, tablePrimaryKey } from "./lib/sqlite.mjs";
+import { listUserTables, tableRows, tablePrimaryKey, SYSTEM_TABLE_PATTERNS } from "./lib/sqlite.mjs";
 import { hashTable, hashRow } from "./lib/hash.mjs";
 
 function parseArgs(argv) {
@@ -62,7 +62,9 @@ function loadExportTables(exportDir) {
   const files = readdirSync(d1Dir).filter(
     (name) => name.endsWith(".json") && name !== "row-counts.json",
   );
-  return files.map((file) => JSON.parse(readFileSync(path.join(d1Dir, file), "utf8")));
+  return files
+    .map((file) => JSON.parse(readFileSync(path.join(d1Dir, file), "utf8")))
+    .filter((t) => !SYSTEM_TABLE_PATTERNS.some((pattern) => pattern.test(t.table)));
 }
 
 // Reference/lookup tables seeded by a migration stamp *_at columns
