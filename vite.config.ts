@@ -12,6 +12,13 @@ const { d1, r2 } = hostingConfig;
 // macOS Seatbelt blocks FSEvents, so Codex previews need polling for HMR.
 const isCodexSeatbeltSandbox = process.env.CODEX_SANDBOX === "seatbelt";
 
+// Local dev/tests use Miniflare's emulated D1/R2, so a placeholder database ID
+// and made-up bucket name work fine there. A real production build sets
+// CF_D1_DATABASE_ID/CF_D1_DATABASE_NAME/CF_R2_BUCKET_NAME (see
+// docs/DEPLOYMENT_AND_ROLLBACK.md) so the wrangler.json emitted by this same
+// build (dist/server/wrangler.json, consumed directly by `wrangler deploy`)
+// carries the real bindings — there is deliberately no second, hand-maintained
+// wrangler.toml/jsonc for production that could drift out of sync with this one.
 const localBindingConfig = {
   main: "./worker/index.ts",
   compatibility_flags: ["nodejs_compat"],
@@ -19,8 +26,8 @@ const localBindingConfig = {
     ? [
         {
           binding: d1,
-          database_name: "site-creator-d1",
-          database_id: SITE_CREATOR_PLACEHOLDER_DATABASE_ID,
+          database_name: process.env.CF_D1_DATABASE_NAME || "site-creator-d1",
+          database_id: process.env.CF_D1_DATABASE_ID || SITE_CREATOR_PLACEHOLDER_DATABASE_ID,
         },
       ]
     : [],
@@ -28,7 +35,7 @@ const localBindingConfig = {
     ? [
         {
           binding: r2,
-          bucket_name: "site-creator-r2",
+          bucket_name: process.env.CF_R2_BUCKET_NAME || "site-creator-r2",
         },
       ]
     : [],

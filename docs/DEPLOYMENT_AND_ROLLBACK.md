@@ -1,5 +1,11 @@
 # Deployment and Rollback Runbook
 
+This app is moving from ChatGPT Sites hosting to a self-hosted Cloudflare
+account (see [Data Migration Plan](DATA_MIGRATION_PLAN.md)). Steps 1–5 below
+are unchanged either way; step 6–7 differ by hosting path. Once the
+self-hosted deployment is accepted as production, the Sites section becomes
+historical — keep it only until the ChatGPT Sites instance is fully retired.
+
 ## Normal Release
 
 1. Confirm scope and publication approval.
@@ -7,8 +13,39 @@
 3. Make the smallest coherent source change.
 4. Add one forward-only numbered migration for schema changes and replay every migration from zero.
 5. Run focused tests and TypeScript checks.
-6. Create a Sites checkpoint; full build, tests, coverage, and mutation controls must pass.
+6. **Self-hosted (current):** `npm run build`, then `wrangler deploy -c dist/server/wrangler.json` (see below). **Sites (legacy, during transition only):** create a Sites checkpoint; full build, tests, coverage, and mutation controls must pass.
 7. Monitor the immutable deployment until terminal success and record the public version.
+
+## Self-hosted release (Cloudflare)
+
+`npm run build` (`vinext build`) emits a deploy-ready `dist/server/wrangler.json`
+on every build — bindings come from `vite.config.ts`'s `localBindingConfig`,
+sourced from `.openai/hosting.json` (binding *names*: `DB`, `BUCKET`) plus
+these environment variables (real D1/R2 *identifiers*, set only when building
+for production — leave unset for local dev, which uses Miniflare's emulated
+D1/R2 and placeholder values):
+
+| Variable | Purpose |
+| --- | --- |
+| `CF_D1_DATABASE_NAME` | The production D1 database's name (`wrangler d1 create` output). |
+| `CF_D1_DATABASE_ID` | The production D1 database's UUID (`wrangler d1 create` output). |
+| `CF_R2_BUCKET_NAME` | The production R2 bucket's name (`wrangler r2 bucket create` output). |
+
+There is deliberately no separate, hand-maintained `wrangler.toml`/`wrangler.jsonc`
+for production — one drifting out of sync with `vite.config.ts` (worker name,
+compatibility flags, cron triggers) would be worse than parameterizing the one
+source of truth that already exists.
+
+Release steps:
+
+```bash
+CF_D1_DATABASE_NAME=<name> CF_D1_DATABASE_ID=<uuid> CF_R2_BUCKET_NAME=<bucket> npm run build
+wrangler deploy -c dist/server/wrangler.json
+```
+
+Apply any new migrations to the production D1 first
+(`wrangler d1 migrations apply <db-name> --remote`), and set/rotate secrets
+with `wrangler secret put <NAME>` (never in `vars` or committed config).
 
 ## Rollback
 
