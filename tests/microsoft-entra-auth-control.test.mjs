@@ -53,7 +53,8 @@ test("identity proof cannot bypass the owner-approved immutable Microsoft mappin
   assert.doesNotMatch(startRoute, /resolveCommandActor|approvedMicrosoftIdentityForActor/);
   assert.match(callbackRoute, /authorizeVerifiedMicrosoftIdentity/);
   assert.match(callbackRoute, /authorization\.allowed/);
-  assert.match(callbackRoute, /status: 403/);
+  assert.match(callbackRoute, /redirectToApp\("not-approved"/);
+  assert.doesNotMatch(callbackRoute, /Response\.json/);
   assert.match(access, /export async function authorizeVerifiedMicrosoftIdentity/);
   assert.match(access, /FROM company_members WHERE lower\(email\) = \?/);
   assert.match(access, /Unregistered/);

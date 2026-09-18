@@ -2,7 +2,6 @@ import { authorizeVerifiedMicrosoftIdentity, recordMicrosoftActivity } from "../
 import {
   completeMicrosoftEntraAuthorization,
   issueCommandSessionCookie,
-  MicrosoftEntraAuthError,
 } from "../../../../lib/microsoft-entra-auth";
 import type { CommandActor } from "../../../../lib/server-actor";
 
@@ -34,14 +33,7 @@ export async function GET(request: Request) {
         status: "Failed",
         detail: { status: authorization.status, tenantId: result.tenantId },
       });
-      const headers = new Headers({ "Cache-Control": "no-store" });
-      headers.append("Set-Cookie", result.clearCookie);
-      return Response.json(
-        {
-          error: `Signed in with Microsoft as ${result.microsoftEmail}, but this account is not yet approved for Command Center access (${authorization.status}). Ask the Company Owner to approve it, then try again.`,
-        },
-        { status: 403, headers },
-      );
+      return redirectToApp("not-approved", authorization.status, result.clearCookie);
     }
 
     await recordMicrosoftActivity({
@@ -56,7 +48,7 @@ export async function GET(request: Request) {
 
     const sessionCookie = await issueCommandSessionCookie(authorization.email);
     const headers = new Headers({
-      Location: "/?microsoftIdentity=verified",
+      Location: "/?signInStatus=verified",
       "Cache-Control": "no-store",
       "Referrer-Policy": "no-referrer",
       "X-Content-Type-Options": "nosniff",
@@ -76,12 +68,22 @@ export async function GET(request: Request) {
         error,
       }).catch(() => undefined);
     }
-    const status = error instanceof MicrosoftEntraAuthError ? error.status : 403;
-    const headers = new Headers({ "Cache-Control": "no-store" });
-    headers.append("Set-Cookie", "mefford_microsoft_auth=; Path=/api/microsoft-auth/callback; Max-Age=0; HttpOnly; Secure; SameSite=Lax");
-    return Response.json(
-      { error: error instanceof Error ? error.message : "Microsoft sign-in failed" },
-      { status, headers },
-    );
+    const message = error instanceof Error ? error.message : "Microsoft sign-in failed";
+    return redirectToApp("error", message, "mefford_microsoft_auth=; Path=/api/microsoft-auth/callback; Max-Age=0; HttpOnly; Secure; SameSite=Lax");
   }
+}
+
+// Always sends the browser back into the app's own UI — never a raw JSON
+// response — so every outcome (approved, not-yet-approved, or a genuine
+// sign-in error) renders as part of the normal page instead of a bare
+// error blob mid-navigation.
+function redirectToApp(status: "not-approved" | "error", reason: string, clearCookie: string) {
+  const headers = new Headers({
+    Location: `/?signInStatus=${status}&reason=${encodeURIComponent(reason)}`,
+    "Cache-Control": "no-store",
+    "Referrer-Policy": "no-referrer",
+    "X-Content-Type-Options": "nosniff",
+  });
+  headers.append("Set-Cookie", clearCookie);
+  return new Response(null, { status: 303, headers });
 }

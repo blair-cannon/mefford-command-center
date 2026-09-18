@@ -6016,6 +6016,17 @@ export default function Home() {
     onboardingProgress: 0,
   });
   const [sessionStatus, setSessionStatus] = useState<"loading" | "ready" | "error">("loading");
+  const [signInOutcome] = useState(() => {
+    if (typeof window === "undefined") return null;
+    const params = new URLSearchParams(window.location.search);
+    const status = params.get("signInStatus");
+    if (status !== "not-approved" && status !== "error") return null;
+    return { status, reason: params.get("reason") || "" } as const;
+  });
+  useEffect(() => {
+    if (!signInOutcome || typeof window === "undefined") return;
+    window.history.replaceState(null, "", window.location.pathname);
+  }, [signInOutcome]);
   const [externalPricingToken, setExternalPricingToken] = useState("");
   const [externalVendorInviteId, setExternalVendorInviteId] = useState("");
   const [externalOwnerInviteId, setExternalOwnerInviteId] = useState("");
@@ -8213,13 +8224,30 @@ export default function Home() {
       <main className="session-access-gate" aria-live="polite">
         <Mark />
 
-        <h1>{sessionStatus === "loading" ? "Verifying Employee Access" : "Company Access Remains Locked"}</h1>
+        <h1>
+          {sessionStatus === "loading"
+            ? "Verifying Employee Access"
+            : signInOutcome?.status === "not-approved"
+              ? "Signed In — Not Yet Approved"
+              : signInOutcome?.status === "error"
+                ? "Sign-In Could Not Be Completed"
+                : "Sign In Required"}
+        </h1>
         <p>
           {sessionStatus === "loading"
             ? "Confirming your signed-in identity, company status, onboarding cycle, and current permissions."
-            : "Your employee access status could not be verified. No company records or tools were opened."}
+            : signInOutcome?.status === "not-approved"
+              ? `Microsoft confirmed your identity, but this account is not yet approved for Command Center access${signInOutcome.reason ? ` (${signInOutcome.reason})` : ""}. Ask the Company Owner to approve it, then sign in again.`
+              : signInOutcome?.status === "error"
+                ? signInOutcome.reason || "Something went wrong during Microsoft sign-in. Please try again."
+                : "Sign in with your Mefford Microsoft 365 account to continue."}
         </p>
-        {sessionStatus === "error" ? <button className="primary-action" onClick={() => window.location.reload()}>Try Access Check Again</button> : <span className="session-access-progress" aria-hidden="true" />}
+        {sessionStatus === "error" ? (
+          <>
+            <a className="primary-action" href="/api/microsoft-auth/start" style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", textDecoration: "none" }}>Sign In With Microsoft</a>
+            <button className="secondary-action" onClick={() => window.location.reload()}>Try Access Check Again</button>
+          </>
+        ) : <span className="session-access-progress" aria-hidden="true" />}
       </main>
     );
   }
