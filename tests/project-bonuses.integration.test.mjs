@@ -3,6 +3,8 @@ import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
 import { writeFileSync,readFileSync } from "node:fs";
 import { createHash } from "node:crypto";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import { harness,owner,pm,superintendent,signature,scenarios,saleToExecutedContract } from "./support/project-workflow-harness.mjs";
 import { activateActor,F06_ACTORS } from "./support/f06-runtime-harness.mjs";
 import { bonusTier,bonusPayoutMonth,BONUS_TIERS } from "../lib/project-bonuses.ts";
@@ -49,7 +51,7 @@ test("real turnover signatures are role-bound, revision-bound, stored as immutab
     const fileId=b.current.fileId,bytes=await h.send(`/api/files?id=${fileId}`,{actor:pm,binary:true});assert.equal(Buffer.from(bytes).subarray(0,4).toString(),"%PDF");
     await h.send(`/api/project-owner/files?id=${fileId}`,{actor:null,headers:job.ownerHeaders,expected:403});
     const text=execFileSync("pdftotext",["-","-"],{input:bytes,encoding:"utf8"});assert.match(text,/zero outside-reported OSHA violations/);assert.match(text,/paid out twice per year/);assert.match(text,/More Than 6 Weeks Beyond Schedule/);assert.match(text,/Turnover agreement signature record/);assert.match(text,/SYNTHETIC TEST ONLY/);assert.match(text,new RegExp(pm.email));
-    writeFileSync("/workspace/scratch/810ccaed2080/bonus-verified-signed.pdf",bytes);
+    writeFileSync(join(tmpdir(),"bonus-verified-signed.pdf"),bytes);
     const originalCopy=await h.send(`/api/project-bonuses?projectId=${id}&document=original`,{binary:true});assert.deepEqual(Buffer.from(originalCopy),Buffer.from(BONUS_DOCX_BASE64,"base64"));
     const artifacts=h.runtime.database.query("SELECT id,storage_key FROM project_files WHERE project_id=? AND category='Turnover Bonus Agreement'",id);assert.equal(artifacts.length,2);assert.notEqual(artifacts[0].storage_key,artifacts[1].storage_key);
     assert.equal(h.outbound.length,0);

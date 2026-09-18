@@ -1,5 +1,7 @@
 import assert from 'node:assert/strict';
 import { writeFile } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import { harness, accountant, today } from '../tests/support/project-workflow-harness.mjs';
 import { preparePressureVendors, pressureScenarios, runPressureJourney, PRESSURE_SEED } from '../tests/support/platform-pressure-journey.mjs';
 const count=Number(process.env.PRESSURE_COUNT||1000);
@@ -33,7 +35,7 @@ try {
   console.error=originalError;
   for(const r of Object.values(requests)){r.totalMs=Math.round(r.totalMs);r.maxMs=Math.round(r.maxMs);}
   const report={seed:PRESSURE_SEED,runAt:new Date().toISOString(),runtime:process.env.LIFECYCLE_SOURCE==='1'?'source handlers':'compiled Worker',requested:count,projects:results.length,passed:results.filter(r=>r.passed).length,failed:results.filter(r=>!r.passed).length,durationSeconds:Math.round((Date.now()-started)/1000),httpRequests:h.calls(),databaseStatements:h.runtime.database.statementCount,realMessagesSent:0,externalRequestsAttempted:h.outbound.length,offset,scope:'One isolated company database per batch, real application HTTP handlers, synthetic identities and signatures, original PDF quotes and edited DOCX files; no live bank/payroll/email execution.',requests,expectedFaultLogSample:expectedFailures,results};
-  await writeFile(process.env.PRESSURE_REPORT || (count===1000?'docs/platform-pressure-1000-results-2026-09-16.json':'/workspace/scratch/810ccaed2080/platform-pressure-debug.json'),JSON.stringify(report,null,2)+'\n');
+  await writeFile(process.env.PRESSURE_REPORT || (count===1000?'docs/platform-pressure-1000-results-2026-09-16.json':join(tmpdir(),'platform-pressure-debug.json')),JSON.stringify(report,null,2)+'\n');
   await h.close();
 }
 assert.equal(results.length,count);assert.equal(results.filter(r=>!r.passed).length,0);
