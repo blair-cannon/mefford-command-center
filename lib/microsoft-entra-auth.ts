@@ -1,7 +1,7 @@
 import type { CommandActor } from "./server-actor";
 
 export const MICROSOFT_ENTRA_REDIRECT_URI =
-  "https://mefford-project-command.jordan-mefor-1272.chatgpt.site/api/microsoft-auth/callback";
+  "https://mefford-project-command.mefford-project-command.workers.dev/api/microsoft-auth/callback";
 
 export const MICROSOFT_ENTRA_DELEGATED_SCOPES = [
   "openid",
@@ -142,7 +142,7 @@ export async function microsoftEntraProofStatus(actor: CommandActor, identity: A
   };
 }
 
-export async function beginMicrosoftEntraAuthorization(actor: CommandActor, identity: ApprovedIdentity) {
+export async function beginMicrosoftEntraAuthorization() {
   const values = await authEnvironment();
   const config = authConfig(values);
   if (!config) throw new MicrosoftEntraAuthError("Microsoft Entra authentication is not fully configured", 503);
@@ -155,15 +155,17 @@ export async function beginMicrosoftEntraAuthorization(actor: CommandActor, iden
   const expiresAt = new Date(Date.now() + AUTH_LIFETIME_SECONDS * 1_000).toISOString();
   await db.batch([
     db.prepare(`DELETE FROM microsoft_entra_auth_transactions WHERE expires_at < ?`).bind(new Date().toISOString()),
+    // actor_email/provider_subject/microsoft_email are unknown until Microsoft's own
+    // callback tells us who signed in — this is the primary sign-in entry point now,
+    // not a proof layered on an already-known identity, so nothing can be pre-bound here.
     db.prepare(`INSERT INTO microsoft_entra_auth_transactions
       (state_hash, actor_email, provider_subject, microsoft_email, expires_at, consumed_at, outcome)
-      VALUES (?, ?, ?, ?, ?, '', 'Started')`)
-      .bind(stateHash, actor.email.toLowerCase(), identity.providerSubject, identity.microsoftEmail.toLowerCase(), expiresAt),
+      VALUES (?, '', '', '', ?, '', 'Started')`)
+      .bind(stateHash, expiresAt),
   ]);
   const cookiePayload = await encryptCookie(config.stateKey, {
     state,
     verifier,
-    actorEmail: actor.email.toLowerCase(),
     expiresAt,
   });
   const url = new URL(`https://login.microsoftonline.com/${encodeURIComponent(config.tenantId)}/oauth2/v2.0/authorize`);
@@ -177,7 +179,6 @@ export async function beginMicrosoftEntraAuthorization(actor: CommandActor, iden
     code_challenge: challenge,
     code_challenge_method: "S256",
     prompt: "select_account",
-    login_hint: identity.microsoftEmail,
   }).toString();
   return {
     authorizationUrl: url.toString(),
@@ -185,7 +186,7 @@ export async function beginMicrosoftEntraAuthorization(actor: CommandActor, iden
   };
 }
 
-export async function completeMicrosoftEntraAuthorization(request: Request, actor: CommandActor, identity: ApprovedIdentity) {
+export async function completeMicrosoftEntraAuthorization(request: Request) {
   const values = await authEnvironment();
   const config = authConfig(values);
   if (!config) throw new MicrosoftEntraAuthError("Microsoft Entra authentication is not fully configured", 503);
@@ -198,11 +199,7 @@ export async function completeMicrosoftEntraAuthorization(request: Request, acto
   const cookieValue = readCookie(request.headers.get("cookie"), AUTH_COOKIE);
   if (!cookieValue) throw new MicrosoftEntraAuthError("Microsoft sign-in state cookie is missing", 400);
   const cookie = await decryptCookie(config.stateKey, cookieValue);
-  if (
-    cookie.state !== state
-    || cookie.actorEmail !== actor.email.toLowerCase()
-    || new Date(cookie.expiresAt).getTime() <= Date.now()
-  ) {
+  if (cookie.state !== state || new Date(cookie.expiresAt).getTime() <= Date.now()) {
     throw new MicrosoftEntraAuthError("Microsoft sign-in state validation failed", 400);
   }
   const db = await authDatabase();
@@ -213,9 +210,6 @@ export async function completeMicrosoftEntraAuthorization(request: Request, acto
   if (
     !transaction
     || transaction.consumed_at
-    || transaction.actor_email !== actor.email.toLowerCase()
-    || transaction.provider_subject !== identity.providerSubject
-    || transaction.microsoft_email !== identity.microsoftEmail.toLowerCase()
     || new Date(transaction.expires_at).getTime() <= Date.now()
   ) {
     throw new MicrosoftEntraAuthError("Microsoft sign-in transaction is invalid or expired", 400);
@@ -264,9 +258,9 @@ export async function completeMicrosoftEntraAuthorization(request: Request, acto
     throw new MicrosoftEntraAuthError(profile.error?.message || "Microsoft profile verification failed", 502);
   }
   const verifiedEmail = clean(profile.mail || profile.userPrincipalName).toLowerCase();
-  if (profile.id !== identity.providerSubject || verifiedEmail !== identity.microsoftEmail.toLowerCase()) {
-    await markOutcome(db, stateHash, "Approved Identity Mismatch");
-    throw new MicrosoftEntraAuthError("Signed-in Microsoft account does not match the owner-approved identity", 403);
+  if (!verifiedEmail) {
+    await markOutcome(db, stateHash, "No Mailbox On Signed-In Account");
+    throw new MicrosoftEntraAuthError("The signed-in Microsoft account has no mailbox address", 403);
   }
   const now = new Date().toISOString();
   await db.batch([
@@ -281,18 +275,74 @@ export async function completeMicrosoftEntraAuthorization(request: Request, acto
         last_verified_at = excluded.last_verified_at,
         revoked_at = '',
         updated_at = excluded.updated_at`)
-      .bind(identity.providerSubject, actor.email.toLowerCase(), identity.microsoftEmail.toLowerCase(), config.tenantId, now, now, now),
-    db.prepare(`UPDATE microsoft_entra_auth_transactions SET outcome = 'Verified', updated_at = ? WHERE state_hash = ?`)
-      .bind(now, stateHash),
+      .bind(profile.id, verifiedEmail, verifiedEmail, config.tenantId, now, now, now),
+    db.prepare(`UPDATE microsoft_entra_auth_transactions
+      SET outcome = 'Verified', actor_email = ?, provider_subject = ?, microsoft_email = ?, updated_at = ?
+      WHERE state_hash = ?`)
+      .bind(verifiedEmail, profile.id, verifiedEmail, now, stateHash),
   ]);
   return {
     verified: true,
-    microsoftEmail: identity.microsoftEmail,
-    providerSubject: identity.providerSubject,
+    microsoftEmail: verifiedEmail,
+    displayName: clean(profile.displayName),
+    providerSubject: profile.id,
     tenantId: config.tenantId,
     verifiedAt: now,
     clearCookie: `${AUTH_COOKIE}=; Path=/api/microsoft-auth/callback; Max-Age=0; HttpOnly; Secure; SameSite=Lax`,
   };
+}
+
+const SESSION_COOKIE = "mefford_command_session";
+const SESSION_LIFETIME_SECONDS = 30 * 24 * 60 * 60;
+
+/**
+ * Issues the primary Command Center login session, established once
+ * completeMicrosoftEntraAuthorization's verified identity has separately been
+ * authorized (see authorizeVerifiedMicrosoftIdentity in microsoft-access-server.ts).
+ * This cookie — not any header from a hosting platform — is now the sole
+ * source of "who is signed in" outside of local dev.
+ */
+export async function issueCommandSessionCookie(email: string) {
+  const values = await authEnvironment();
+  const stateKey = clean(values.MICROSOFT_GRAPH_AUTH_STATE_KEY);
+  if (!validStateKey(stateKey)) throw new MicrosoftEntraAuthError("Microsoft Entra authentication is not fully configured", 503);
+  const expiresAt = new Date(Date.now() + SESSION_LIFETIME_SECONDS * 1_000).toISOString();
+  const payload = await encryptCookie(stateKey, {
+    email: email.toLowerCase(),
+    issuedAt: new Date().toISOString(),
+    expiresAt,
+  });
+  return `${SESSION_COOKIE}=${payload}; Path=/; Max-Age=${SESSION_LIFETIME_SECONDS}; HttpOnly; Secure; SameSite=Lax`;
+}
+
+export function clearCommandSessionCookie() {
+  return `${SESSION_COOKIE}=; Path=/; Max-Age=0; HttpOnly; Secure; SameSite=Lax`;
+}
+
+/** Reads and verifies the session cookie issued by issueCommandSessionCookie. Returns null if absent, malformed, tampered with, or expired. */
+export async function readCommandSessionCookie(request: Request) {
+  const values = await authEnvironment();
+  const stateKey = clean(values.MICROSOFT_GRAPH_AUTH_STATE_KEY);
+  if (!validStateKey(stateKey)) return null;
+  const cookieValue = readCookie(request.headers.get("cookie"), SESSION_COOKIE);
+  if (!cookieValue) return null;
+  try {
+    const [ivValue, ciphertextValue] = cookieValue.split(".");
+    if (!ivValue || !ciphertextValue) return null;
+    const key = await importStateKey(stateKey);
+    const plaintext = await crypto.subtle.decrypt(
+      { name: "AES-GCM", iv: fromBase64Url(ivValue) },
+      key,
+      fromBase64Url(ciphertextValue),
+    );
+    const parsed = JSON.parse(new TextDecoder().decode(plaintext)) as Record<string, unknown>;
+    const email = clean(parsed.email).toLowerCase();
+    const expiresAt = clean(parsed.expiresAt);
+    if (!email || !expiresAt || new Date(expiresAt).getTime() <= Date.now()) return null;
+    return { email };
+  } catch {
+    return null;
+  }
 }
 
 export class MicrosoftEntraAuthError extends Error {
@@ -375,7 +425,6 @@ async function decryptCookie(keyValue: string, value: string) {
     const result = {
       state: clean(parsed.state),
       verifier: clean(parsed.verifier),
-      actorEmail: clean(parsed.actorEmail).toLowerCase(),
       expiresAt: clean(parsed.expiresAt),
     };
     if (!Object.values(result).every(Boolean)) throw new Error("Incomplete encrypted cookie");

@@ -1,25 +1,14 @@
-import { enforceOnboardingAccess } from "../../../../lib/onboarding";
-import { approvedMicrosoftIdentityForActor, recordMicrosoftActivity } from "../../../../lib/microsoft-access-server";
 import { beginMicrosoftEntraAuthorization, MicrosoftEntraAuthError } from "../../../../lib/microsoft-entra-auth";
-import { resolveCommandActor } from "../../../../lib/server-actor";
 
-export async function GET(request: Request) {
-  const actor = await resolveCommandActor(request);
-  if (!actor.authenticated || !actor.email) return Response.json({ error: "Authentication Required" }, { status: 401 });
-  const onboardingLock = await enforceOnboardingAccess(request);
-  if (onboardingLock) return onboardingLock;
+// This is the primary Command Center sign-in entry point on the self-hosted
+// Cloudflare deployment — it does not require any prior authentication (there
+// is no ChatGPT Sites access-policy header anymore to have established one).
+// Anyone may reach this URL and attempt to sign in with a Microsoft account;
+// whether that account is actually authorized is decided after the fact, in
+// the callback, once Entra has verified who they are.
+export async function GET() {
   try {
-    const identity = await approvedMicrosoftIdentityForActor(actor);
-    const authorization = await beginMicrosoftEntraAuthorization(actor, identity);
-    await recordMicrosoftActivity({
-      actor,
-      microsoftEmail: identity.microsoftEmail,
-      providerSubject: identity.providerSubject,
-      action: "Started Single-Tenant Microsoft Identity Verification",
-      resourceType: "Microsoft Identity",
-      status: "Succeeded",
-      detail: { flow: "Authorization Code + PKCE", tokensRetained: false },
-    });
+    const authorization = await beginMicrosoftEntraAuthorization();
     return new Response(null, {
       status: 302,
       headers: {
@@ -31,7 +20,7 @@ export async function GET(request: Request) {
       },
     });
   } catch (error) {
-    const status = error instanceof MicrosoftEntraAuthError ? error.status : 403;
+    const status = error instanceof MicrosoftEntraAuthError ? error.status : 503;
     return Response.json({ error: safeMessage(error) }, { status, headers: { "Cache-Control": "no-store" } });
   }
 }

@@ -566,6 +566,69 @@ export async function microsoftAccessGateForActor(actor: CommandActor) {
   return { allowed, status: grant?.access_status || "Owner Approval Required", enforced: true, microsoftEmail: grant?.microsoft_email || actor.email, providerSubject: grant?.provider_subject || "" };
 }
 
+/**
+ * Authorizes a Microsoft identity Entra has just verified (see
+ * completeMicrosoftEntraAuthorization) as the Command Center primary
+ * sign-in — this is the self-hosted replacement for the ChatGPT Sites
+ * access-policy header, which no longer exists. Unlike
+ * microsoftAccessGateForActor (which checks whether an *already-identified*
+ * actor's linked Microsoft account is authorized for deeper Outlook/
+ * Calendar/Teams features), this establishes the actor's identity itself
+ * from the verified Microsoft email/object ID, so it must not be called
+ * with anything Entra hasn't independently verified.
+ */
+export async function authorizeVerifiedMicrosoftIdentity(microsoftEmail: string, providerSubject: string) {
+  const email = microsoftEmail.trim().toLowerCase();
+  const db = await accessDb();
+  const member = await db.prepare(
+    `SELECT email, display_name, company_access_level, is_active FROM company_members WHERE lower(email) = ? LIMIT 1`,
+  ).bind(email).first<CompanyMemberRow>();
+  if (!member) return { allowed: false as const, status: "Unregistered" };
+  if (!member.is_active) return { allowed: false as const, status: "Inactive" };
+
+  // Not normalizeAccessLevel from ./microsoft-access — that one deliberately
+  // excludes "Company Owner" (a Microsoft grant alone can never confer it).
+  // company_members.company_access_level is the full three-level range.
+  const accessLevel: CommandActor["accessLevel"] =
+    member.company_access_level === "Company Owner" || member.company_access_level === "Administrator"
+      ? member.company_access_level
+      : "Employee";
+  const connection = await microsoftAccessControlConnection();
+  if (accessLevel === "Company Owner" && !connection.enforced) {
+    return {
+      allowed: true as const,
+      email: member.email.toLowerCase(),
+      name: member.display_name,
+      accessLevel,
+      status: "Owner Bootstrap Access",
+    };
+  }
+
+  await ensureMicrosoftAccessSchema(db);
+  const grant = await db.prepare(`SELECT g.*, d.account_enabled, d.directory_present
+    FROM microsoft_access_grants g
+    LEFT JOIN microsoft_directory_users d ON d.provider_subject = g.provider_subject
+    WHERE g.provider_subject = ? LIMIT 1`).bind(providerSubject).first<GrantRow & { account_enabled: number | null; directory_present: number | null }>();
+  if (!connection.enforced) {
+    if (!grant) return { allowed: false as const, status: "Legacy Access Until Microsoft Enforcement — No Grant Recorded Yet" };
+  } else if (!grant || !grant.account_enabled || !grant.directory_present) {
+    return { allowed: false as const, status: grant?.access_status || "Owner Approval Required" };
+  }
+  if (!grant || !accessStatusAllowsSignIn(grant.access_status)) {
+    return { allowed: false as const, status: grant?.access_status || "Owner Approval Required" };
+  }
+
+  await db.prepare(`UPDATE microsoft_access_grants SET last_sign_in_at = ?, updated_at = ? WHERE provider_subject = ?`)
+    .bind(new Date().toISOString(), new Date().toISOString(), providerSubject).run();
+  return {
+    allowed: true as const,
+    email: member.email.toLowerCase(),
+    name: member.display_name,
+    accessLevel,
+    status: grant.access_status,
+  };
+}
+
 export async function approvedMicrosoftIdentityForActor(actor: CommandActor) {
   const gate = await microsoftAccessGateForActor(actor);
   if (!gate.allowed) throw new AccessControlError(`Microsoft Identity Is Not Authorized: ${gate.status}`, 403);

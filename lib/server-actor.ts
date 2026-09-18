@@ -1,3 +1,5 @@
+import { readCommandSessionCookie } from "./microsoft-entra-auth";
+
 export type CommandActor = {
   name: string;
   email: string;
@@ -12,6 +14,14 @@ export function canonicalCommandEmail(email: string) {
   return email.trim().toLowerCase();
 }
 
+/**
+ * Base identity check from a hosting-platform header or the local-dev
+ * preview shortcut — kept synchronous and unchanged, since many call sites
+ * use `ReturnType<typeof getCommandActor>` as a shorthand for the
+ * CommandActor type. The self-hosted primary sign-in check (the persistent
+ * session cookie from lib/microsoft-entra-auth.ts) lives in
+ * resolveCommandActor below instead, ahead of this one.
+ */
 export function getCommandActor(request: Request): CommandActor {
   const email = request.headers
     .get("oai-authenticated-user-email")
@@ -59,13 +69,29 @@ export function getCommandActor(request: Request): CommandActor {
 
 /**
  * Resolve every internal request through one fail-closed authorization path.
- * The Sites/ChatGPT email is authentication evidence only. Company identity,
- * active status and role always come from the canonical company member row.
- * Verified aliases are data-controlled so a temporary platform login never
- * becomes a second employee, sender, queue or source of authorization.
+ * The base authentication evidence is, in order: the persistent session
+ * cookie issued after a verified Microsoft sign-in (lib/microsoft-entra-auth.ts)
+ * — the primary mechanism on the self-hosted Cloudflare deployment; then
+ * getCommandActor's checks (the ChatGPT Sites header, kept only for as long
+ * as a Sites-hosted instance might still run in parallel during the
+ * migration, and the local-dev preview shortcut). Either way, company
+ * identity, active status and role always come from the canonical company
+ * member row below. Verified aliases are data-controlled so a temporary
+ * platform login never becomes a second employee, sender, queue or source
+ * of authorization.
  */
 export async function resolveCommandActor(request: Request): Promise<CommandActor> {
-  const authenticated = getCommandActor(request);
+  const session = await readCommandSessionCookie(request);
+  const authenticated: CommandActor = session?.email
+    ? {
+        name: session.email,
+        email: session.email,
+        authenticationEmail: session.email,
+        accessLevel: "Employee",
+        authenticated: true,
+        identityProvider: "sites_authenticated_user",
+      }
+    : getCommandActor(request);
   if (!authenticated.authenticated || !authenticated.email) return authenticated;
 
   try {

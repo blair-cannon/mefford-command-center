@@ -15,7 +15,7 @@ const [entra, startRoute, callbackRoute, access, graph, runtime, guide, outlookU
 ]);
 
 test("single-tenant Entra proof uses the exact production callback and authorization code PKCE", () => {
-  assert.match(entra, /https:\/\/mefford-project-command\.jordan-mefor-1272\.chatgpt\.site\/api\/microsoft-auth\/callback/);
+  assert.match(entra, /https:\/\/mefford-project-command\.mefford-project-command\.workers\.dev\/api\/microsoft-auth\/callback/);
   assert.match(entra, /login\.microsoftonline\.com\/\$\{encodeURIComponent\(config\.tenantId\)\}\/oauth2\/v2\.0\/authorize/);
   assert.doesNotMatch(entra, /login\.microsoftonline\.com\/(common|organizations|consumers)/);
   assert.match(entra, /response_type:\s*"code"/);
@@ -25,12 +25,15 @@ test("single-tenant Entra proof uses the exact production callback and authoriza
   assert.match(entra, /MICROSOFT_GRAPH_REDIRECT_URI/);
 });
 
-test("state is one-time actor-bound encrypted and short lived", () => {
+// Since the ChatGPT Sites access-policy header no longer exists on the
+// self-hosted deployment, the state cookie can no longer be bound to an
+// already-known actor — nobody is known until Microsoft's own callback says
+// who signed in. It is still one-time, encrypted, and short-lived.
+test("state is one-time encrypted and short lived", () => {
   assert.match(entra, /AUTH_LIFETIME_SECONDS = 10 \* 60/);
   assert.match(entra, /sha256Hex\(state\)/);
   assert.match(entra, /AES-GCM/);
   assert.match(entra, /HttpOnly; Secure; SameSite=Lax/);
-  assert.match(entra, /actor_email !== actor\.email\.toLowerCase\(\)/);
   assert.match(entra, /consumed_at/);
   assert.match(entra, /WHERE state_hash = \? AND consumed_at = ''/);
   assert.match(entra, /consumedChanges !== 1/);
@@ -38,11 +41,26 @@ test("state is one-time actor-bound encrypted and short lived", () => {
   assert.match(callbackRoute, /Referrer-Policy/);
 });
 
+// Entra's callback now only proves *who* signed in (there is no pre-approved
+// identity to compare it against anymore — that was only possible when Sites
+// supplied a known actor before the Microsoft round trip). Authorization is
+// decided after the fact, by authorizeVerifiedMicrosoftIdentity, strictly
+// from the verified email/object ID: unregistered or inactive company
+// members are rejected, and anyone else needs an owner-approved
+// microsoft_access_grants row (or the owner-bootstrap exception while
+// enforcement is off) before a login session is ever issued.
 test("identity proof cannot bypass the owner-approved immutable Microsoft mapping", () => {
-  assert.match(startRoute, /approvedMicrosoftIdentityForActor/);
-  assert.match(callbackRoute, /approvedMicrosoftIdentityForActor/);
-  assert.match(entra, /profile\.id !== identity\.providerSubject/);
-  assert.match(entra, /verifiedEmail !== identity\.microsoftEmail\.toLowerCase\(\)/);
+  assert.doesNotMatch(startRoute, /resolveCommandActor|approvedMicrosoftIdentityForActor/);
+  assert.match(callbackRoute, /authorizeVerifiedMicrosoftIdentity/);
+  assert.match(callbackRoute, /authorization\.allowed/);
+  assert.match(callbackRoute, /status: 403/);
+  assert.match(access, /export async function authorizeVerifiedMicrosoftIdentity/);
+  assert.match(access, /FROM company_members WHERE lower\(email\) = \?/);
+  assert.match(access, /Unregistered/);
+  assert.match(access, /Inactive/);
+  assert.match(access, /accessStatusAllowsSignIn/);
+  assert.match(entra, /issueCommandSessionCookie/);
+  assert.match(callbackRoute, /issueCommandSessionCookie/);
   assert.match(access, /microsoftEntraProofStatus/);
   assert.match(access, /MICROSOFT Identity Is Not Authorized|Microsoft Identity Is Not Authorized/);
   assert.match(access, /MICROSOFT_ENTRA_PROOF_REQUIRED|proof\.required/);
