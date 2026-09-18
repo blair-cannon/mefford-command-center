@@ -2,9 +2,18 @@
 
 This is the implementation contract for Blain. It reflects the code deployed from this repository; it is not a generic Microsoft checklist.
 
+**Update (2026-09-18):** Command Center now runs self-hosted on Cloudflare
+(`https://mefford-project-command.mefford-project-command.workers.dev`), not ChatGPT Sites. The
+"private Sites access policy" described below no longer exists on this deployment — that was the
+only thing establishing who was signed in at all, so the Entra flow this doc sets up needs to
+become the primary login itself (a real session, not just an additional proof layered on Sites'
+identity). That code change is tracked separately and not yet built. This doc's app-registration,
+permissions, and secret-handling steps are still exactly right and can proceed now.
+
 ## 1. What this changes—and what it does not
 
-Command Center keeps two separate gates:
+Command Center used to keep two separate gates (this described the ChatGPT Sites deployment;
+see the update note above for the current, self-hosted state):
 
 1. The private Sites access policy authenticates the visitor to the hosted Site.
 2. Command Center requires an owner-approved Microsoft directory grant. The Microsoft account must then complete a single-tenant Entra authorization-code + PKCE identity proof.
@@ -22,7 +31,7 @@ Create one app registration in the Mefford Microsoft 365 tenant.
 | Name | `Mefford Command Center` |
 | Supported account types | Accounts in this organizational directory only (single tenant) |
 | Platform | Web |
-| Redirect URI | `https://mefford-project-command.jordan-mefor-1272.chatgpt.site/api/microsoft-auth/callback` |
+| Redirect URI | `https://mefford-project-command.mefford-project-command.workers.dev/api/microsoft-auth/callback` (will change if/when a custom domain is added — update here and in the app registration if so) |
 | Implicit grant / hybrid flow | Off |
 | Public client flows | Off |
 | Client type | Confidential web application |
@@ -68,7 +77,7 @@ Enter these in the Site’s protected server runtime settings. Values marked **s
 | `MICROSOFT_GRAPH_TENANT_ID` | Configuration | Mefford tenant ID GUID. Used in tenant-specific authorize and token URLs; `common` and `organizations` are not accepted as the intended setup. |
 | `MICROSOFT_GRAPH_CLIENT_ID` | Configuration | Entra application/client ID GUID. |
 | `MICROSOFT_GRAPH_CLIENT_SECRET` | **Secret** | Entra client secret value, not its secret ID. Used only on the server for token exchange and client credentials. |
-| `MICROSOFT_GRAPH_REDIRECT_URI` | Configuration | Exactly `https://mefford-project-command.jordan-mefor-1272.chatgpt.site/api/microsoft-auth/callback`. |
+| `MICROSOFT_GRAPH_REDIRECT_URI` | Configuration | Exactly `https://mefford-project-command.mefford-project-command.workers.dev/api/microsoft-auth/callback`. |
 | `MICROSOFT_GRAPH_AUTH_STATE_KEY` | **Secret** | Base64url-encoded 32-byte random key used to AES-GCM encrypt the short-lived PKCE verifier/state cookie. Generate outside chat and store only in protected runtime settings. |
 | `MICROSOFT_ENTRA_PROOF_REQUIRED` | Control switch | Start with `false`. Change to `true` only after Jordan and Blain have both completed identity proof and the access smoke test has passed. |
 | `MICROSOFT_ACCESS_CONTROL_ENFORCED` | Control switch | Start with `false`. Change to `true` only after directory reconciliation, owner grants, disable/re-enable testing, and rollback validation pass. |
@@ -79,7 +88,7 @@ Enter these in the Site’s protected server runtime settings. Values marked **s
 | --- | --- | --- |
 | `MICROSOFT_MEETINGS_MAILBOX` | Configuration | Fallback organizer only for unattended meeting/subscription work. Use an explicitly approved Mefford mailbox; person-initiated actions use the actor’s owner-approved mapping. |
 | `MICROSOFT_OPERATIONAL_MAILBOX` | Configuration | Fallback sender for unattended operational notices. Person-initiated email uses the actor’s owner-approved mailbox. |
-| `MICROSOFT_GRAPH_WEBHOOK_URL` | Configuration | `https://mefford-project-command.jordan-mefor-1272.chatgpt.site/api/meetings/microsoft-webhook` |
+| `MICROSOFT_GRAPH_WEBHOOK_URL` | Configuration | `https://mefford-project-command.mefford-project-command.workers.dev/api/meetings/microsoft-webhook` |
 | `MICROSOFT_GRAPH_WEBHOOK_CLIENT_STATE` | **Secret** | Unique high-entropy Graph subscription client-state secret. Do not reuse the client secret or authentication-state key. |
 
 ### SharePoint mapping and activation
