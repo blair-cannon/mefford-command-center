@@ -8243,10 +8243,7 @@ export default function Home() {
                 : "Sign in with your Mefford Microsoft 365 account to continue."}
         </p>
         {sessionStatus === "error" ? (
-          <>
-            <a className="primary-action" href="/api/microsoft-auth/start" style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", textDecoration: "none" }}>Sign In With Microsoft</a>
-            <button className="secondary-action" onClick={() => window.location.reload()}>Try Access Check Again</button>
-          </>
+          <a className="primary-action" href="/api/microsoft-auth/start" style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", textDecoration: "none" }}>Sign In With Microsoft</a>
         ) : <span className="session-access-progress" aria-hidden="true" />}
       </main>
     );
