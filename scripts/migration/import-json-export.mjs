@@ -18,23 +18,30 @@
  * one to end up with. Name such tables with --overwrite-on-conflict to
  * replace the conflicting row with the export's version instead of aborting.
  *
+ * --sql-log <path> appends every executed statement, verbatim and in order,
+ * to a plain .sql file. Useful to capture exactly what ran against a local
+ * copy of a target (e.g. a materialized `wrangler d1 export` snapshot) so
+ * the identical statements can be replayed against the real remote D1 via
+ * `wrangler d1 execute <db> --remote --file=<log>` once verified locally.
+ *
  * Usage:
  *   node scripts/migration/import-json-export.mjs --export-dir <dir> --sqlite <target-db-file> \
- *     [--allow-missing-tables] [--overwrite-on-conflict table1,table2]
+ *     [--allow-missing-tables] [--overwrite-on-conflict table1,table2] [--sql-log <path>]
  */
 import { execFileSync } from "node:child_process";
-import { readdirSync, readFileSync } from "node:fs";
+import { readdirSync, readFileSync, appendFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { listUserTables, tableRows, tablePrimaryKey, SYSTEM_TABLE_PATTERNS } from "./lib/sqlite.mjs";
 import { hashTable, hashRow } from "./lib/hash.mjs";
 
 function parseArgs(argv) {
-  const args = { exportDir: null, sqlite: null, allowMissingTables: false, overwriteOnConflict: new Set() };
+  const args = { exportDir: null, sqlite: null, allowMissingTables: false, overwriteOnConflict: new Set(), sqlLog: null };
   for (let i = 0; i < argv.length; i += 1) {
     const arg = argv[i];
     if (arg === "--export-dir") args.exportDir = argv[++i];
     else if (arg === "--sqlite") args.sqlite = argv[++i];
     else if (arg === "--allow-missing-tables") args.allowMissingTables = true;
+    else if (arg === "--sql-log") args.sqlLog = argv[++i];
     else if (arg === "--overwrite-on-conflict") {
       args.overwriteOnConflict = new Set(argv[++i].split(",").map((s) => s.trim()).filter(Boolean));
     } else throw new Error(`Unrecognized argument: ${arg}`);
@@ -114,33 +121,41 @@ function diffAgainstExisting(existingRows, exportRows, pkColumns) {
   return { toInsert, conflicts, alreadyPresent };
 }
 
+// No BEGIN TRANSACTION/COMMIT wrapping: plain sqlite3 accepts it, but
+// Cloudflare's remote D1 (backed by Durable Objects storage) rejects
+// explicit SQL transaction control statements outright. Omitting it keeps
+// local and remote targets running the exact same SQL.
 function buildUpdateSql(tableName, columns, pkColumns, rows) {
   const quotedTable = `"${tableName.replace(/"/g, '""')}"`;
   const setColumns = columns.filter((c) => !pkColumns.includes(c));
-  const lines = ["BEGIN TRANSACTION;"];
+  const lines = [];
   for (const row of rows) {
     const assignments = setColumns.map((c) => `"${c}" = ${sqlLiteral(row[c])}`).join(", ");
     const whereClause = pkColumns.map((c) => `"${c}" = ${sqlLiteral(row[c])}`).join(" AND ");
     lines.push(`UPDATE ${quotedTable} SET ${assignments} WHERE ${whereClause};`);
   }
-  lines.push("COMMIT;");
   return lines.join("\n");
+}
+
+function runSql(sqlite, sql, sqlLog) {
+  execFileSync("sqlite3", [sqlite], { input: sql, encoding: "utf8" });
+  if (sqlLog) appendFileSync(sqlLog, `${sql}\n`);
 }
 
 function buildInsertSql(tableName, columns, rows) {
   const quotedTable = `"${tableName.replace(/"/g, '""')}"`;
   const quotedColumns = columns.map((c) => `"${c.replace(/"/g, '""')}"`).join(", ");
-  const lines = [`BEGIN TRANSACTION;`];
+  const lines = [];
   for (const row of rows) {
     const values = columns.map((c) => sqlLiteral(row[c])).join(", ");
     lines.push(`INSERT INTO ${quotedTable} (${quotedColumns}) VALUES (${values});`);
   }
-  lines.push("COMMIT;");
   return lines.join("\n");
 }
 
 function main() {
-  const { exportDir, sqlite, allowMissingTables, overwriteOnConflict } = parseArgs(process.argv.slice(2));
+  const { exportDir, sqlite, allowMissingTables, overwriteOnConflict, sqlLog } = parseArgs(process.argv.slice(2));
+  if (sqlLog) writeFileSync(sqlLog, "");
   const exportTables = loadExportTables(exportDir);
   const targetTables = new Set(listUserTables(sqlite));
 
@@ -212,7 +227,7 @@ function main() {
           process.exit(1);
         }
         const updateSql = buildUpdateSql(table, columns, pkColumns, conflicts.map((c) => c.exported));
-        execFileSync("sqlite3", [sqlite], { input: updateSql, encoding: "utf8" });
+        runSql(sqlite, updateSql, sqlLog);
         console.log(`  ${table}: overwrote ${conflicts.length} conflicting row(s) with the export's version`);
       }
       if (alreadyPresent) {
@@ -223,7 +238,7 @@ function main() {
     }
 
     const sql = buildInsertSql(table, columns, rowsToInsert);
-    execFileSync("sqlite3", [sqlite], { input: sql, encoding: "utf8" });
+    runSql(sqlite, sql, sqlLog);
     totalRowsInserted += rowsToInsert.length;
     console.log(`  ${table}: inserted ${rowsToInsert.length} row(s)`);
   }
