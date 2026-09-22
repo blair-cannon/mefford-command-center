@@ -11,9 +11,9 @@ test("every migration replays from zero and produces the complete critical schem
   const database = new F06D1Database();
   t.after(() => database.close());
   const files = await applyAllMigrations(database);
-  assert.equal(files.length, 41);
+  assert.equal(files.length, 42);
   assert.equal(files[0], "0000_robust_mockingbird.sql");
-  assert.equal(files.at(-1), "0040_fine_salo.sql");
+  assert.equal(files.at(-1), "0041_lethal_thor_girl.sql");
   assert.equal(database.one("SELECT count(*) AS count FROM accounting_account_number_crosswalk").count, 900);
 
   const tables = database.query("SELECT name FROM sqlite_master WHERE type = 'table' AND name NOT LIKE 'sqlite_%' ORDER BY name").map((row) => row.name);

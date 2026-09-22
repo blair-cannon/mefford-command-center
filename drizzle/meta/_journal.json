@@ -288,6 +288,13 @@
       "when": 1789744891441,
       "tag": "0040_fine_salo",
       "breakpoints": true
+    },
+    {
+      "idx": 41,
+      "version": "6",
+      "when": 1790086243627,
+      "tag": "0041_lethal_thor_girl",
+      "breakpoints": true
     }
   ]
 }

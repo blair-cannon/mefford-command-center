@@ -27,7 +27,7 @@ test("F-15 clean recovery target can replay the complete production schema and a
   const database = new F06D1Database();
   t.after(() => database.close());
   const files = await applyAllMigrations(database);
-  assert.equal(files.at(-1), "0040_fine_salo.sql");
+  assert.equal(files.at(-1), "0041_lethal_thor_girl.sql");
   assert.equal(database.one("SELECT account_number FROM accounting_account_number_crosswalk WHERE legacy_number = '402'").account_number, "4020");
   database.sqlite.prepare("INSERT INTO command_records (project_id,id,record_type,title,owner,due,status,meta,data_json) VALUES ('DR-TEST','REC-1','Recovery Drill','Verified Schema','IT Administrator','2026-08-23','Recovered','','{}')").run();
   database.sqlite.prepare("INSERT INTO record_audits (project_id,record_id,field_name,old_value,new_value,reason,actor_name,actor_email,summary) VALUES ('DR-TEST','REC-1','Recovery','Unavailable','Verified','F-15 isolated restore drill','IT Administrator','it@meffcon.com','Clean migration replay accepted linked audit evidence')").run();

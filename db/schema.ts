@@ -2048,3 +2048,43 @@ export const sharepointSyncEvents = sqliteTable(
   },
   (table) => [index("sharepoint_sync_event_status_idx").on(table.status, table.createdAt)],
 );
+
+// Found via a full-codebase sweep for CREATE TABLE IF NOT EXISTS (2026-09-22):
+// the same runtime self-provisioning pattern fixed for dashboard_display_*/
+// sharepoint_*/owner_deletion_receipts/system_data_resets in migration 0040,
+// this time from lib/microsoft-entra-auth.ts's ensureMicrosoftEntraAuthSchema.
+export const microsoftEntraAuthTransactions = sqliteTable(
+  "microsoft_entra_auth_transactions",
+  {
+    stateHash: text("state_hash").primaryKey(),
+    actorEmail: text("actor_email").notNull(),
+    providerSubject: text("provider_subject").notNull(),
+    microsoftEmail: text("microsoft_email").notNull(),
+    expiresAt: text("expires_at").notNull(),
+    consumedAt: text("consumed_at").notNull().default(""),
+    outcome: text("outcome").notNull().default("Started"),
+    createdAt: text("created_at").notNull().default(sql`CURRENT_TIMESTAMP`),
+    updatedAt: text("updated_at").notNull().default(sql`CURRENT_TIMESTAMP`),
+  },
+  (table) => [index("microsoft_entra_auth_expiry_idx").on(table.expiresAt, table.consumedAt)],
+);
+
+export const microsoftEntraIdentityProofs = sqliteTable(
+  "microsoft_entra_identity_proofs",
+  {
+    providerSubject: text("provider_subject").primaryKey(),
+    commandActorEmail: text("command_actor_email").notNull(),
+    microsoftEmail: text("microsoft_email").notNull(),
+    tenantId: text("tenant_id").notNull(),
+    authMethod: text("auth_method").notNull().default("Authorization Code + PKCE"),
+    verifiedAt: text("verified_at").notNull(),
+    lastVerifiedAt: text("last_verified_at").notNull(),
+    revokedAt: text("revoked_at").notNull().default(""),
+    createdAt: text("created_at").notNull().default(sql`CURRENT_TIMESTAMP`),
+    updatedAt: text("updated_at").notNull().default(sql`CURRENT_TIMESTAMP`),
+  },
+  (table) => [
+    uniqueIndex("microsoft_entra_identity_actor_idx").on(table.commandActorEmail),
+    uniqueIndex("microsoft_entra_identity_email_idx").on(table.microsoftEmail),
+  ],
+);
