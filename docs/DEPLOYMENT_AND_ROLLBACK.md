@@ -40,12 +40,29 @@ Release steps:
 
 ```bash
 CF_D1_DATABASE_NAME=<name> CF_D1_DATABASE_ID=<uuid> CF_R2_BUCKET_NAME=<bucket> npm run build
+```
+
+Apply any new migrations to the production D1 first. `dist/server/wrangler.json`'s
+`migrations_dir` is hardcoded by the Cloudflare Vite plugin to a `migrations/`
+folder that doesn't exist in this repo — our migrations live in `drizzle/` — so
+`wrangler d1 migrations apply <db-name> --remote -c dist/server/wrangler.json`
+as-is will fail with "No migrations present". Patch a copy of the generated
+config first:
+
+```bash
+node -e "const fs=require('fs');const c=JSON.parse(fs.readFileSync('dist/server/wrangler.json'));c.d1_databases[0].migrations_dir='$(pwd)/drizzle';fs.writeFileSync('/tmp/wrangler-migrations.json',JSON.stringify(c));"
+wrangler d1 migrations apply <db-name> --remote -c /tmp/wrangler-migrations.json
+```
+
+Then deploy the Worker itself, which does not need that patched
+`migrations_dir` (it only matters to the migrations subcommand):
+
+```bash
 wrangler deploy -c dist/server/wrangler.json
 ```
 
-Apply any new migrations to the production D1 first
-(`wrangler d1 migrations apply <db-name> --remote`), and set/rotate secrets
-with `wrangler secret put <NAME>` (never in `vars` or committed config).
+Set/rotate secrets with `wrangler secret put <NAME>` (never in `vars` or
+committed config).
 
 ## Rollback
 
