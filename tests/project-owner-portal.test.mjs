@@ -34,13 +34,13 @@ test("Company Owner controls owner-review release and final freeze", () => {
   assert.match(workspace, /Approve Final Contract/);
 });
 
-test("secure owner invitations are hashed expiring revocable and exact-email verified", () => {
+test("secure owner invitations are hashed expiring revocable and code verified", () => {
   assert.match(schema, /code_hash/);
   assert.match(schema, /session_hash/);
   assert.match(schema, /session_expires_at/);
   assert.match(internalApi, /hashOwnerSecret\(code\)/);
   assert.match(internalApi, /revoke-owner-access/);
-  assert.match(externalApi, /Sign In With The Exact Email Address Mefford Invited/);
+  assert.doesNotMatch(externalApi, /oai-authenticated-user-email|getCommandActor/);
   assert.match(externalApi, /Invite Locked After Five Attempts/);
   assert.match(externalApi, /Project Owner Session Is Missing Or Expired/);
 });

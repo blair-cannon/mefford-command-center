@@ -25,7 +25,6 @@ import {
   parseCorrespondenceData,
   updateCorrespondenceRecord,
 } from "../../../lib/project-correspondence";
-import { getCommandActor } from "../../../lib/server-actor";
 import {
   complianceState,
   ensureVendorSchema,
@@ -136,13 +135,6 @@ export async function POST(request: Request) {
     const row = invite[0];
     if (!row || row.revokedAt || new Date(row.expiresAt) <= now || row.attempts >= 5) {
       return Response.json({ error: "This Invite Is Expired Revoked Or Locked" }, { status: 403 });
-    }
-    const platformActor = getCommandActor(request);
-    if (
-      platformActor.identityProvider !== "command_center_preview" &&
-      (!platformActor.authenticated || platformActor.email.toLowerCase() !== row.email.toLowerCase())
-    ) {
-      return Response.json({ error: "Open This Invite While Signed In With The Invited Email Address" }, { status: 403 });
     }
     if (code.length !== 6 || (await hashSecret(code)) !== row.codeHash) {
       const attempts = row.attempts + 1;

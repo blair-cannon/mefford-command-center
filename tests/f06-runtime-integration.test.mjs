@@ -26,7 +26,7 @@ after(async () => {
 });
 
 async function send(path, options) {
-  return worker.fetch(runtime.request(path, options));
+  return worker.fetch(await runtime.request(path, options));
 }
 
 async function assertStatus(response, expected) {

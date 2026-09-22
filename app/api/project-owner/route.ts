@@ -1,4 +1,3 @@
-import { getCommandActor } from "../../../lib/server-actor";
 import { isExecutionControlField, isSignatureContractField } from "../../../lib/owner-contracts";
 import { isOwnerContractBasisField, ownerContractBasisAttachments } from "../../../lib/owner-contract-basis";
 import {
@@ -62,10 +61,6 @@ export async function POST(request: Request) {
     const code = input.code?.replace(/\D/g, "") || "";
     if (!invite || invite.revoked_at || invite.status === "Revoked" || new Date(invite.expires_at) <= now || invite.attempts >= 5) {
       return Response.json({ error: "This Invite Is Expired Revoked Or Locked" }, { status: 403 });
-    }
-    const actor = getCommandActor(request);
-    if (actor.identityProvider !== "command_center_preview" && (!actor.authenticated || actor.email.toLowerCase() !== invite.email.toLowerCase())) {
-      return Response.json({ error: "Sign In With The Exact Email Address Mefford Invited" }, { status: 403 });
     }
     if (code.length !== 6 || (await hashOwnerSecret(code)) !== invite.code_hash) {
       const attempts = invite.attempts + 1;

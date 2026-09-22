@@ -1,6 +1,10 @@
 import { DatabaseSync } from "node:sqlite";
 import { readdir, readFile } from "node:fs/promises";
 
+import { issueCommandSessionCookie } from "../../lib/microsoft-entra-auth";
+
+const F06_TEST_AUTH_STATE_KEY = "3evP3Z_nDO9_oM5wDUyhT6uY0qOBoAt5jZsLpIledEY";
+
 const projectRoot = new URL("../../", import.meta.url);
 
 export const F06_ACTORS = Object.freeze({
@@ -276,6 +280,7 @@ export async function createF06Runtime({ env = {} } = {}) {
     BUCKET: bucket,
     ASSETS: { fetch: async () => new Response("Not found", { status: 404 }) },
     MICROSOFT_ACCESS_CONTROL_ENFORCED: "false",
+    MICROSOFT_GRAPH_AUTH_STATE_KEY: F06_TEST_AUTH_STATE_KEY,
     ...env,
   };
   globalThis.__MEFFORD_F06_RUNTIME_ENV__ = runtimeEnv;
@@ -365,12 +370,25 @@ export async function markCleanStartCompleted(database) {
     VALUES ('OWNER-AUTHORIZED-CLEAN-START-2026-08-23', 'Completed', 'Jordan Mefford', 'jmefford@meffcon.com', 'F-06 isolated harness', '2026-08-23T12:00:00.000Z', '2026-08-23T12:00:00.000Z')`).run();
 }
 
-export function makeRequest(path, { actor, method = "GET", body, headers = {} } = {}) {
+// A real browser reuses one session cookie across many requests rather than
+// negotiating a fresh one each time; caching by email also keeps concurrent
+// requests in a test from being skewed apart by the cookie's AES-GCM
+// encryption, which otherwise perturbs races the test intentionally creates
+// (e.g. two simultaneous mutations where one must lose with a 409).
+const sessionCookiePairs = new Map();
+async function sessionCookiePairFor(email) {
+  if (!sessionCookiePairs.has(email)) {
+    sessionCookiePairs.set(email, issueCommandSessionCookie(email).then((cookie) => cookie.split(";")[0]));
+  }
+  return sessionCookiePairs.get(email);
+}
+
+export async function makeRequest(path, { actor, method = "GET", body, headers = {} } = {}) {
   const requestHeaders = new Headers(headers);
   if (actor) {
-    requestHeaders.set("oai-authenticated-user-email", actor.email);
-    requestHeaders.set("oai-authenticated-user-full-name", encodeURIComponent(actor.name));
-    requestHeaders.set("oai-authenticated-user-full-name-encoding", "percent-encoded-utf-8");
+    const sessionCookiePair = await sessionCookiePairFor(actor.email);
+    const existingCookie = requestHeaders.get("cookie");
+    requestHeaders.set("cookie", existingCookie ? `${existingCookie}; ${sessionCookiePair}` : sessionCookiePair);
   }
   const binary = body instanceof Uint8Array || body instanceof ArrayBuffer;
   if (body !== undefined && !(body instanceof FormData) && !binary) requestHeaders.set("content-type", "application/json");

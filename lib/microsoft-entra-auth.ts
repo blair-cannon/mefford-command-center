@@ -434,7 +434,14 @@ async function decryptCookie(keyValue: string, value: string) {
   }
 }
 
+// The environment's state key never changes at runtime, so the imported
+// CryptoKey is cached rather than re-derived on every single cookie
+// encrypt/decrypt — every authenticated request needs one of these.
+let cachedStateKeyValue = "";
+let cachedStateKey: Promise<CryptoKey> | null = null;
+
 async function importStateKey(value: string) {
+  if (cachedStateKey && cachedStateKeyValue === value) return cachedStateKey;
   let bytes: Uint8Array;
   try {
     bytes = fromBase64Url(value);
@@ -445,7 +452,9 @@ async function importStateKey(value: string) {
     throw new MicrosoftEntraAuthError("MICROSOFT_GRAPH_AUTH_STATE_KEY must be a base64url-encoded 32-byte key", 503);
   }
   const rawKey = bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength) as ArrayBuffer;
-  return crypto.subtle.importKey("raw", rawKey, "AES-GCM", false, ["encrypt", "decrypt"]);
+  cachedStateKeyValue = value;
+  cachedStateKey = crypto.subtle.importKey("raw", rawKey, "AES-GCM", false, ["encrypt", "decrypt"]);
+  return cachedStateKey;
 }
 
 function base64Url(bytes: Uint8Array) {

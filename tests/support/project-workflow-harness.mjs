@@ -62,7 +62,7 @@ async function harness({ observeRequest } = {}) {
   async function send(path, { actor = owner, method = "GET", body, headers, expected = 200, binary = false } = {}) {
     calls++;
     const started = performance.now();
-    let request = runtime.request(path, { actor, method, body, headers });
+    let request = await runtime.request(path, { actor, method, body, headers });
     if (body instanceof FormData) {
       // A browser sends a concrete multipart body and its measured length.
       // Preserve that transport shape when invoking the compiled Worker in Node.

@@ -15,38 +15,22 @@ export function canonicalCommandEmail(email: string) {
 }
 
 /**
- * Base identity check from a hosting-platform header or the local-dev
- * preview shortcut — kept synchronous and unchanged, since many call sites
- * use `ReturnType<typeof getCommandActor>` as a shorthand for the
- * CommandActor type. The self-hosted primary sign-in check (the persistent
- * session cookie from lib/microsoft-entra-auth.ts) lives in
- * resolveCommandActor below instead, ahead of this one.
+ * Base identity check from the local-dev preview shortcut only — kept
+ * synchronous and unchanged in shape, since many call sites use
+ * `ReturnType<typeof getCommandActor>` as a shorthand for the CommandActor
+ * type. The self-hosted primary sign-in check (the persistent session
+ * cookie from lib/microsoft-entra-auth.ts) lives in resolveCommandActor
+ * below instead, ahead of this one.
+ *
+ * The `oai-authenticated-user-email` header this used to trust was only
+ * ever safe because ChatGPT's Sites hosting sat in front of the app and
+ * injected it itself, stripping anything a client tried to set. Now that
+ * the app is served directly from a public Cloudflare Worker with no
+ * reverse proxy verifying that header, trusting it would let any caller
+ * forge the header and be authenticated as an arbitrary company member —
+ * so it is no longer honored here.
  */
 export function getCommandActor(request: Request): CommandActor {
-  const email = request.headers
-    .get("oai-authenticated-user-email")
-    ?.trim()
-    .toLowerCase();
-  const encodedName = request.headers.get("oai-authenticated-user-full-name");
-  const encoding = request.headers.get(
-    "oai-authenticated-user-full-name-encoding",
-  );
-  const fullName =
-    encodedName && encoding === "percent-encoded-utf-8"
-      ? safeDecode(encodedName)
-      : null;
-
-  if (email) {
-    return {
-      name: fullName || email,
-      email,
-      authenticationEmail: email,
-      accessLevel: "Employee",
-      authenticated: true,
-      identityProvider: "sites_authenticated_user",
-    };
-  }
-
   const host = new URL(request.url).hostname;
   if (host === "terminal.local" || host === "localhost") {
     return {
@@ -71,14 +55,12 @@ export function getCommandActor(request: Request): CommandActor {
  * Resolve every internal request through one fail-closed authorization path.
  * The base authentication evidence is, in order: the persistent session
  * cookie issued after a verified Microsoft sign-in (lib/microsoft-entra-auth.ts)
- * — the primary mechanism on the self-hosted Cloudflare deployment; then
- * getCommandActor's checks (the ChatGPT Sites header, kept only for as long
- * as a Sites-hosted instance might still run in parallel during the
- * migration, and the local-dev preview shortcut). Either way, company
- * identity, active status and role always come from the canonical company
- * member row below. Verified aliases are data-controlled so a temporary
- * platform login never becomes a second employee, sender, queue or source
- * of authorization.
+ * — the only real sign-in mechanism on the self-hosted Cloudflare
+ * deployment; then getCommandActor's local-dev preview shortcut. Either
+ * way, company identity, active status and role always come from the
+ * canonical company member row below. Verified aliases are data-controlled
+ * so a temporary platform login never becomes a second employee, sender,
+ * queue or source of authorization.
  */
 export async function resolveCommandActor(request: Request): Promise<CommandActor> {
   const session = await readCommandSessionCookie(request);
@@ -148,12 +130,4 @@ export async function resolveCommandActor(request: Request): Promise<CommandActo
 function normalizeAccessLevel(value: string): CommandActor["accessLevel"] {
   if (value === "Company Owner" || value === "Administrator") return value;
   return "Employee";
-}
-
-function safeDecode(value: string) {
-  try {
-    return decodeURIComponent(value);
-  } catch {
-    return null;
-  }
 }

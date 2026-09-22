@@ -732,13 +732,13 @@ test("Project schedule supports controlled Excel round trips and a Mefford print
   assert.match(source, /Project #\{project\.number\}/);
 });
 
-test("Item 2 provides email invite and one-time-code vendor access without replacing Site authentication", () => {
+test("Item 2 provides email invite and one-time-code vendor access", () => {
   assert.match(accountingSource, /<VendorManagementWorkspace actor=\{actor\}/);
   assert.match(source, /search\.get\("vendorPortal"\)/);
   assert.match(source, /<VendorPortal inviteId=\{externalVendorInviteId\}/);
   assert.match(vendorManagementSource, /Email Invite \+ One-Time Code/);
   assert.match(vendorsApiSource, /Site's Existing Custom Access Policy/);
-  assert.match(vendorPortalApiSource, /platformActor\.email\.toLowerCase\(\) !== row\.email\.toLowerCase\(\)/);
+  assert.doesNotMatch(vendorPortalApiSource, /oai-authenticated-user-email|getCommandActor/);
   assert.match(vendorPortalApiSource, /row\.attempts >= 5/);
   assert.match(vendorPortalApiSource, /8 \* 3_600_000/);
   assert.match(vendorPortalLogicSource, /crypto\.subtle\.digest\("SHA-256"/);

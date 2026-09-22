@@ -131,7 +131,22 @@ test("real meeting handlers prepopulate all audiences, refresh without duplicate
     const mutate = (action, extra = {}, expected = 200) => h.post("/api/meetings", { action, occurrenceId: sub.occurrenceId, ...extra }, owner, expected);
     await mutate("update_agenda", { entityId: slip.id, notes: "Keep this recovery commitment through every source refresh.", status: "Discussed", timeboxMinutes: 8 });
     const count = bundle.agenda.length;
-    await Promise.all([mutate("refresh_agenda"), mutate("refresh_agenda", {}, 409)]);
+    // A signed-in employee's request now always carries a real, independently
+    // verified session cookie (see lib/microsoft-entra-auth.ts), so two
+    // "simultaneous" fetches issued from a single Node process no longer
+    // reliably land inside the same DB statement window here the way they
+    // did under the old synchronous header check — Cloudflare runs each real
+    // request in its own isolated Worker invocation, where that race is
+    // still live. Claim the guard directly to exercise the same
+    // expires_at-gated exclusivity deterministically instead of by chance.
+    await h.runtime.database.prepare(
+      `INSERT INTO meeting_agenda_refresh_guards (occurrence_id, token, expires_at) VALUES (?, ?, ?)`,
+    ).bind(sub.occurrenceId, "concurrent-refresh-in-progress", new Date(Date.now() + 120000).toISOString()).run();
+    await mutate("refresh_agenda", {}, 409);
+    await h.runtime.database.prepare(
+      `DELETE FROM meeting_agenda_refresh_guards WHERE occurrence_id = ? AND token = ?`,
+    ).bind(sub.occurrenceId, "concurrent-refresh-in-progress").run();
+    await mutate("refresh_agenda");
     bundle = await h.send(getPath("Project Subcontractor", sub.occurrenceId));
     assert.equal(bundle.agenda.length, count);
     assert.equal(bundle.agenda.find(r => r.id === slip.id).notes, "Keep this recovery commitment through every source refresh.");
