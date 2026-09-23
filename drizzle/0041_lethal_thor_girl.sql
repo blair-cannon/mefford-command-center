@@ -1,4 +1,4 @@
-CREATE TABLE `microsoft_entra_auth_transactions` (
+CREATE TABLE IF NOT EXISTS `microsoft_entra_auth_transactions` (
 	`state_hash` text PRIMARY KEY NOT NULL,
 	`actor_email` text NOT NULL,
 	`provider_subject` text NOT NULL,
@@ -10,8 +10,8 @@ CREATE TABLE `microsoft_entra_auth_transactions` (
 	`updated_at` text DEFAULT CURRENT_TIMESTAMP NOT NULL
 );
 --> statement-breakpoint
-CREATE INDEX `microsoft_entra_auth_expiry_idx` ON `microsoft_entra_auth_transactions` (`expires_at`,`consumed_at`);--> statement-breakpoint
-CREATE TABLE `microsoft_entra_identity_proofs` (
+CREATE INDEX IF NOT EXISTS `microsoft_entra_auth_expiry_idx` ON `microsoft_entra_auth_transactions` (`expires_at`,`consumed_at`);--> statement-breakpoint
+CREATE TABLE IF NOT EXISTS `microsoft_entra_identity_proofs` (
 	`provider_subject` text PRIMARY KEY NOT NULL,
 	`command_actor_email` text NOT NULL,
 	`microsoft_email` text NOT NULL,
@@ -24,5 +24,5 @@ CREATE TABLE `microsoft_entra_identity_proofs` (
 	`updated_at` text DEFAULT CURRENT_TIMESTAMP NOT NULL
 );
 --> statement-breakpoint
-CREATE UNIQUE INDEX `microsoft_entra_identity_actor_idx` ON `microsoft_entra_identity_proofs` (`command_actor_email`);--> statement-breakpoint
-CREATE UNIQUE INDEX `microsoft_entra_identity_email_idx` ON `microsoft_entra_identity_proofs` (`microsoft_email`);
+CREATE UNIQUE INDEX IF NOT EXISTS `microsoft_entra_identity_actor_idx` ON `microsoft_entra_identity_proofs` (`command_actor_email`);--> statement-breakpoint
+CREATE UNIQUE INDEX IF NOT EXISTS `microsoft_entra_identity_email_idx` ON `microsoft_entra_identity_proofs` (`microsoft_email`);
