@@ -9,6 +9,7 @@
     "install:ci": "bash scripts/install-ci.sh",
     "dev": "WRANGLER_LOG_PATH=.wrangler/wrangler.log vite",
     "build": "bash scripts/build-verified.sh",
+    "deploy": "bash scripts/deploy.sh",
     "start": "WRANGLER_LOG_PATH=.wrangler/wrangler.log vinext start",
     "test": "npm run build",
     "test:controls": "node --experimental-strip-types --import ./tests/support/f06-cloudflare-loader.mjs --experimental-test-coverage --test-coverage-include=lib/accounting-ledger.ts --test-coverage-include=lib/project-health-core.js --test-coverage-include=lib/scheduler-reliability.js --test-coverage-include=lib/system-health-evidence.js --test-coverage-lines=85 --test-coverage-branches=70 --test-coverage-functions=85 --test tests/*.test.mjs",

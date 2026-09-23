@@ -13,7 +13,7 @@ historical — keep it only until the ChatGPT Sites instance is fully retired.
 3. Make the smallest coherent source change.
 4. Add one forward-only numbered migration for schema changes and replay every migration from zero.
 5. Run focused tests and TypeScript checks.
-6. **Self-hosted (current):** `npm run build`, then `wrangler deploy -c dist/server/wrangler.json` (see below). **Sites (legacy, during transition only):** create a Sites checkpoint; full build, tests, coverage, and mutation controls must pass.
+6. **Self-hosted (current):** `npm run deploy` (see below). **Sites (legacy, during transition only):** create a Sites checkpoint; full build, tests, coverage, and mutation controls must pass.
 7. Monitor the immutable deployment until terminal success and record the public version.
 
 ## Self-hosted release (Cloudflare)
@@ -36,32 +36,38 @@ for production — one drifting out of sync with `vite.config.ts` (worker name,
 compatibility flags, cron triggers) would be worse than parameterizing the one
 source of truth that already exists.
 
-Release steps:
+**Release:** run `npm run deploy` (`scripts/deploy.sh`). It builds with the
+production D1/R2 identifiers, applies any pending D1 migrations, and deploys
+the Worker, in that order — one command for the whole release. The production
+identifiers are baked in as defaults in the script; override any of them by
+setting the same-named environment variable before running it.
+
+If a step needs to be run by hand (e.g. re-running just the deploy after a
+migration already applied), the script's steps translate directly:
 
 ```bash
 CF_D1_DATABASE_NAME=<name> CF_D1_DATABASE_ID=<uuid> CF_R2_BUCKET_NAME=<bucket> npm run build
 ```
 
-Apply any new migrations to the production D1 first. `dist/server/wrangler.json`'s
-`migrations_dir` is hardcoded by the Cloudflare Vite plugin to a `migrations/`
-folder that doesn't exist in this repo — our migrations live in `drizzle/` — so
-`wrangler d1 migrations apply <db-name> --remote -c dist/server/wrangler.json`
-as-is will fail with "No migrations present". Patch a copy of the generated
-config first:
+`dist/server/wrangler.json`'s `migrations_dir` is hardcoded by the Cloudflare
+Vite plugin to a `migrations/` folder that doesn't exist in this repo — our
+migrations live in `drizzle/` — so `wrangler d1 migrations apply <db-name>
+--remote -c dist/server/wrangler.json` as-is fails with "No migrations
+present". Patch a copy of the generated config first:
 
 ```bash
 node -e "const fs=require('fs');const c=JSON.parse(fs.readFileSync('dist/server/wrangler.json'));c.d1_databases[0].migrations_dir='$(pwd)/drizzle';fs.writeFileSync('/tmp/wrangler-migrations.json',JSON.stringify(c));"
-wrangler d1 migrations apply <db-name> --remote -c /tmp/wrangler-migrations.json
+npx wrangler d1 migrations apply <db-name> --remote -c /tmp/wrangler-migrations.json
 ```
 
 Then deploy the Worker itself, which does not need that patched
 `migrations_dir` (it only matters to the migrations subcommand):
 
 ```bash
-wrangler deploy -c dist/server/wrangler.json
+npx wrangler deploy -c dist/server/wrangler.json
 ```
 
-Set/rotate secrets with `wrangler secret put <NAME>` (never in `vars` or
+Set/rotate secrets with `npx wrangler secret put <NAME>` (never in `vars` or
 committed config).
 
 ## Rollback
