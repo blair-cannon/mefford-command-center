@@ -15,7 +15,7 @@ const [entra, startRoute, callbackRoute, access, graph, runtime, guide, outlookU
 ]);
 
 test("single-tenant Entra proof uses the exact production callback and authorization code PKCE", () => {
-  assert.match(entra, /https:\/\/mefford-project-command\.mefford-project-command\.workers\.dev\/api\/microsoft-auth\/callback/);
+  assert.match(entra, /https:\/\/meffops\.com\/api\/microsoft-auth\/callback/);
   assert.match(entra, /login\.microsoftonline\.com\/\$\{encodeURIComponent\(config\.tenantId\)\}\/oauth2\/v2\.0\/authorize/);
   assert.doesNotMatch(entra, /login\.microsoftonline\.com\/(common|organizations|consumers)/);
   assert.match(entra, /response_type:\s*"code"/);

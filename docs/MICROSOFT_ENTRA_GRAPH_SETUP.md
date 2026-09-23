@@ -2,13 +2,20 @@
 
 This is the implementation contract for Blain. It reflects the code deployed from this repository; it is not a generic Microsoft checklist.
 
-**Update (2026-09-18):** Command Center now runs self-hosted on Cloudflare
-(`https://mefford-project-command.mefford-project-command.workers.dev`), not ChatGPT Sites. The
+**Update (2026-09-18):** Command Center now runs self-hosted on Cloudflare, not ChatGPT Sites. The
 "private Sites access policy" described below no longer exists on this deployment — that was the
-only thing establishing who was signed in at all, so the Entra flow this doc sets up needs to
-become the primary login itself (a real session, not just an additional proof layered on Sites'
-identity). That code change is tracked separately and not yet built. This doc's app-registration,
-permissions, and secret-handling steps are still exactly right and can proceed now.
+only thing establishing who was signed in at all, so the Entra flow this doc sets up became the
+primary login itself (a real session, not just an additional proof layered on Sites' identity).
+This doc's app-registration, permissions, and secret-handling steps are still exactly right.
+
+**Update (2026-09-23):** The production hostname is now the custom domain `https://meffops.com`
+(previously the free `https://mefford-project-command.mefford-project-command.workers.dev`
+subdomain). `MICROSOFT_ENTRA_REDIRECT_URI` in `lib/microsoft-entra-auth.ts`, the
+`MICROSOFT_GRAPH_REDIRECT_URI` secret, and the Entra app registration's redirect URI must all be
+updated together to `https://meffops.com/api/microsoft-auth/callback` — the code rejects any
+redirect URI that isn't an exact match. `MICROSOFT_GRAPH_WEBHOOK_URL` should be updated to
+`https://meffops.com/api/meetings/microsoft-webhook` too, once webhook subscriptions are actually
+turned on.
 
 ## 1. What this changes—and what it does not
 
@@ -31,7 +38,7 @@ Create one app registration in the Mefford Microsoft 365 tenant.
 | Name | `Mefford Command Center` |
 | Supported account types | Accounts in this organizational directory only (single tenant) |
 | Platform | Web |
-| Redirect URI | `https://mefford-project-command.mefford-project-command.workers.dev/api/microsoft-auth/callback` (will change if/when a custom domain is added — update here and in the app registration if so) |
+| Redirect URI | `https://meffops.com/api/microsoft-auth/callback` |
 | Implicit grant / hybrid flow | Off |
 | Public client flows | Off |
 | Client type | Confidential web application |
@@ -77,7 +84,7 @@ Enter these in the Site’s protected server runtime settings. Values marked **s
 | `MICROSOFT_GRAPH_TENANT_ID` | Configuration | Mefford tenant ID GUID. Used in tenant-specific authorize and token URLs; `common` and `organizations` are not accepted as the intended setup. |
 | `MICROSOFT_GRAPH_CLIENT_ID` | Configuration | Entra application/client ID GUID. |
 | `MICROSOFT_GRAPH_CLIENT_SECRET` | **Secret** | Entra client secret value, not its secret ID. Used only on the server for token exchange and client credentials. |
-| `MICROSOFT_GRAPH_REDIRECT_URI` | Configuration | Exactly `https://mefford-project-command.mefford-project-command.workers.dev/api/microsoft-auth/callback`. |
+| `MICROSOFT_GRAPH_REDIRECT_URI` | Configuration | Exactly `https://meffops.com/api/microsoft-auth/callback`. |
 | `MICROSOFT_GRAPH_AUTH_STATE_KEY` | **Secret** | Base64url-encoded 32-byte random key used to AES-GCM encrypt the short-lived PKCE verifier/state cookie. Generate outside chat and store only in protected runtime settings. |
 | `MICROSOFT_ENTRA_PROOF_REQUIRED` | Control switch | Start with `false`. Change to `true` only after Jordan and Blain have both completed identity proof and the access smoke test has passed. |
 | `MICROSOFT_ACCESS_CONTROL_ENFORCED` | Control switch | Start with `false`. Change to `true` only after directory reconciliation, owner grants, disable/re-enable testing, and rollback validation pass. |
@@ -88,7 +95,7 @@ Enter these in the Site’s protected server runtime settings. Values marked **s
 | --- | --- | --- |
 | `MICROSOFT_MEETINGS_MAILBOX` | Configuration | Fallback organizer only for unattended meeting/subscription work. Use an explicitly approved Mefford mailbox; person-initiated actions use the actor’s owner-approved mapping. |
 | `MICROSOFT_OPERATIONAL_MAILBOX` | Configuration | Fallback sender for unattended operational notices. Person-initiated email uses the actor’s owner-approved mailbox. |
-| `MICROSOFT_GRAPH_WEBHOOK_URL` | Configuration | `https://mefford-project-command.mefford-project-command.workers.dev/api/meetings/microsoft-webhook` |
+| `MICROSOFT_GRAPH_WEBHOOK_URL` | Configuration | `https://meffops.com/api/meetings/microsoft-webhook` |
 | `MICROSOFT_GRAPH_WEBHOOK_CLIENT_STATE` | **Secret** | Unique high-entropy Graph subscription client-state secret. Do not reuse the client secret or authentication-state key. |
 
 ### SharePoint mapping and activation

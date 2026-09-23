@@ -1,7 +1,7 @@
 import type { CommandActor } from "./server-actor";
 
 export const MICROSOFT_ENTRA_REDIRECT_URI =
-  "https://mefford-project-command.mefford-project-command.workers.dev/api/microsoft-auth/callback";
+  "https://meffops.com/api/microsoft-auth/callback";
 
 export const MICROSOFT_ENTRA_DELEGATED_SCOPES = [
   "openid",
