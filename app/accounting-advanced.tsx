@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import type { AccountingActor } from "./accounting-erp";
 import { summaryDrilldownProps } from "./summary-drilldown";
+import { AccountingBankConnections } from "./accounting-bank-connections";
 
 type AdvancedMode = "Cash Management" | "WIP And Close" | "Accounting Administration";
 type Row = Record<string, unknown>;
@@ -40,7 +41,7 @@ const dollars = (cents: unknown) => number(cents) / 100;
 const text = (value: unknown) => String(value ?? "");
 
 function tabsFor(mode: AdvancedMode) {
-  if (mode === "Cash Management") return ["13-Week Forecast", "Bank Reconciliation", "Collections"];
+  if (mode === "Cash Management") return ["13-Week Forecast", "Bank And Credit Accounts", "Bank Reconciliation", "Collections"];
   if (mode === "WIP And Close") return ["WIP Forecast", "Month Close", "Cutover"];
   return ["Control Center", "Month Close", "Cutover", "AP / AR Control", "Vendor Tax"];
 }
@@ -54,8 +55,8 @@ export function AccountingAdvancedWorkspace({ mode }: { mode: AdvancedMode; acto
   const [saving, setSaving] = useState(false);
   const [notice, setNotice] = useState("");
 
-  async function load() {
-    setLoading(true);
+  async function load(background = false) {
+    if (!background) setLoading(true);
     try {
       const [controlResponse, coreResponse] = await Promise.all([fetch("/api/accounting-controls", { cache: "no-store" }), fetch("/api/accounting", { cache: "no-store" })]);
       const [controlResult, coreResult] = await Promise.all([controlResponse.json() as Promise<ControlData & { error?: string }>, coreResponse.json() as Promise<CoreData & { error?: string }>]);
@@ -66,7 +67,7 @@ export function AccountingAdvancedWorkspace({ mode }: { mode: AdvancedMode; acto
     } catch (error) {
       setNotice(error instanceof Error ? error.message : "Accounting Controls Are Unavailable");
     } finally {
-      setLoading(false);
+      if (!background) setLoading(false);
     }
   }
 
@@ -103,6 +104,7 @@ export function AccountingAdvancedWorkspace({ mode }: { mode: AdvancedMode; acto
     {tab === "Month Close" ? <ClosePanel controls={controls} saving={saving} post={post} /> : null}
     {tab === "Cutover" ? <CutoverPanel controls={controls} core={core} saving={saving} post={post} /> : null}
     {tab === "13-Week Forecast" ? <CashForecastPanel controls={controls} saving={saving} post={post} /> : null}
+    {tab === "Bank And Credit Accounts" ? <AccountingBankConnections onAccountsChanged={() => load(true)} /> : null}
     {tab === "Bank Reconciliation" ? <BankPanel controls={controls} saving={saving} post={post} /> : null}
     {tab === "Collections" ? <CollectionsPanel controls={controls} saving={saving} post={post} /> : null}
     {tab === "Control Center" ? <ControlCenter controls={controls} core={core} setTab={setTab} /> : null}

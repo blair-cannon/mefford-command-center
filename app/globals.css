@@ -20504,3 +20504,25 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
 .project-bonus-controls button:disabled{opacity:.55;cursor:not-allowed}
 .nav-subitem{grid-template-columns:1.625rem minmax(0,1fr)}
 .nav-subitem>span[aria-hidden="true"]{white-space:nowrap;overflow-wrap:normal;word-break:normal}
+.plaid-connections { min-width: 0; }
+.plaid-toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: .65rem; }
+.plaid-toolbar h2, .plaid-toolbar h3 { flex: 1 1 16rem; margin: 0; }
+.plaid-toolbar button, .plaid-account-assignment button { flex-shrink: 0; max-width: 100%; white-space: normal; }
+.plaid-add-account, .plaid-item { margin-top: 1rem; padding: 1rem; border: 1px solid var(--border, #d6dce4); border-radius: .5rem; }
+.plaid-add-account label, .plaid-account-assignment label { display: grid; gap: .4rem; font-size: .875rem; min-width: 0; }
+.plaid-add-account label { max-width: 24rem; margin: .8rem 0; }
+.plaid-account-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 20rem), 1fr)); gap: 1rem; margin-top: 1rem; }
+.plaid-account { min-width: 0; padding: .8rem; background: var(--surface-subtle, #f6f8fb); border-radius: .4rem; overflow-wrap: anywhere; }
+.plaid-account h4 { font-size: .9375rem; margin: 0 0 .4rem; }
+.plaid-secondary { font-size: .75rem; color: #536174; }
+.plaid-account dl { display: flex; flex-wrap: wrap; gap: .75rem 1.5rem; }
+.plaid-account dt { font-size: .75rem; }
+.plaid-account dd { margin: .2rem 0 0; font-size: 1rem; font-weight: 600; }
+.plaid-account-assignment { display: flex; align-items: end; flex-wrap: wrap; gap: .6rem; }
+.plaid-account-assignment label { flex: 1 1 12rem; }
+.plaid-account-assignment select, .plaid-add-account input { width: 100%; min-width: 0; font-size: .875rem; }
+.plaid-feed { display: grid; gap: .5rem; }
+.plaid-feed article { display: flex; flex-wrap: wrap; gap: .4rem 1rem; padding: .75rem 0; border-bottom: 1px solid #d6dce4; font-size: .875rem; overflow-wrap: anywhere; }
+.plaid-feed strong { flex: 1 1 15rem; }
+.plaid-disconnect { margin-top: .75rem; }
+.plaid-oauth-return { max-width: 42rem; padding: 1.5rem; margin: auto; }
