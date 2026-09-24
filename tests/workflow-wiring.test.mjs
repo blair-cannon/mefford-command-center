@@ -1019,7 +1019,7 @@ test("Item 6 digitizes every uploaded pre-work checklist into one standard form 
   assert.match(reviewLogicSource, /STANDARD_QUALITY_FORM_STRUCTURE/);
   assert.match(reviewLogicSource, /Grouped Required Responses With Yes, No, Or Justified N\/A/);
   assert.match(reviewLogicSource, /Before Evidence, After Evidence, Notes, And Linked Deficiencies/);
-  assert.match(qualitySource, /16 Mefford Templates/);
+  assert.match(qualitySource, /"Template Library"/);
 });
 
 test("Item 6 requires a quality category on every schedule activity and creates the Superintendent prompt", () => {
