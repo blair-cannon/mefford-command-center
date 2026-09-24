@@ -21,7 +21,7 @@ import { MEFFORD_MASTER_COST_CODES } from "./estimate-template";
 import type { MyWorkItem } from "./my-work";
 import { SystemMaintenanceGate } from "./system-maintenance-gate";
 import { CommandAssistant } from "./command-assistant";
-import { WorkspaceNavigation, WorkIcon } from "./workspace-navigation";
+import { WorkIcon } from "./workspace-navigation";
 import { ProjectWorkspace } from "./project-workspace";
 import { preferredWorkspace } from "../lib/project-workspace";
 import { WorkspaceAccessibility } from "./workspace-accessibility";
@@ -5927,6 +5927,22 @@ function personInitials(name: string) {
     .toUpperCase();
 }
 
+function projectInitials(name: string) {
+  return (
+    name
+      .split(" ")
+      .filter(Boolean)
+      .slice(0, 2)
+      .map((part) => part[0])
+      .join("")
+      .toUpperCase() || "PJ"
+  );
+}
+
+function projectStatusClass(status: ProjectProfile["status"]) {
+  return status.toLowerCase().replace(" ", "-");
+}
+
 function defaultProjectMeetingStart(daysAhead: number, hour: number) {
   const date = new Date(Date.now() + daysAhead * 86_400_000);
   date.setHours(hour, 0, 0, 0);
@@ -5951,6 +5967,8 @@ function newProjectMeetingPlan(): ProjectMeetingPlan {
 export default function Home() {
   const [active, setActive] = useState("Dashboard");
   const [menuOpen, setMenuOpen] = useState(false);
+  const [openNavFolders, setOpenNavFolders] = useState<string[]>([]);
+  const [projectMenuOpen, setProjectMenuOpen] = useState(false);
   const [projects, setProjects] = useState<ProjectProfile[]>([]);
   const [projectListStatus, setProjectListStatus] = useState<"loading" | "ready" | "error">("loading");
   const [projectListError, setProjectListError] = useState("");
@@ -5960,7 +5978,6 @@ export default function Home() {
   const [projectSummaryOpen, setProjectSummaryOpen] = useState(false);
   const [projectWorkArea, setProjectWorkArea] = useState("plan");
   const [projectToolContext, setProjectToolContext] = useState("");
-  const [searchOpen, setSearchOpen] = useState(false);
   const [projectSetupOpen, setProjectSetupOpen] = useState(false);
   const [projectSetupMode, setProjectSetupMode] = useState<"new" | "edit">(
     "edit",
@@ -6845,6 +6862,14 @@ export default function Home() {
     if (label === "Project Overview") setProjectSummaryOpen(false);
     setMenuOpen(false);
 
+  }
+
+  function toggleNavFolder(label: string) {
+    setOpenNavFolders((current) =>
+      current.includes(label)
+        ? current.filter((folder) => folder !== label)
+        : [...current, label],
+    );
   }
 
   function openProjectSetup(mode: "new" | "edit") {
@@ -8303,13 +8328,151 @@ export default function Home() {
           </div>
         </div>
 
-        <WorkspaceNavigation key={sessionActor.email} actor={sessionActor} active={active} tools={navigationTools} onNavigate={chooseNav} projectActive={!companyWorkspaceActive} workCount={notifications.filter((item) => item.status !== "Completed" && !item.hiddenBySnooze).length} />
+        <nav className="main-nav" aria-label="Project sections">
+          {canActorAccessNavigation(sessionActor, "My Work") ? <button
+            className={active === "My Work" ? "nav-item active" : "nav-item"}
+            onClick={() => chooseNav("My Work")}
+          >
+            <span className="nav-icon" aria-hidden="true">{navigationGlyph("My Work", "MW")}</span>
+            <span>My Home</span>
+            {notifications.filter((item) => item.status !== "Completed" && !item.hiddenBySnooze).length ? <b className="nav-count">{notifications.filter((item) => item.status !== "Completed" && !item.hiddenBySnooze).length}</b> : null}
+          </button> : null}
+          {canActorAccessNavigation(sessionActor, "Dashboard") ? <button
+            className={active === "Dashboard" ? "nav-item active" : "nav-item"}
+            onClick={() => chooseNav("Dashboard")}
+          >
+            <span className="nav-icon" aria-hidden="true">{navigationGlyph("Dashboard", "D")}</span>
+            <span>Dashboard</span>
+          </button> : null}
+          {canActorAccessNavigation(sessionActor, "Project Health") ? <button
+            className={active === "Project Health" ? "nav-item active" : "nav-item"}
+            onClick={() => chooseNav("Project Health")}
+          >
+            <span className="nav-icon" aria-hidden="true">{navigationGlyph("Project Health", "PH")}</span>
+            <span>Project Health</span>
+          </button> : null}
+          {canActorAccessNavigation(sessionActor, "Project Overview") ? <button
+            className={active === "Project Overview" ? "nav-item active" : "nav-item"}
+            onClick={() => chooseNav("Project Overview")}
+          >
+            <span className="nav-icon" aria-hidden="true">{navigationGlyph("Project Overview", "O")}</span>
+            <span>Project Overview</span>
+          </button> : null}
+          {visibleProjectNavFolders.filter((folder) => folder.label === "Meetings").map((folder) => {
+            const expanded = openNavFolders.includes(folder.label);
+            const containsActive = folder.items.some((item) => item.target === active);
+            return <div className="nav-folder-group" key={folder.label}>
+              <button className={containsActive ? "nav-folder active" : "nav-folder"} onClick={() => toggleNavFolder(folder.label)} aria-expanded={expanded}>
+                <span className="nav-icon" aria-hidden="true">{navigationGlyph(folder.label, folder.icon)}</span>
+                <span>{folder.label}</span>
+                <span className="nav-folder-arrow">{expanded ? "−" : "+"}</span>
+              </button>
+              {expanded ? <div className="nav-folder-items">{folder.items.length ? folder.items.map((item) => <button className={active === item.target ? "nav-subitem active" : "nav-subitem"} key={item.target} onClick={() => chooseNav(item.target)}><span aria-hidden="true">{navigationGlyph(item.target, item.icon)}</span><b>{item.label}</b></button>) : <span className="nav-folder-empty">No Meeting Tools Assigned</span>}</div> : null}
+            </div>;
+          })}
+          <div className="nav-folder-group preconstruction-nav-folder">
+            <button
+              className={visiblePreconstructionNavGroups.some((group) => group.items.some((item) => item.target === active)) ? "nav-folder active" : "nav-folder"}
+              onClick={() => toggleNavFolder("Pre-Construction")}
+              aria-expanded={openNavFolders.includes("Pre-Construction")}
+            >
+              <span className="nav-icon" aria-hidden="true">{navigationGlyph("Pre-Construction", "PC")}</span>
+              <span>Pre-Construction</span>
+              <span className="nav-folder-arrow">{openNavFolders.includes("Pre-Construction") ? "−" : "+"}</span>
+            </button>
+            {openNavFolders.includes("Pre-Construction") ? <div className="nav-folder-items preconstruction-groups">
+              {visiblePreconstructionNavGroups.length ? visiblePreconstructionNavGroups.map((group) => {
+                const groupKey = `Pre-Construction:${group.label}`;
+                const groupExpanded = openNavFolders.includes(groupKey);
+                const groupActive = group.items.some((item) => item.target === active);
+                return <div className="preconstruction-group" key={group.label}>
+                  <button
+                    className={groupActive ? "nav-subfolder active" : "nav-subfolder"}
+                    onClick={() => {
+                      setOpenNavFolders((current) => current.includes(groupKey) ? current.filter((item) => item !== groupKey) : [...current, groupKey]);
+                      if (!groupActive) chooseNav(group.landing);
+                    }}
+                    aria-expanded={groupExpanded}
+                  >
+                    <span aria-hidden="true">{navigationGlyph(group.label, group.icon)}</span>
+                    <b>{group.label}</b>
+                    <i>{groupExpanded ? "−" : "+"}</i>
+                  </button>
+                  {groupExpanded ? <div className="preconstruction-group-items">{group.items.map((item) => <button
+                    className={active === item.target ? "nav-subitem active" : "nav-subitem"}
+                    key={item.target}
+                    onClick={() => chooseNav(item.target)}
+                  ><span aria-hidden="true">{navigationGlyph(item.target, item.icon)}</span><b>{item.label}</b></button>)}</div> : null}
+                </div>;
+              }) : <span className="nav-folder-empty">No Pre-Construction Tools Assigned</span>}
+            </div> : null}
+          </div>
+          {visibleProjectNavFolders.filter((folder) => folder.label !== "Meetings").map((folder) => {
+            const expanded = openNavFolders.includes(folder.label);
+            const containsActive = folder.items.some(
+              (item) => item.target === active,
+            );
+            return (
+              <div className="nav-folder-group" key={folder.label}>
+                <button
+                  className={containsActive ? "nav-folder active" : "nav-folder"}
+                  onClick={() => toggleNavFolder(folder.label)}
+                  aria-expanded={expanded}
+                >
+                  <span className="nav-icon" aria-hidden="true">{navigationGlyph(folder.label, folder.icon)}</span>
+                  <span>{folder.label}</span>
+                  <span className="nav-folder-arrow">{expanded ? "−" : "+"}</span>
+                </button>
+                {expanded ? (
+                  <div className="nav-folder-items">
+                    {folder.items.length ? folder.items.map((item) => (
+                      <button
+                        className={active === item.target ? "nav-subitem active" : "nav-subitem"}
+                        key={item.target}
+                        onClick={() => chooseNav(item.target)}
+                      >
+                        <span aria-hidden="true">{navigationGlyph(item.target, item.icon)}</span>
+                        <b>{item.label}</b>
+                      </button>
+                    )) : <span className="nav-folder-empty">No {folder.label} Tools Assigned</span>}
+                  </div>
+                ) : null}
+              </div>
+            );
+          })}
+          {visibleCompanyNavFolders.map((folder) => {
+            const expanded = openNavFolders.includes(folder.label);
+            const containsActive = folder.items.some((item) => item.target === active);
+            return <div className="nav-folder-group company-nav-folder" key={folder.label}>
+              <button className={containsActive ? "nav-folder active" : "nav-folder"} onClick={() => toggleNavFolder(folder.label)} aria-expanded={expanded}>
+                <span className="nav-icon" aria-hidden="true">{navigationGlyph(folder.label, folder.icon)}</span>
+                <span>{folder.label}</span>
+                <span className="nav-folder-arrow">{expanded ? "−" : "+"}</span>
+              </button>
+              {expanded ? <div className="nav-folder-items">{folder.items.length ? folder.items.map((item) => <button className={active === item.target ? "nav-subitem active" : "nav-subitem"} key={item.target} onClick={() => chooseNav(item.target)}><span aria-hidden="true">{navigationGlyph(item.target, item.icon)}</span><b>{item.label}</b></button>) : <span className="nav-folder-empty">No {folder.label} Tools Assigned</span>}</div> : null}
+            </div>;
+          })}
+        </nav>
 
         <div className="sidebar-bottom">
+          {canActorAccessNavigation(sessionActor, "Documents") ? <button className={active === "Documents" ? "nav-item active" : "nav-item"} onClick={() => {
+            if (projectProfile.number) chooseNav("Documents");
+            else {
+              setNotice("Choose A Project To Open Its Documents.");
+              setProjectMenuOpen(true);
+            }
+          }}>
+            <span className="nav-icon" aria-hidden="true">{navigationGlyph("Documents", "F")}</span>
+            <span>Documents</span>
+          </button> : null}
           <button className={active === "User Guide" ? "nav-item active" : "nav-item"} onClick={() => chooseNav("User Guide")}>
             <span className="nav-icon" aria-hidden="true">{navigationGlyph("User Guide", "?")}</span>
             <span>User Guide</span>
           </button>
+          {Boolean(projectProfile.number) && canActorAccessNavigation(sessionActor, "Project Settings") ? <button className="nav-item" onClick={() => openProjectSetup("edit")}>
+            <span className="nav-icon" aria-hidden="true">{navigationGlyph("Project Settings", "G")}</span>
+            <span>Project Settings</span>
+          </button> : null}
           <div className="user-card">
             <div className="avatar">{personInitials(sessionActor.name)}</div>
             <div>
@@ -8338,25 +8501,103 @@ export default function Home() {
           >
             ☰
           </button>
-          {companyWorkspaceActive ? <div className="company-workspace-title"><strong>{sectionTitle(active)}</strong></div> : <label className="project-selector">
-            <span>Project</span>
-            <select aria-label="Select Project" value={projectProfile.number} disabled={projectListStatus !== "ready" || !projects.length} onChange={(event) => {
-              const project = projects.find((item) => item.number === event.target.value);
-              if (project) switchProject(project);
-            }}>
-              {!projectProfile.number ? <option value="">{projectListStatus === "loading" ? "Loading Projects…" : projectListStatus === "error" ? "Projects Unavailable" : "No Assigned Projects"}</option> : null}
-              {projects.map((project) => <option key={project.number} value={project.number}>{project.number} · {project.name}</option>)}
-            </select>
-          </label>}
+          <div className="project-switcher">
+            <button
+              onClick={() =>
+                !companyWorkspaceActive &&
+                (projectProfile.number
+                  ? setProjectMenuOpen((current) => !current)
+                  : projectListStatus === "error" ? retryProjectList()
+                  : projectListStatus === "ready" ? openProjectSetup("new") : undefined)
+              }
+              aria-expanded={!companyWorkspaceActive && Boolean(projectProfile.number) && projectMenuOpen}
+            >
+              <span className="project-badge">
+                {companyWorkspaceActive ? "MC" : projectProfile.number ? projectInitials(projectProfile.name) : "+"}
+              </span>
+              <span>
+                <strong>{sectionTitle(active)}</strong>
+                <small>
+                  {companyWorkspaceActive
+                    ? "Mefford Contracting"
+                    : projectProfile.number
+                      ? `${projectProfile.name} · ${projectProfile.number}`
+                      : projectListStatus === "loading" ? "Loading Projects…"
+                      : projectListStatus === "error" ? "Retry Loading Projects"
+                      : "Start The First Project"}
+                </small>
+              </span>
+              {!companyWorkspaceActive && projectProfile.number ? <span className="chevron">⌄</span> : null}
+            </button>
+            {projectMenuOpen && !companyWorkspaceActive && projectProfile.number ? (
+              <div className="project-menu" role="menu">
+                <div>
+                  <span className="project-badge">
+                    {projectInitials(projectProfile.name)}
+                  </span>
+                  <span>
+                    <strong>{projectProfile.name}</strong>
+                    <small>Project #{projectProfile.number}</small>
+                    <i className={`project-status ${projectStatusClass(projectProfile.status)}`}>
+                      {projectProfile.status}
+                    </i>
+                  </span>
+                </div>
+                <div className="project-menu-list">
+                  <span className="project-menu-label">SELECT ACTIVE PROJECT</span>
+                  {projects.map((project) => (
+                    <button
+                      key={project.number}
+                      className={
+                        project.number === projectProfile.number
+                          ? "project-choice active"
+                          : "project-choice"
+                      }
+                      role="menuitem"
+                      onClick={() => { switchProject(project); setProjectMenuOpen(false); }}
+                    >
+                      <span className="project-badge">
+                        {projectInitials(project.name)}
+                      </span>
+                      <span>
+                        <strong>{project.name}</strong>
+                        <small>{project.number} · {project.site}</small>
+                      </span>
+                      <b>{project.number === projectProfile.number ? "ACTIVE" : "OPEN"}</b>
+                    </button>
+                  ))}
+                </div>
+                <button
+                  role="menuitem"
+                  onClick={() => { openProjectSetup("edit"); setProjectMenuOpen(false); }}
+                >
+                  Edit Project Information
+                </button>
+                <button
+                  className="start-project-action"
+                  role="menuitem"
+                  onClick={() => { openProjectSetup("new"); setProjectMenuOpen(false); }}
+                >
+                  ＋ Start New Job
+                </button>
+              </div>
+            ) : null}
+          </div>
           <div className="topbar-actions">
+            <button
+              className="sync-state"
+              onClick={() => chooseNav("IT & Integrations")}
+              aria-label="Open Integration And System Health Center"
+            >
+              <span /> System Health
+            </button>
             <CommandAssistant
               activeTarget={active}
               projectId={companyWorkspaceActive || !projectProfile.number ? "" : projectProfile.number}
               projectName={companyWorkspaceActive || !projectProfile.number ? "Mefford Contracting" : projectProfile.name}
               permissionLocked={sessionActor.permissionLocked}
             />
-            <button className="icon-button" aria-label="Search Command Center" aria-expanded={searchOpen} onClick={() => { setSearchOpen((open) => !open); setSiteSearchQuery(""); }}><WorkIcon name="search" /></button>
-            {searchOpen ? <div className="site-wide-search">
+            <div className="site-wide-search">
               <span aria-hidden="true">⌕</span>
               <input
                 type="search"
@@ -8381,7 +8622,7 @@ export default function Home() {
                 }}><i>{result.kind === "Project" ? "PRJ" : result.kind === "Record" ? "REC" : result.kind === "File" ? "FILE" : "GO"}</i><span><strong>{result.title}</strong><small>{result.detail}</small></span></button>)}
                 {!siteSearchResults.length ? <div className="site-search-empty">No Accessible Command Center Results</div> : null}
               </div> : null}
-            </div> : null}
+            </div>
             <button
               className="icon-button notification"
               aria-label="Notifications"
@@ -8394,6 +8635,7 @@ export default function Home() {
         </header>
 
         <main className="content" id="workspace-content" tabIndex={-1}>
+          {projectProfile.number && ["Project Overview", "Daily Logs", "Safety", "Quality"].includes(active) ? <nav className="field-task-nav" aria-label="Field Tasks">{["Daily Logs", "Safety", "Quality"].filter(target => canActorAccessNavigation(sessionActor, target)).map(target => <button key={target} aria-current={active === target ? "page" : undefined} onClick={() => target === "Daily Logs" ? openNew("Daily Logs") : chooseNav(target)}>{target === "Daily Logs" ? "Daily Log" : target}</button>)}</nav> : null}
           {projectListError ? <div className="workspace-load-error" role="alert"><span>{projectListError}</span><button className="secondary-action" onClick={retryProjectList}>Retry Loading Projects</button></div> : null}
           {!companyWorkspaceActive && projectProfile.number && (active !== "Project Overview" || projectSummaryOpen) ? <nav className="project-return" aria-label="Project Navigation"><button onClick={() => chooseNav("Project Overview")}>← Project Workspace</button><span aria-current="page">{active === "Project Overview" ? "Project Summary" : sectionTitle(active)}</span></nav> : null}
           <Suspense fallback={<section className="panel empty-attention-state"><strong>Opening Workspace</strong><span>Loading this Command Center module…</span></section>}>

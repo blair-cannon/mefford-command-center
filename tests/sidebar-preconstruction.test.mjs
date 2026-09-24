@@ -13,8 +13,9 @@ const teamAccess = fs.readFileSync(new URL("../lib/team-access.ts", import.meta.
 test("every role receives authorized shortcuts and the complete filtered tool catalog", () => {
   const projectFolders = page.slice(page.indexOf("const navFolders"), page.indexOf("const preconstructionNavGroups"));
   const companyFolders = page.slice(page.indexOf("const companyNavFolders"), page.indexOf("const accountingNavigationTargets"));
-  const sidebar = page.match(/<WorkspaceNavigation[\s\S]*?\/>/)?.[0] || "";
-  for (const prop of ["actor={sessionActor}", "active={active}", "tools={navigationTools}"]) assert.ok(sidebar.includes(prop), prop);
+  const sidebarStart = page.indexOf('<nav className="main-nav"');
+  const sidebar = page.slice(sidebarStart, page.indexOf("</nav>", sidebarStart));
+  for (const marker of ["canActorAccessNavigation(sessionActor,", "active === ", "visibleProjectNavFolders", "visiblePreconstructionNavGroups", "visibleCompanyNavFolders"]) assert.ok(sidebar.includes(marker), marker);
   assert.match(navigation, /authorizedShortcuts\(actor, tools, saved\)/);
   assert.match(navigation, /Pinned Tools/);
   assert.match(navigation, /role="dialog" aria-modal="true"/);
@@ -30,7 +31,8 @@ test("every role receives authorized shortcuts and the complete filtered tool ca
   const bottom = page.slice(page.indexOf('<div className="sidebar-bottom">'), page.indexOf('<div className="user-card">', page.indexOf('<div className="sidebar-bottom">')));
   assert.doesNotMatch(bottom, /Project Files/);
   assert.match(bottom, /<span>User Guide<\/span>/);
-  assert.doesNotMatch(bottom, /Project Settings/);
+  assert.match(bottom, /<span>Project Settings<\/span>/);
+  assert.match(bottom, /<span>Documents<\/span>/);
   assert.match(page, /onSettings=\{canActorAccessNavigation\(sessionActor, "Project Settings"\)/);
   assert.match(page, /visiblePreconstructionNavGroups.*canActorAccessNavigation/s);
   assert.match(page, /visibleCompanyNavFolders.*canActorAccessNavigation/s);
