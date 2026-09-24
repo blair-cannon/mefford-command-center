@@ -1,14 +1,17 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { CompletionDisplayBoard } from "../project-countdowns";
+import type { CountdownProject } from "../../lib/project-countdowns";
 
 type DisplayRow = { id: string; title: string; subtitle: string; status: string; value?: string };
 type DisplayMetric = { label: string; value: string; detail: string; tone?: "good" | "warn" | "risk"; rows: DisplayRow[] };
 type DisplayReview = { id: string; rating: number; stars: string; respondent: string; project: string; milestone: string; comment: string; photoUrls: string[]; displayConsent: boolean; displaySeconds: 5 | 30; responseDate: string };
 type DisplayDashboard = { id: string; title: string; eyebrow: string; metrics: DisplayMetric[]; sections: Array<{ title: string; rows: DisplayRow[] }>; reviews?: DisplayReview[] };
-type DisplayPayload = { account: string; readOnly: true; generatedAt: string; refreshSeconds: number; dashboards: DisplayDashboard[] };
+type DisplayPayload = { account: string; readOnly: true; generatedAt: string; refreshSeconds: number; dashboards: DisplayDashboard[]; completionProjects: CountdownProject[] };
 
-const dashboardOrder = ["customer-reviews", "sales", "project-health", "marketing", "estimating", "company-health"];
+const dashboardOrder = ["customer-reviews", "sales", "project-health", "marketing", "estimating", "company-health", "project-completion"];
+const dashboardTitles: Record<string, string> = { "project-completion": "Project Completion" };
 
 export function DashboardDisplay() {
   const [authenticated, setAuthenticated] = useState<boolean | null>(null);
@@ -64,8 +67,9 @@ export function DashboardDisplay() {
 
   const selected = payload?.dashboards.find((dashboard) => dashboard.id === selectedId) || payload?.dashboards[0];
   return <main className="dashboard-display-shell">
-    <header className="dashboard-display-header"><div><img src="/mefford-logo.png" alt="Mefford Contracting" /><span><b>MEFFORD CONTRACTING</b><small>COMMAND CENTER · READ ONLY</small></span></div><nav aria-label="Choose dashboard">{dashboardOrder.map((id) => { const dashboard = payload?.dashboards.find((item) => item.id === id); return dashboard ? <button key={id} className={selected?.id === id ? "active" : ""} onClick={() => { setSelectedId(id); setReport(null); }}>{dashboard.title.replace(" Dashboard", "")}</button> : null; })}</nav><button onClick={() => void logout()}>Log Out</button></header>
-    {selected ? <section className="dashboard-display-content"><header><div><p>{selected.eyebrow}</p><h1>{selected.title}</h1></div><aside><i />LIVE <span>Updated {new Date(payload?.generatedAt || "").toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" })}</span></aside></header>
+    <header className="dashboard-display-header"><div><img src="/mefford-logo.png" alt="Mefford Contracting" /><span><b>MEFFORD CONTRACTING</b><small>COMMAND CENTER · READ ONLY</small></span></div><nav aria-label="Choose dashboard">{dashboardOrder.map((id) => { const dashboard = payload?.dashboards.find((item) => item.id === id); const title = dashboard?.title.replace(" Dashboard", "") || dashboardTitles[id]; return title ? <button key={id} className={selectedId === id ? "active" : ""} onClick={() => { setSelectedId(id); setReport(null); }}>{title}</button> : null; })}</nav><button onClick={() => void logout()}>Log Out</button></header>
+    {selectedId === "project-completion" ? <section className="dashboard-display-content"><header><div><p>ALL ACTIVE PROJECTS</p><h1>Project Completion</h1></div><aside><i />LIVE <span>Updated {new Date(payload?.generatedAt || "").toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" })}</span></aside></header><CompletionDisplayBoard projects={payload?.completionProjects || []} /></section>
+    : selected ? <section className="dashboard-display-content"><header><div><p>{selected.eyebrow}</p><h1>{selected.title}</h1></div><aside><i />LIVE <span>Updated {new Date(payload?.generatedAt || "").toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" })}</span></aside></header>
       <section className="dashboard-display-metrics">{selected.metrics.map((metric) => <button key={metric.label} className={metric.tone || ""} onClick={() => setReport({ title: metric.label, rows: metric.rows })}><span>{metric.label}</span><strong>{metric.value}</strong><small>{metric.detail}</small><b>OPEN {metric.rows.length} RECORD{metric.rows.length === 1 ? "" : "S"} →</b></button>)}</section>
       {selected.id === "customer-reviews" && !report ? <CustomerReviewStage review={selectedReviews[reviewIndex % Math.max(1, selectedReviews.length)]} index={reviewIndex} total={selectedReviews.length} /> : <section className="dashboard-display-sections">{(report ? [report] : selected.sections).map((section) => <article key={section.title}><header><h2>{section.title}</h2><span>{section.rows.length} RECORD{section.rows.length === 1 ? "" : "S"}</span>{report ? <button onClick={() => setReport(null)}>Close Report ×</button> : null}</header><div>{section.rows.map((row) => <div key={row.id}><span><strong>{row.title}</strong><small>{row.subtitle}</small></span><i className={tone(row.status)}>{row.status}</i>{row.value ? <b>{row.value}</b> : null}</div>)}{!section.rows.length ? <p>Nothing currently matches this report.</p> : null}</div></article>)}</section>}
     </section> : null}

@@ -2088,3 +2088,67 @@ export const microsoftEntraIdentityProofs = sqliteTable(
     uniqueIndex("microsoft_entra_identity_email_idx").on(table.microsoftEmail),
   ],
 );
+
+export const accountingPlaidItems = sqliteTable(
+  "accounting_plaid_items",
+  {
+    id: text("id").primaryKey(),
+    plaidItemId: text("plaid_item_id").notNull(),
+    environment: text("environment").notNull(),
+    encryptedAccessToken: text("encrypted_access_token").notNull(),
+    institutionName: text("institution_name").notNull().default("Bank connection"),
+    status: text("status").notNull().default("Connected"),
+    cursor: text("cursor").notNull().default(""),
+    lastSyncedAt: text("last_synced_at"),
+    lastNotice: text("last_notice").notNull().default(""),
+    lockId: text("lock_id").notNull().default(""),
+    lockExpiresAt: text("lock_expires_at").notNull().default(""),
+    createdEmail: text("created_email").notNull(),
+    createdAt: text("created_at").notNull(),
+    updatedAt: text("updated_at").notNull(),
+  },
+  (table) => [
+    uniqueIndex("accounting_plaid_item_provider_idx").on(table.environment, table.plaidItemId),
+  ],
+);
+
+export const accountingPlaidAccounts = sqliteTable(
+  "accounting_plaid_accounts",
+  {
+    id: text("id").primaryKey(),
+    itemId: text("item_id").notNull(),
+    plaidAccountId: text("plaid_account_id").notNull(),
+    cashAccountId: text("cash_account_id"),
+    name: text("name").notNull(),
+    mask: text("mask").notNull().default(""),
+    accountType: text("account_type").notNull(),
+    subtype: text("subtype").notNull().default(""),
+    currency: text("currency").notNull().default("USD"),
+    currentCents: integer("current_cents"),
+    availableCents: integer("available_cents"),
+    limitCents: integer("limit_cents"),
+    updatedAt: text("updated_at").notNull(),
+  },
+  (table) => [
+    uniqueIndex("accounting_plaid_account_provider_idx").on(table.itemId, table.plaidAccountId),
+    uniqueIndex("accounting_plaid_account_cash_idx").on(table.cashAccountId),
+  ],
+);
+
+export const accountingPlaidSessions = sqliteTable(
+  "accounting_plaid_sessions",
+  {
+    id: text("id").primaryKey(),
+    actorEmail: text("actor_email").notNull(),
+    environment: text("environment").notNull(),
+    mode: text("mode").notNull(),
+    itemId: text("item_id"),
+    encryptedLinkToken: text("encrypted_link_token").notNull(),
+    status: text("status").notNull().default("Open"),
+    expiresAt: text("expires_at").notNull(),
+    createdAt: text("created_at").notNull(),
+  },
+  (table) => [
+    index("accounting_plaid_session_actor_idx").on(table.actorEmail, table.createdAt),
+  ],
+);

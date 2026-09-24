@@ -111,6 +111,15 @@ export async function GET(request: Request) {
     refreshSeconds: 15,
     live: { transport: "event-stream", endpoint: "/api/dashboard-display-live", targetLatencySeconds: 1, fallbackSeconds: 15 },
     dashboards: buildDashboards(projectResult.results || [], recordResult.results || [], (photoResult.results || []).filter((file) => isPhotoUpload({ name: file.name, type: file.content_type })).slice(0, 48), wipResult.results || [], contracts),
+    completionProjects: (projectResult.results || []).filter(isContractedActiveProject).map((project) => ({
+      number: project.number,
+      name: project.name,
+      site: project.site,
+      status: project.status,
+      substantialDate: project.substantial_date,
+      finalDate: project.final_date,
+      timeZone: "America/New_York",
+    })),
   } as const;
   return Response.json(payload, {
     headers: {

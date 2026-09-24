@@ -241,7 +241,10 @@ test("project overview surfaces stored Daily Log photos", () => {
 
 test("Company Dashboard leads navigation and surfaces real executive decisions", () => {
   assert.match(source, /useState\("Dashboard"\)/);
-  assert.match(source, /<WorkspaceNavigation key=\{sessionActor.email\}/);
+  const navStart = source.indexOf('<nav className="main-nav"');
+  const sidebarNav = source.slice(navStart, source.indexOf("</nav>", navStart));
+  assert.ok(sidebarNav.indexOf('canActorAccessNavigation(sessionActor, "My Work")') < sidebarNav.indexOf('canActorAccessNavigation(sessionActor, "Dashboard")'));
+  assert.match(sidebarNav, /<span>My Home<\/span>/);
   const catalog = source.slice(source.indexOf("const navigationTools:"), source.indexOf("const everydayTools ="));
   assert.ok(catalog.indexOf('target: "My Work"') < catalog.indexOf('target: "Dashboard"'));
   assert.ok(catalog.indexOf('target: "Dashboard"') < catalog.indexOf('target: "Project Health"'));
@@ -1016,7 +1019,7 @@ test("Item 6 digitizes every uploaded pre-work checklist into one standard form 
   assert.match(reviewLogicSource, /STANDARD_QUALITY_FORM_STRUCTURE/);
   assert.match(reviewLogicSource, /Grouped Required Responses With Yes, No, Or Justified N\/A/);
   assert.match(reviewLogicSource, /Before Evidence, After Evidence, Notes, And Linked Deficiencies/);
-  assert.match(qualitySource, /16 Mefford Templates/);
+  assert.match(qualitySource, /"Template Library"/);
 });
 
 test("Item 6 requires a quality category on every schedule activity and creates the Superintendent prompt", () => {
