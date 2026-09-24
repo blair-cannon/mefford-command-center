@@ -23,6 +23,7 @@ import { SystemMaintenanceGate } from "./system-maintenance-gate";
 import { CommandAssistant } from "./command-assistant";
 import { WorkIcon } from "./workspace-navigation";
 import { ProjectWorkspace } from "./project-workspace";
+import { CompanyCompletionCountdowns, ProjectCompletionCountdowns } from "./project-countdowns";
 import { preferredWorkspace } from "../lib/project-workspace";
 import { WorkspaceAccessibility } from "./workspace-accessibility";
 import { useDailyLogDraft } from "./use-daily-log-draft";
@@ -5805,6 +5806,8 @@ function CompanyDashboard({
           />
         </Suspense>
 
+        <CompanyCompletionCountdowns projects={projects} onOpenProject={(project) => onOpenDecision(project, "Project Overview")} />
+
         <section className="dashboard-command-section dashboard-today-command" aria-labelledby="dashboard-today-title">
         <header className="dashboard-command-header">
           <h2 id="dashboard-today-title">Today Across Every Job</h2>
@@ -8795,6 +8798,8 @@ export default function Home() {
                   </small>
                 </button>
               </section>
+
+              <ProjectCompletionCountdowns project={projectProfile} />
 
               <section className="stats-grid" aria-label="Project snapshot">
                 <button
