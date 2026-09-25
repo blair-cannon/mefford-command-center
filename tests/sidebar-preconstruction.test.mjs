@@ -33,7 +33,7 @@ test("every role receives authorized shortcuts and the complete filtered tool ca
   assert.match(bottom, /<span>User Guide<\/span>/);
   assert.match(bottom, /<span>Project Settings<\/span>/);
   assert.match(bottom, /<span>Documents<\/span>/);
-  assert.match(page, /onSettings=\{canActorAccessNavigation\(sessionActor, "Project Settings"\)/);
+  assert.match(page, /Boolean\(projectProfile\.number\) && canActorAccessNavigation\(sessionActor, "Project Settings"\)/);
   assert.match(page, /visiblePreconstructionNavGroups.*canActorAccessNavigation/s);
   assert.match(page, /visibleCompanyNavFolders.*canActorAccessNavigation/s);
   assert.match(page, /visibleProjectNavFolders.*canActorAccessNavigation/s);

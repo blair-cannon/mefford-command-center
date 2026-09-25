@@ -22,7 +22,6 @@ import type { MyWorkItem } from "./my-work";
 import { SystemMaintenanceGate } from "./system-maintenance-gate";
 import { CommandAssistant } from "./command-assistant";
 import { WorkIcon } from "./workspace-navigation";
-import { ProjectWorkspace } from "./project-workspace";
 import { CompanyCompletionCountdowns, ProjectCompletionCountdowns } from "./project-countdowns";
 import { preferredWorkspace } from "../lib/project-workspace";
 import { WorkspaceAccessibility } from "./workspace-accessibility";
@@ -5978,8 +5977,6 @@ export default function Home() {
   const [projectListRetry, setProjectListRetry] = useState(0);
   const [projectProfile, setProjectProfile] =
     useState<ProjectProfile>(() => emptyProjectProfile());
-  const [projectSummaryOpen, setProjectSummaryOpen] = useState(false);
-  const [projectWorkArea, setProjectWorkArea] = useState("plan");
   const [projectToolContext, setProjectToolContext] = useState("");
   const [projectSetupOpen, setProjectSetupOpen] = useState(false);
   const [projectSetupMode, setProjectSetupMode] = useState<"new" | "edit">(
@@ -6862,7 +6859,6 @@ export default function Home() {
     }
     setActive(label);
     setProjectToolContext("");
-    if (label === "Project Overview") setProjectSummaryOpen(false);
     setMenuOpen(false);
 
   }
@@ -7059,8 +7055,6 @@ export default function Home() {
   }
 
   function switchProject(project: ProjectProfile) {
-    setProjectSummaryOpen(false);
-    setProjectWorkArea("plan");
     setProjectToolContext("");
     if (project.number === projectProfile.number) {
       setActive("Project Overview");
@@ -7100,7 +7094,6 @@ export default function Home() {
       setProjectProfile(project);
     }
 
-    setProjectSummaryOpen(false);
     setProjectToolContext(project && ["Owner Billing", "Lien Waivers"].includes(target) ? target : "");
     setActive(target);
     if (recordId) {
@@ -8640,7 +8633,7 @@ export default function Home() {
         <main className="content" id="workspace-content" tabIndex={-1}>
           {projectProfile.number && ["Project Overview", "Daily Logs", "Safety", "Quality"].includes(active) ? <nav className="field-task-nav" aria-label="Field Tasks">{["Daily Logs", "Safety", "Quality"].filter(target => canActorAccessNavigation(sessionActor, target)).map(target => <button key={target} aria-current={active === target ? "page" : undefined} onClick={() => target === "Daily Logs" ? openNew("Daily Logs") : chooseNav(target)}>{target === "Daily Logs" ? "Daily Log" : target}</button>)}</nav> : null}
           {projectListError ? <div className="workspace-load-error" role="alert"><span>{projectListError}</span><button className="secondary-action" onClick={retryProjectList}>Retry Loading Projects</button></div> : null}
-          {!companyWorkspaceActive && projectProfile.number && (active !== "Project Overview" || projectSummaryOpen) ? <nav className="project-return" aria-label="Project Navigation"><button onClick={() => chooseNav("Project Overview")}>← Project Workspace</button><span aria-current="page">{active === "Project Overview" ? "Project Summary" : sectionTitle(active)}</span></nav> : null}
+          {!companyWorkspaceActive && projectProfile.number && active !== "Project Overview" ? <nav className="project-return" aria-label="Project Navigation"><button onClick={() => chooseNav("Project Overview")}>← Project Workspace</button><span aria-current="page">{sectionTitle(active)}</span></nav> : null}
           <Suspense fallback={<section className="panel empty-attention-state"><strong>Opening Workspace</strong><span>Loading this Command Center module…</span></section>}>
           {active === "Dashboard" ? (
             !projects.length && projectListStatus !== "ready" ? (
@@ -8734,16 +8727,6 @@ export default function Home() {
                   ＋ Start First Project
                 </button> : null}
               </section>
-            ) : !projectSummaryOpen ? (
-              <ProjectWorkspace
-                tools={navigationTools}
-                area={projectWorkArea}
-                onAreaChange={setProjectWorkArea}
-                onNavigate={(target) => { chooseNav(target); if (canActorAccessNavigation(sessionActor, target)) setProjectToolContext(target); }}
-                onSummary={() => setProjectSummaryOpen(true)}
-                onSettings={canActorAccessNavigation(sessionActor, "Project Settings") ? () => openProjectSetup("edit") : undefined}
-                onNewProject={["Company Owner", "Administrator"].includes(sessionActor.accessLevel) ? () => openProjectSetup("new") : undefined}
-              />
             ) : (
               <>
               <section className="welcome-row">
