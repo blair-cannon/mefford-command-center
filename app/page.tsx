@@ -8628,7 +8628,7 @@ export default function Home() {
           ) : active === "Owner Approvals" ? (
             <OwnerApprovalCenter onNavigate={(target, projectId, recordId) => openDashboardDecision(projects.find((project) => project.number === projectId), target, recordId)} />
           ) : active === "My Work" ? (
-            <EmployeePortalWorkspace actor={sessionActor} onOpenWorkItem={openMyWorkItem} onWorkItemsChange={setNotifications} everydayTools={everydayTools} onNavigateTool={chooseNav} projectName={projectProfile.name} projectNumber={projectProfile.number} onDailyLog={() => openNew("Daily Logs")} onPhoto={() => openMobileQuickAction({ id: "camera", label: "Photo / Video", target: "Daily Logs", formType: "Daily Logs", icon: "CAM", roles: ["all"] })} />
+            <EmployeePortalWorkspace actor={sessionActor} onOpenWorkItem={openMyWorkItem} onWorkItemsChange={setNotifications} everydayTools={everydayTools} onNavigateTool={chooseNav} projectName={projectProfile.name} projectNumber={projectProfile.number} onDailyLog={() => openNew("Daily Logs")} onPhoto={() => openMobileQuickAction({ id: "camera", label: "Photo / Video", target: "Daily Logs", formType: "Daily Logs", icon: "CAM", roles: ["all"] })} onNavigateApprovalSource={(target, projectId, recordId) => openDashboardDecision(projects.find((project) => project.number === projectId), target, recordId)} />
           ) : active === "User Guide" ? (
             <UserGuideWorkspace />
           ) : active === "Project Health" ? (
@@ -8649,7 +8649,7 @@ export default function Home() {
           ) : active === "Employee Onboarding" ? (
             <EmployeeOnboardingWorkspace actor={sessionActor} />
           ) : active === "Employee Portal" ? (
-            <EmployeePortalWorkspace actor={sessionActor} onOpenWorkItem={openMyWorkItem} onWorkItemsChange={setNotifications} everydayTools={everydayTools} onNavigateTool={chooseNav} projectName={projectProfile.name} projectNumber={projectProfile.number} onDailyLog={() => openNew("Daily Logs")} onPhoto={() => openMobileQuickAction({ id: "camera", label: "Photo / Video", target: "Daily Logs", formType: "Daily Logs", icon: "CAM", roles: ["all"] })} />
+            <EmployeePortalWorkspace actor={sessionActor} onOpenWorkItem={openMyWorkItem} onWorkItemsChange={setNotifications} everydayTools={everydayTools} onNavigateTool={chooseNav} projectName={projectProfile.name} projectNumber={projectProfile.number} onDailyLog={() => openNew("Daily Logs")} onPhoto={() => openMobileQuickAction({ id: "camera", label: "Photo / Video", target: "Daily Logs", formType: "Daily Logs", icon: "CAM", roles: ["all"] })} onNavigateApprovalSource={(target, projectId, recordId) => openDashboardDecision(projects.find((project) => project.number === projectId), target, recordId)} />
           ) : active === "Company Calendar" ? (
             <CompanyCalendarWorkspace initialFilter="All" canManage={["Company Owner", "Administrator"].includes(sessionActor.accessLevel)} />
           ) : active === "Estimating Calendar" ? (

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { lazy, Suspense, useEffect, useMemo, useState, type ReactNode } from "react";
 import { ALL_COMPANY_DESIGNATIONS } from "../lib/team-access";
 import { MEFFORD_COMPANY_DIRECTORY } from "./company-directory";
 import { OnboardingDocumentCenter } from "./onboarding-document-center";
@@ -13,6 +13,8 @@ import { summaryDrilldownProps } from "./summary-drilldown";
 import { EverydayWork } from "./workspace-navigation";
 import type { WorkTool } from "../lib/workspace-usability";
 import { isVideoUpload } from "../lib/photo-uploads";
+
+const OwnerApprovalCenter = lazy(() => import("./owner-approval-center").then((module) => ({ default: module.OwnerApprovalCenter })));
 
 type Actor = {
   name: string;
@@ -331,12 +333,12 @@ export function EmployeeOnboardingWorkspace({ actor }: { actor: Actor }) {
   );
 }
 
-export function EmployeePortalWorkspace({ actor, onOpenWorkItem, onWorkItemsChange, everydayTools = [], onNavigateTool, projectName, projectNumber, onDailyLog, onPhoto }: { actor: Actor; onOpenWorkItem?: (item: MyWorkItem) => void; onWorkItemsChange?: (items: MyWorkItem[]) => void; everydayTools?: WorkTool[]; onNavigateTool?: (target: string) => void; projectName?: string; projectNumber?: string; onDailyLog?: () => void; onPhoto?: () => void }) {
+export function EmployeePortalWorkspace({ actor, initialSection = "Home", onOpenWorkItem, onWorkItemsChange, everydayTools = [], onNavigateTool, projectName, projectNumber, onDailyLog, onPhoto, onNavigateApprovalSource }: { actor: Actor; initialSection?: "Home" | "Approvals"; onOpenWorkItem?: (item: MyWorkItem) => void; onWorkItemsChange?: (items: MyWorkItem[]) => void; everydayTools?: WorkTool[]; onNavigateTool?: (target: string) => void; projectName?: string; projectNumber?: string; onDailyLog?: () => void; onPhoto?: () => void; onNavigateApprovalSource?: (target: string, projectId?: string, recordId?: string) => void }) {
   const [data, setData] = useState<OnboardingResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [notice, setNotice] = useState("");
-  const [page, setPage] = useState<"Home" | HomeDestination | "My Profile">("Home");
+  const [selectedPage, setPage] = useState<"Home" | HomeDestination | "My Profile" | "Approvals">(initialSection);
 
   async function loadPortal() {
     const response = await fetch("/api/onboarding");
@@ -392,14 +394,17 @@ export function EmployeePortalWorkspace({ actor, onOpenWorkItem, onWorkItemsChan
   if (!employee) return <div className="accounting-notice">Your authenticated email is not connected to an employee record. Company Administration must create the record before this portal can open.</div>;
   const resources = employee.requirements.flatMap((requirement) => (requirement.contentFiles || []).map((file, index, files) => ({ ...file, requirement, current: index === files.length - 1 })));
   const openItems = employee.requirements.filter((requirement) => !requirement.completion);
-  const activated = !employee.permissionLocked;
+  const activated = !actor.permissionLocked && !employee.permissionLocked;
+  const canReviewOwnerApprovals = activated && actor.accessLevel === "Company Owner";
+  const page = selectedPage === "Approvals" && !canReviewOwnerApprovals ? "Home" : selectedPage;
 
   return <div className="people-workspace employee-portal-workspace">
     <section className={`people-hero employee-portal-hero ${activated ? "active-home-hero" : ""}`}><div><h1>{activated ? "My Work" : `Welcome To Mefford, ${employee.name.split(" ")[0]}`}</h1>{!activated ? <p>Complete your forms below to open your employee workspace.</p> : null}</div></section>
     {notice ? <div className="accounting-notice" role="status">{notice}</div> : null}
-    {activated ? <nav className="employee-home-nav" aria-label="Employee home sections">{(["Home", "Work & Time", "Email", "Calendar", "Requests & PTO", "Benefits", "Growth & Training", "My Profile"] as const).map((item) => <button key={item} className={page === item ? "active" : ""} onClick={() => setPage(item)}>{item}</button>)}</nav> : null}
+    {activated ? <nav className="employee-home-nav" aria-label="Employee home sections">{(["Home", ...(canReviewOwnerApprovals ? ["Approvals" as const] : []), "Work & Time", "Email", "Calendar", "Requests & PTO", "Benefits", "Growth & Training", "My Profile"] as const).map((item) => <button key={item} className={page === item ? "active" : ""} onClick={() => setPage(item)}>{item}</button>)}</nav> : null}
     {activated && page === "Home" && onNavigateTool ? <EverydayWork tools={everydayTools} onNavigate={onNavigateTool} projectName={projectName} projectNumber={projectNumber} onDailyLog={projectNumber ? onDailyLog : undefined} onPhoto={projectNumber ? onPhoto : undefined} /> : null}
     {activated && page === "Home" ? <EmployeeHomeOverview firstName={employee.name.split(" ")[0]} onNavigate={(target) => setPage(target)} onOpenWorkItem={onOpenWorkItem} /> : null}
+    {canReviewOwnerApprovals && page === "Approvals" ? <section className="employee-home-approvals" aria-label="Owner Approvals"><Suspense fallback={<div role="status">Opening Approvals…</div>}><OwnerApprovalCenter onNavigate={onNavigateApprovalSource || (() => setNotice("Open My Home From The Main Command Center To Review The Source Record."))} /></Suspense></section> : null}
     {!activated ? <section className="employee-first-day-map" aria-label="Your Mefford onboarding path"><div><b>1</b><span><strong>Finish Your Forms</strong><small>One question at a time</small></span></div><i>→</i><div><b>2</b><span><strong>We Route The Review</strong><small>No chasing people or paperwork</small></span></div><i>→</i><div><b>3</b><span><strong>Your Access Opens</strong><small>Then this becomes your everyday employee home</small></span></div></section> : null}
     {!activated || (page === "Home" && openItems.some((item) => item.blocksActivation)) ? <div id="my-onboarding"><OnboardingDocumentCenter key={employee.email} actor={actor} employee={{ email: employee.email, name: employee.name }} canAdminister={false} /></div> : null}
     {activated && page === "Work & Time" ? <><section id="my-work-home" className="employee-home-work"><MyWorkWorkspace actor={actor} onOpenItem={onOpenWorkItem || (() => setNotice("Open My Work From Your Full Command Center Access."))} onItemsChange={onWorkItemsChange} /></section><EmployeeTimeEntry /><EmployeeManagerQueue /></> : null}
