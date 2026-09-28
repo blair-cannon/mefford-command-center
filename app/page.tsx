@@ -48,6 +48,7 @@ import { indexDrawingUpload } from "../lib/drawing-client";
 import type { OwnerContractType } from "../lib/owner-contracts";
 import { isContractedActiveProject } from "../lib/contracted-projects";
 import { PHOTO_UPLOAD_ACCEPT, isPhotoUpload } from "../lib/photo-uploads";
+import { calculateChangeOrderSchedule, releasedChangeOrderSchedule } from "../lib/change-order-schedule";
 import { SummaryDrilldownHost, openSummaryDrilldown, summaryDrilldownProps } from "./summary-drilldown";
 
 const SalesEstimatingWorkspace = lazy(() => import("./sales-estimating").then((module) => ({ default: module.SalesEstimatingWorkspace })));
@@ -163,13 +164,6 @@ function inputDateFromNumeric(value: string) {
   if (!match) return "";
   const [, month, day, year] = match;
   return `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`;
-}
-
-function addCalendarDays(value: string, days: number) {
-  if (!value) return "";
-  const [year, month, day] = value.split("-").map(Number);
-  const date = new Date(Date.UTC(year, month - 1, day + Math.max(0, days)));
-  return date.toISOString().slice(0, 10);
 }
 
 function displayTimeInput(value: string) {
@@ -2198,6 +2192,9 @@ type ChangeOrderData = {
   relatedReference: string;
   scheduleImpact: "Unknown" | "No Impact Expected" | "Impact Expected";
   scheduleDays: number;
+  scheduleBasis?: "calendar-days-v1";
+  priorSubstantialDate?: string;
+  priorFinalDate?: string;
   attachments: string[];
   costStatus: "To Be Determined" | "Priced" | "Released";
   pricingLines: ChangeOrderPricingLine[];
@@ -2440,6 +2437,7 @@ async function generateExecutedChangeOrderPdf(
 
 function ChangeOrdersWorkspace({
   project,
+  actor,
   records,
   onRecordsChange,
   onProjectUpdate,
@@ -2449,6 +2447,7 @@ function ChangeOrdersWorkspace({
   onOpenBudget,
 }: {
   project: ProjectProfile;
+  actor: CommandSessionActor;
   records: RecordItem[];
   onRecordsChange: (next: RecordItem[]) => void;
   onProjectUpdate: (changes: Partial<ProjectProfile>) => void;
@@ -2457,6 +2456,7 @@ function ChangeOrdersWorkspace({
   budgetReady: boolean;
   onOpenBudget: () => void;
 }) {
+  const canRelease = ["Company Owner", "Administrator"].includes(actor.accessLevel);
   const [query, setQuery] = useState("");
   const [viewMode, setViewMode] = useState<"Office Pricing View" | "Field View">(
     "Office Pricing View",
@@ -2486,8 +2486,11 @@ function ChangeOrdersWorkspace({
   const [pricingNotes, setPricingNotes] = useState("");
   const [changeType, setChangeType] = useState<ChangeOrderData["changeType"]>("Additive");
   const [scheduleDays, setScheduleDays] = useState(0);
-  const [newSubstantialDate, setNewSubstantialDate] = useState(project.substantialDate);
-  const [newFinalDate, setNewFinalDate] = useState(project.finalDate);
+  let scheduleError = "";
+  let schedulePreview = { scheduleBasis: "calendar-days-v1" as const, scheduleDays, priorSubstantialDate: project.substantialDate, priorFinalDate: project.finalDate, newSubstantialDate: "", newFinalDate: "" };
+  try { schedulePreview = calculateChangeOrderSchedule(project, scheduleDays); }
+  catch (error) { scheduleError = error instanceof Error ? error.message : "Invalid Schedule Days"; }
+  const { newSubstantialDate, newFinalDate } = schedulePreview;
   const [pricingInviteCompany, setPricingInviteCompany] = useState("");
   const [pricingInviteEmail, setPricingInviteEmail] = useState("");
   const [dispositionReason, setDispositionReason] = useState("");
@@ -2530,10 +2533,21 @@ function ChangeOrdersWorkspace({
   const formalOriginalContract =
     formalPreviewData.originalContractValue || Number(project.contractAmount) || 0;
   const formalPreviousApproved =
-    formalPreviewData.previousApprovedChangeOrders || calculatedPreviousApproved;
+    formalPreviewRecord?.data?.previousApprovedChangeOrders != null ? formalPreviewData.previousApprovedChangeOrders : calculatedPreviousApproved;
+  const previousChanges = roundMoney(Number(project.currentContractAmount || project.contractAmount) - Number(project.contractAmount));
   const formalContractAfter =
     formalPreviewData.contractValueAfterThisChange ||
     formalOriginalContract + formalPreviousApproved + formalPreviewData.approvedTotal;
+  let formalNeedsReview = false;
+  let refreshedFormalSchedule = { newSubstantialDate: "", newFinalDate: "" };
+  let formalScheduleError = "";
+  try { refreshedFormalSchedule = calculateChangeOrderSchedule(project, formalPreviewData.scheduleDays); }
+  catch (error) { formalScheduleError = error instanceof Error ? error.message : "Invalid Completion Dates"; }
+  if (formalPreviewRecord?.status === "Awaiting Owner Signature") {
+    try { releasedChangeOrderSchedule(formalPreviewRecord.data || {}, project); }
+    catch { formalNeedsReview = true; }
+    if (Math.abs(formalContractAfter - (Number(project.currentContractAmount || project.contractAmount) + formalPreviewData.approvedTotal)) > 0.005) formalNeedsReview = true;
+  }
   const visibleRecords = records.filter((record) =>
     `${record.id} ${record.title} ${record.status} ${record.meta}`
       .toLowerCase()
@@ -2561,7 +2575,7 @@ function ChangeOrdersWorkspace({
     setDescription("");
     setReason("Owner Request");
     setRequestedBy("Project Owner");
-    setSubmittedBy(project.superintendent || project.projectManager || "Jordan Mefford");
+    setSubmittedBy(project.superintendent || project.projectManager || actor.name);
     setRelatedReference("");
     setScheduleImpact("Unknown");
     setRecordDate(currentDateInput(project.timeZone));
@@ -2578,8 +2592,6 @@ function ChangeOrdersWorkspace({
     setPricingNotes(data.pricingNotes);
     setChangeType(data.changeType);
     setScheduleDays(data.scheduleDays);
-    setNewSubstantialDate(data.newSubstantialDate || project.substantialDate);
-    setNewFinalDate(data.newFinalDate || project.finalDate);
     setPricingInviteCompany(data.pricingInviteCompany || "");
     setPricingInviteEmail(data.pricingInviteEmail || "");
     setDispositionReason(data.dispositionReason || "");
@@ -2595,6 +2607,7 @@ function ChangeOrdersWorkspace({
       showNotice("Add The Title Description And Requesting Party Before Submitting.");
       return;
     }
+    if (scheduleError) { showNotice(scheduleError); return; }
     setSaving(true);
     const id = nextWorkflowNumber(records, "PCO");
     const attachmentNames = attachmentFiles.map((file) => file.name);
@@ -2606,7 +2619,8 @@ function ChangeOrdersWorkspace({
       requestedBy: requestedBy.trim(),
       submittedBy,
       relatedReference: relatedReference.trim(),
-      scheduleImpact,
+      scheduleImpact: schedulePreview.scheduleDays > 0 ? "Impact Expected" : scheduleImpact,
+      ...schedulePreview,
       changeType,
       attachments: attachmentNames,
       workflowHistory: [workflowEntry],
@@ -2759,10 +2773,8 @@ function ChangeOrdersWorkspace({
   }
 
   function updateScheduleImpactDays(value: number) {
-    const days = Math.max(0, value || 0);
-    setScheduleDays(days);
-    setNewSubstantialDate(addCalendarDays(project.substantialDate, days));
-    setNewFinalDate(addCalendarDays(project.finalDate, days));
+    setScheduleDays(value);
+    setReleaseChecked(false);
   }
 
   async function savePricingInvite(markSent = false) {
@@ -2811,7 +2823,7 @@ function ChangeOrdersWorkspace({
       showNotice(`Add A Reason Before Marking This PCO ${status}.`);
       return;
     }
-    const entry = `${status} By Jordan Mefford · ${numericDateFromInput(currentDateInput(project.timeZone))} · Number Permanently Reserved · ${dispositionReason.trim()}`;
+    const entry = `${status} By ${actor.name} · ${numericDateFromInput(currentDateInput(project.timeZone))} · Number Permanently Reserved · ${dispositionReason.trim()}`;
     const next: RecordItem = {
       ...selectedRecord,
       status,
@@ -2840,6 +2852,7 @@ function ChangeOrdersWorkspace({
 
   async function savePricing() {
     if (!selectedRecord) return;
+    if (scheduleError) { showNotice(scheduleError); return; }
     const completeLines = pricingLines.filter(
       (line) => line.description.trim() && line.cost > 0,
     );
@@ -2863,9 +2876,8 @@ function ChangeOrdersWorkspace({
         pricingLines: completeLines,
         pricingNotes: pricingNotes.trim(),
         changeType,
-        scheduleDays: Math.max(0, scheduleDays),
-        newSubstantialDate,
-        newFinalDate,
+        ...schedulePreview,
+        scheduleImpact: schedulePreview.scheduleDays ? "Impact Expected" : "No Impact Expected",
         approvedTotal,
         workflowHistory: [...selectedData.workflowHistory, entry],
       },
@@ -2883,6 +2895,7 @@ function ChangeOrdersWorkspace({
     }
     onRecordsChange(records.map((record) => (record.id === next.id ? next : record)));
     setSaving(false);
+    setReleaseChecked(false);
     showNotice(`${selectedRecord.id} Pricing Saved And Submitted For Release Approval.`);
   }
 
@@ -2891,21 +2904,17 @@ function ChangeOrdersWorkspace({
       showNotice("Confirm The Scope Pricing Schedule Impact And Supporting Files First.");
       return;
     }
+    if (!canRelease) { showNotice("Company Owner Or Administrator Permission Required To Release."); return; }
+    if (scheduleError) { showNotice(scheduleError); return; }
     const coNumber = nextWorkflowNumber(records, "CO");
     const originalContractValue = Number(project.contractAmount) || 0;
-    const previousApprovedChangeOrders = records
-      .filter(
-        (record) =>
-          record.id.startsWith("CO-") &&
-          ["Approved", "Executed"].includes(record.status),
-      )
-      .reduce((total, record) => total + changeOrderData(record).approvedTotal, 0);
+    const previousApprovedChangeOrders = previousChanges;
     const contractValueAfterThisChange =
       originalContractValue +
       previousApprovedChangeOrders +
       selectedData.approvedTotal;
     const approvedAt = `${numericDateFromInput(currentDateInput(project.timeZone))} · ${displayTimeInput(currentTimeInput(project.timeZone))}`;
-    const releaseEntry = `Release Approved By Jordan Mefford · Company Owner · ${approvedAt} · Formal ${coNumber} Created`;
+    const releaseEntry = `Release Approved By ${actor.name} · ${actor.accessLevel} · ${approvedAt} · Formal ${coNumber} Created`;
     const convertedPco: RecordItem = {
       ...selectedRecord,
       status: "Converted",
@@ -2914,13 +2923,12 @@ function ChangeOrdersWorkspace({
         ...selectedData,
         costStatus: "Released",
         coNumber,
-        releaseApprovedBy: "Jordan Mefford",
+        releaseApprovedBy: actor.name,
         releaseApprovedAt: approvedAt,
         originalContractValue,
         previousApprovedChangeOrders,
         contractValueAfterThisChange,
-        newSubstantialDate: selectedData.newSubstantialDate || newSubstantialDate,
-        newFinalDate: selectedData.newFinalDate || newFinalDate,
+        ...schedulePreview,
         workflowHistory: [...selectedData.workflowHistory, releaseEntry],
       },
       auditHistory: [...(selectedRecord.auditHistory ?? []), releaseEntry],
@@ -2964,10 +2972,25 @@ function ChangeOrdersWorkspace({
     showNotice(`${coNumber} Created And Approved For Distribution To The Project Owner.`);
   }
 
+  async function reapproveFormalDates() {
+    if (!formalPreviewRecord || !canRelease || !releaseChecked) return;
+    setSaving(true);
+    try {
+      const schedule = calculateChangeOrderSchedule(project, formalPreviewData.scheduleDays);
+      const entry = `Completion Dates And Contract Value Reviewed And Reapproved By ${actor.name} · ${currentDateInput(project.timeZone)}`;
+      const next: RecordItem = { ...formalPreviewRecord, data: { ...formalPreviewData, ...schedule, originalContractValue: Number(project.contractAmount), previousApprovedChangeOrders: previousChanges, contractValueAfterThisChange: Number(project.currentContractAmount || project.contractAmount) + formalPreviewData.approvedTotal, releaseApprovedBy: actor.name, releaseApprovedAt: currentDateInput(project.timeZone), ownerSignatureName: "", ownerSignatureTitle: "", ownerSignatureDate: "", ownerSignatureMethod: undefined, executedFileName: "", executedFileId: null, workflowHistory: [...formalPreviewData.workflowHistory, entry] } };
+      await persistCommandRecord(project.number, "Change Orders", next);
+      onRecordsChange(records.map(record => record.id === next.id ? next : record));
+      setReleaseChecked(false); setOwnerSignatureConsent(false); setOwnerSignerName(""); setExecutedFile(null);
+      showNotice("Updated Dates Reapproved. Obtain The Owner's Signature On This Revised Document.");
+    } catch (error) { showNotice(error instanceof Error ? error.message : "The Dates Could Not Be Reapproved."); }
+    setSaving(false);
+  }
+
   async function executeFormalChangeOrder(
     method: "Electronic Signature" | "Uploaded Signed PDF",
   ) {
-    if (!formalPreviewRecord) return;
+    if (!formalPreviewRecord || formalNeedsReview) return;
     if (method === "Electronic Signature" && (!ownerSignerName.trim() || !ownerSignatureConsent)) {
       showNotice("Add The Owner Signer Name And Confirm The Electronic Signature Consent.");
       return;
@@ -3349,9 +3372,9 @@ function ChangeOrdersWorkspace({
                 ) : <button className="empty-pricing" onClick={addPricingLine}>＋ Add The First Labor Material Equipment Or Subcontractor Cost</button>}
                 <div className="pricing-footer-grid">
                   <label className="field-label">Change Order Type<select value={changeType} onChange={(event) => setChangeType(event.target.value as ChangeOrderData["changeType"])}><option>Additive</option><option>Deductive</option><option>No Cost</option></select></label>
-                  <label className="field-label">Final Schedule Impact In Days<input type="number" min="0" value={scheduleDays} onChange={(event) => updateScheduleImpactDays(Number(event.target.value))} /></label>
-                  <label className="field-label">New Substantial Completion Date<input type="date" value={newSubstantialDate} onChange={(event) => setNewSubstantialDate(event.target.value)} /></label>
-                  <label className="field-label">New Final Completion Date<input type="date" value={newFinalDate} onChange={(event) => setNewFinalDate(event.target.value)} /></label>
+                  <label className="field-label">Final Schedule Impact In Days<input type="number" min="0" value={scheduleDays} onChange={(event) => updateScheduleImpactDays(Number(event.target.value))} />{scheduleError ? <small role="alert">{scheduleError}</small> : null}</label>
+                  <label className="field-label">New Substantial Completion Date<input type="date" value={newSubstantialDate} readOnly /></label>
+                  <label className="field-label">New Final Completion Date<input type="date" value={newFinalDate} readOnly /></label>
                   <label className="field-label">Pricing Notes<textarea rows={3} value={pricingNotes} onChange={(event) => setPricingNotes(event.target.value)} placeholder="Clarifications exclusions allowance or pricing assumptions" /></label>
                   <div className="pricing-total"><span>Proposed {changeType} Change Amount</span><strong>{formatCurrency(pricedChangeValue(pricingLines, changeType))}</strong><small>{changeType === "No Cost" ? "No Contract Value Change" : "Includes Entered Markup And Cost Code Allocation"}</small></div>
                 </div>
@@ -3365,11 +3388,11 @@ function ChangeOrdersWorkspace({
                 <small>{selectedData.pricingLines.length} Pricing Line{selectedData.pricingLines.length === 1 ? "" : "s"} · {selectedData.scheduleDays} Schedule Day{selectedData.scheduleDays === 1 ? "" : "s"} · Substantial {displayProjectDate(selectedData.newSubstantialDate || project.substantialDate)} · Final {displayProjectDate(selectedData.newFinalDate || project.finalDate)}</small>
               </section>
             ) : null}
-            {selectedRecord.status === "Awaiting Release" && viewMode === "Office Pricing View" ? (
+            {selectedRecord.status === "Awaiting Release" && viewMode === "Office Pricing View" && canRelease ? (
               <section className="release-checkoff">
                 <div><h3>Approve Release To The Project Owner</h3></div>
                 <label><input type="checkbox" checked={releaseChecked} onChange={(event) => setReleaseChecked(event.target.checked)} /><span>I Confirm The Scope Pricing Markup Schedule Impact And Supporting Files Are Complete For This Exact Version.</span></label>
-                <button className="primary-action large" disabled={!releaseChecked || saving} onClick={approveRelease}>{saving ? "Creating Formal Change Order..." : `Approve Release And Create ${nextWorkflowNumber(records, "CO")}`}</button>
+                <button className="primary-action large" disabled={!releaseChecked || saving || Boolean(scheduleError)} onClick={approveRelease}>{saving ? "Creating Formal Change Order..." : `Approve Release And Create ${nextWorkflowNumber(records, "CO")}`}</button>
               </section>
             ) : null}
             {selectedRecord.id.startsWith("CO-") ? (
@@ -3413,6 +3436,7 @@ function ChangeOrdersWorkspace({
               <div><span>New Substantial Completion Date</span><strong>{displayProjectDate(formalPreviewData.newSubstantialDate || project.substantialDate)}</strong></div>
               <div><span>New Final Completion Date</span><strong>{displayProjectDate(formalPreviewData.newFinalDate || project.finalDate)}</strong></div>
             </section>
+            {formalNeedsReview ? <section className="co-review-conflict" role="alert"><h3>Project Dates Or Contract Value Have Changed</h3><p>Review And Reapprove This Change Order Before Obtaining A New Owner Signature.</p>{canRelease ? <><div><span>Refreshed New Substantial Completion Date</span><strong>{displayProjectDate(refreshedFormalSchedule.newSubstantialDate || project.substantialDate)}</strong></div><div><span>Refreshed New Final Completion Date</span><strong>{displayProjectDate(refreshedFormalSchedule.newFinalDate || project.finalDate)}</strong></div><label><input type="checkbox" checked={releaseChecked} onChange={event => setReleaseChecked(event.target.checked)} /> I Approve The Revised Dates And Contract Value ({formatCurrency(Number(project.currentContractAmount || project.contractAmount) + formalPreviewData.approvedTotal)}).</label>{formalScheduleError ? <p>{formalScheduleError}</p> : null}<button className="primary-action" disabled={saving || !releaseChecked || Boolean(formalScheduleError)} onClick={reapproveFormalDates}>Reapprove Updated Change Order</button></> : <p>Company Owner Or Administrator Reapproval Required.</p>}</section> : null}
             <section className="formal-co-certification"><p>The Contract Sum Contract Time And Contract Documents Are Modified Only As Stated In This Change Order. All Other Contract Terms Remain Unchanged.</p></section>
             <section className="formal-co-signatures"><div><span>Project Owner</span>{formalPreviewData.ownerSignatureName ? <strong className="executed-signature">{formalPreviewData.ownerSignatureName}</strong> : <i />}<small>{formalPreviewData.ownerSignatureName ? `${formalPreviewData.ownerSignatureTitle} · ${displayProjectDate(formalPreviewData.ownerSignatureDate || "")} · ${formalPreviewData.ownerSignatureMethod}` : "Signature / Date"}</small></div><div><span>Mefford Contracting</span><strong className="executed-signature">{formalPreviewData.releaseApprovedBy || "Jordan Mefford"}</strong><small>Authorized Signature / Release Approval</small></div></section>
             {formalPreviewRecord.status === "Awaiting Owner Signature" ? (
@@ -3423,10 +3447,10 @@ function ChangeOrdersWorkspace({
                   <label className="field-label">Signer Title<input value={ownerSignerTitle} onChange={(event) => setOwnerSignerTitle(event.target.value)} /></label>
                 </div>
                 <label className="owner-signature-consent"><input type="checkbox" checked={ownerSignatureConsent} onChange={(event) => setOwnerSignatureConsent(event.target.checked)} /><span>I Am Authorized To Sign For The Project Owner And I Intend This Electronic Signature To Execute This Change Order.</span></label>
-                <button className="primary-action" disabled={saving || !ownerSignatureConsent || !ownerSignerName.trim()} onClick={() => executeFormalChangeOrder("Electronic Signature")}>{saving ? "Saving Execution..." : "Sign And Execute Change Order"}</button>
+                <button className="primary-action" disabled={saving || formalNeedsReview || !ownerSignatureConsent || !ownerSignerName.trim()} onClick={() => executeFormalChangeOrder("Electronic Signature")}>{saving ? "Saving Execution..." : "Sign And Execute Change Order"}</button>
                 <div className="execution-divider"><span>OR</span></div>
                 <label className="signed-pdf-upload"><input type="file" data-format-required="true" accept="application/pdf" onChange={(event) => setExecutedFile(event.target.files?.[0] || null)} /><span>＋</span><strong>{executedFile?.name || "Choose Owner-Signed PDF"}</strong><small>PDF Up To 1 GB</small></label>
-                <button className="secondary-action" disabled={saving || !executedFile} onClick={() => executeFormalChangeOrder("Uploaded Signed PDF")}>Upload Signed PDF And Mark Executed</button>
+                <button className="secondary-action" disabled={saving || formalNeedsReview || !executedFile} onClick={() => executeFormalChangeOrder("Uploaded Signed PDF")}>Upload Signed PDF And Mark Executed</button>
               </section>
             ) : (
               <section className="formal-executed-stamp"><span>EXECUTED</span><strong>{formalPreviewData.ownerSignatureName || project.ownerName}</strong><small>{formalPreviewData.executedAt || displayProjectDate(formalPreviewData.ownerSignatureDate || formalPreviewRecord.recordDate || "")}{formalPreviewData.executedFileName ? ` · ${formalPreviewData.executedFileName}` : ""} · Filed In Financial Info / Change Orders</small></section>
@@ -9345,6 +9369,7 @@ export default function Home() {
           ) : active === "Change Orders" ? (
             <ChangeOrdersWorkspace
               project={projectProfile}
+              actor={sessionActor}
               records={records["Change Orders"] ?? []}
               onRecordsChange={(next) =>
                 setRecords((current) => ({
