@@ -10,7 +10,6 @@ import {
   useState,
   type PointerEvent as ReactPointerEvent,
 } from "react";
-import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
 import type { WorkSheet } from "xlsx";
 import type { AccountingMode } from "./accounting-erp";
 import {
@@ -50,6 +49,8 @@ import { isContractedActiveProject } from "../lib/contracted-projects";
 import { PHOTO_UPLOAD_ACCEPT, isPhotoUpload } from "../lib/photo-uploads";
 import { calculateChangeOrderSchedule, releasedChangeOrderSchedule } from "../lib/change-order-schedule";
 import { SummaryDrilldownHost, openSummaryDrilldown, summaryDrilldownProps } from "./summary-drilldown";
+import { ChangeOrderPanel, ChangeOrderScheduleFields } from "./change-order-record";
+import { ChangeOrderFile } from "./change-order-file";
 
 const SalesEstimatingWorkspace = lazy(() => import("./sales-estimating").then((module) => ({ default: module.SalesEstimatingWorkspace })));
 const ScheduleWorkspace = lazy(() => import("./schedule-workspace").then((module) => ({ default: module.ScheduleWorkspace })));
@@ -2307,132 +2308,10 @@ function formatCurrency(value: number) {
   }).format(value);
 }
 
-function wrapPdfText(
-  text: string,
-  maxWidth: number,
-  font: { widthOfTextAtSize: (value: string, size: number) => number },
-  size: number,
-) {
-  const words = text.replaceAll("·", "-").split(/\s+/).filter(Boolean);
-  const lines: string[] = [];
-  let current = "";
-  for (const word of words) {
-    const next = current ? `${current} ${word}` : word;
-    if (font.widthOfTextAtSize(next, size) <= maxWidth || !current) {
-      current = next;
-    } else {
-      lines.push(current);
-      current = word;
-    }
-  }
-  if (current) lines.push(current);
-  return lines;
-}
-
-async function generateExecutedChangeOrderPdf(
-  record: RecordItem,
-  data: ChangeOrderData,
-  project: ProjectProfile,
-) {
-  const pdf = await PDFDocument.create();
-  pdf.setTitle(`${record.id} ${record.title}`);
-  pdf.setAuthor("Mefford Contracting");
-  pdf.setSubject("Executed Change Order");
-  const page = pdf.addPage([612, 792]);
-  const regular = await pdf.embedFont(StandardFonts.Helvetica);
-  const bold = await pdf.embedFont(StandardFonts.HelveticaBold);
-  const red = rgb(0.616, 0.188, 0.157);
-  const ink = rgb(0.1, 0.12, 0.13);
-  const muted = rgb(0.39, 0.43, 0.45);
-  const line = rgb(0.79, 0.81, 0.8);
-  const margin = 46;
-  const width = 520;
-  let y = 742;
-
-  try {
-    const logoResponse = await fetch("/mefford-logo.png");
-    const logo = await pdf.embedPng(await logoResponse.arrayBuffer());
-    page.drawImage(logo, { x: margin, y: y - 28, width: 50, height: 43 });
-  } catch {
-    page.drawRectangle({ x: margin, y: y - 22, width: 46, height: 34, color: red });
-  }
-  page.drawText("MEFFORD CONTRACTING", { x: 108, y: y + 4, size: 8, font: bold, color: muted });
-  page.drawText("Change Order", { x: 108, y: y - 19, size: 23, font: bold, color: ink });
-  page.drawText(record.id, { x: 500, y: y - 11, size: 15, font: bold, color: red });
-  page.drawLine({ start: { x: margin, y: y - 38 }, end: { x: margin + width, y: y - 38 }, thickness: 3, color: red });
-  y -= 65;
-
-  const projectFields = [
-    ["Project", project.name],
-    ["Project Number", project.number],
-    ["Owner", project.ownerName],
-    ["Date", record.due],
-  ];
-  const projectCell = width / 4;
-  projectFields.forEach(([label, value], index) => {
-    const x = margin + index * projectCell;
-    page.drawRectangle({ x, y: y - 34, width: projectCell, height: 42, borderColor: line, borderWidth: 0.7 });
-    page.drawText(label.toUpperCase(), { x: x + 7, y: y - 6, size: 6, font: bold, color: muted });
-    page.drawText(value, { x: x + 7, y: y - 22, size: 8, font: bold, color: ink, maxWidth: projectCell - 14 });
-  });
-  y -= 58;
-  page.drawText("CHANGE ORDER TITLE", { x: margin, y, size: 6, font: bold, color: muted });
-  page.drawText(record.title, { x: margin, y: y - 19, size: 15, font: bold, color: ink });
-  y -= 43;
-  page.drawText("DESCRIPTION OF CHANGED WORK", { x: margin, y, size: 6, font: bold, color: muted });
-  const descriptionLines = wrapPdfText(data.description, width - 20, regular, 9);
-  const descriptionHeight = Math.max(72, descriptionLines.length * 13 + 25);
-  page.drawRectangle({ x: margin, y: y - descriptionHeight, width, height: descriptionHeight - 8, borderColor: line, borderWidth: 0.7 });
-  descriptionLines.forEach((text, index) => page.drawText(text, { x: margin + 10, y: y - 23 - index * 13, size: 9, font: regular, color: ink }));
-  y -= descriptionHeight + 10;
-  page.drawText(`Type: ${data.changeType}  |  Reason: ${data.reason}  |  Requested By: ${data.requestedBy}`, { x: margin, y, size: 7, font: regular, color: muted });
-  y -= 26;
-
-  const valueRows: Array<[string, number]> = [
-    ["Original Contract Value", data.originalContractValue],
-    ["This Change Order", data.approvedTotal],
-    ["Previously Approved Change Orders", data.previousApprovedChangeOrders],
-    ["Contract Value After This Change Order", data.contractValueAfterThisChange],
-  ];
-  valueRows.forEach(([label, value], index) => {
-    const rowY = y - index * 25;
-    page.drawRectangle({ x: margin, y: rowY - 20, width, height: 25, borderColor: line, borderWidth: 0.7 });
-    page.drawText(label, { x: margin + 9, y: rowY - 11, size: 8, font: bold, color: muted });
-    const amount = formatCurrency(value);
-    page.drawText(amount, { x: margin + width - 9 - bold.widthOfTextAtSize(amount, 9), y: rowY - 11, size: 9, font: bold, color: ink });
-  });
-  y -= 116;
-  const scheduleRows = [
-    ["Contract Time Change", data.scheduleDays ? `${data.scheduleDays} Calendar Days` : "No Change"],
-    ["New Substantial Completion Date", displayProjectDate(data.newSubstantialDate)],
-    ["New Final Completion Date", displayProjectDate(data.newFinalDate)],
-  ];
-  const scheduleCell = width / 3;
-  scheduleRows.forEach(([label, value], index) => {
-    const x = margin + index * scheduleCell;
-    page.drawRectangle({ x, y: y - 38, width: scheduleCell, height: 46, borderColor: line, borderWidth: 0.7 });
-    page.drawText(label.toUpperCase(), { x: x + 7, y: y - 7, size: 5.5, font: bold, color: muted });
-    page.drawText(value, { x: x + 7, y: y - 24, size: 8, font: bold, color: ink, maxWidth: scheduleCell - 14 });
-  });
-  y -= 67;
-  const certification = "The Contract Sum Contract Time And Contract Documents Are Modified Only As Stated In This Change Order. All Other Contract Terms Remain Unchanged.";
-  page.drawRectangle({ x: margin, y: y - 34, width, height: 42, color: rgb(0.95, 0.96, 0.95) });
-  wrapPdfText(certification, width - 18, bold, 7).forEach((text, index) => page.drawText(text, { x: margin + 9, y: y - 10 - index * 11, size: 7, font: bold, color: ink }));
-  y -= 72;
-
-  page.drawText("PROJECT OWNER", { x: margin, y, size: 6, font: bold, color: muted });
-  page.drawText("MEFFORD CONTRACTING", { x: 330, y, size: 6, font: bold, color: muted });
-  page.drawText(data.ownerSignatureName || project.ownerName, { x: margin, y: y - 26, size: 13, font: regular, color: ink });
-  page.drawText(data.releaseApprovedBy || "Jordan Mefford", { x: 330, y: y - 26, size: 13, font: regular, color: ink });
-  page.drawLine({ start: { x: margin, y: y - 31 }, end: { x: 278, y: y - 31 }, thickness: 0.7, color: ink });
-  page.drawLine({ start: { x: 330, y: y - 31 }, end: { x: 566, y: y - 31 }, thickness: 0.7, color: ink });
-  page.drawText(`${data.ownerSignatureTitle || "Authorized Representative"} - ${displayProjectDate(data.ownerSignatureDate || "")}`, { x: margin, y: y - 43, size: 6, font: regular, color: muted });
-  page.drawText("Authorized Signature / Release Approval", { x: 330, y: y - 43, size: 6, font: regular, color: muted });
-  page.drawText("EXECUTED", { x: margin, y: 42, size: 8, font: bold, color: rgb(0.15, 0.43, 0.31) });
-  page.drawText(`Originated As ${data.originPco || "N/A"}  |  Filed In Financial Info / Change Orders`, { x: 112, y: 42, size: 6.5, font: regular, color: muted });
-
-  const bytes = Uint8Array.from(await pdf.save());
-  return new File([bytes.buffer], `${record.id} Executed.pdf`, { type: "application/pdf" });
+async function generateExecutedChangeOrderPdf(record: RecordItem, data: ChangeOrderData, project: ProjectProfile) {
+  const { generateChangeOrderPdf } = await import("../lib/change-order-document");
+  const bytes = await generateChangeOrderPdf({ record, data, project });
+  return new File([new Uint8Array(bytes)], `${record.id} Executed.pdf`, { type: "application/pdf" });
 }
 
 function ChangeOrdersWorkspace({
@@ -2456,6 +2335,7 @@ function ChangeOrdersWorkspace({
   budgetReady: boolean;
   onOpenBudget: () => void;
 }) {
+  const [recordTab, setRecordTab] = useState(0);
   const canRelease = ["Company Owner", "Administrator"].includes(actor.accessLevel);
   const [query, setQuery] = useState("");
   const [viewMode, setViewMode] = useState<"Office Pricing View" | "Field View">(
@@ -2481,7 +2361,7 @@ function ChangeOrdersWorkspace({
   const [recordTime, setRecordTime] = useState(() =>
     currentTimeInput(project.timeZone),
   );
-  const [attachmentFiles, setAttachmentFiles] = useState<File[]>([]);
+  const [fileDirty, setFileDirty] = useState(false);
   const [pricingLines, setPricingLines] = useState<ChangeOrderPricingLine[]>([]);
   const [pricingNotes, setPricingNotes] = useState("");
   const [changeType, setChangeType] = useState<ChangeOrderData["changeType"]>("Additive");
@@ -2534,20 +2414,9 @@ function ChangeOrdersWorkspace({
     formalPreviewData.originalContractValue || Number(project.contractAmount) || 0;
   const formalPreviousApproved =
     formalPreviewRecord?.data?.previousApprovedChangeOrders != null ? formalPreviewData.previousApprovedChangeOrders : calculatedPreviousApproved;
-  const previousChanges = roundMoney(Number(project.currentContractAmount || project.contractAmount) - Number(project.contractAmount));
   const formalContractAfter =
     formalPreviewData.contractValueAfterThisChange ||
     formalOriginalContract + formalPreviousApproved + formalPreviewData.approvedTotal;
-  let formalNeedsReview = false;
-  let refreshedFormalSchedule = { newSubstantialDate: "", newFinalDate: "" };
-  let formalScheduleError = "";
-  try { refreshedFormalSchedule = calculateChangeOrderSchedule(project, formalPreviewData.scheduleDays); }
-  catch (error) { formalScheduleError = error instanceof Error ? error.message : "Invalid Completion Dates"; }
-  if (formalPreviewRecord?.status === "Awaiting Owner Signature") {
-    try { releasedChangeOrderSchedule(formalPreviewRecord.data || {}, project); }
-    catch { formalNeedsReview = true; }
-    if (Math.abs(formalContractAfter - (Number(project.currentContractAmount || project.contractAmount) + formalPreviewData.approvedTotal)) > 0.005) formalNeedsReview = true;
-  }
   const visibleRecords = records.filter((record) =>
     `${record.id} ${record.title} ${record.status} ${record.meta}`
       .toLowerCase()
@@ -2564,30 +2433,59 @@ function ChangeOrdersWorkspace({
     )
     .reduce((total, record) => total + changeOrderData(record).approvedTotal, 0);
 
+  const editablePricing = Boolean(selectedRecord?.id.startsWith("PCO-") && ["Submitted", "Pricing", "Awaiting Release"].includes(selectedRecord.status));
+  const pricingDirty = editablePricing && JSON.stringify([title.trim(), description.trim(), reason, requestedBy.trim(), relatedReference.trim(), pricingLines, pricingNotes.trim(), changeType, scheduleDays, newSubstantialDate, newFinalDate]) !== JSON.stringify([selectedRecord?.title, selectedData.description, selectedData.reason, selectedData.requestedBy, selectedData.relatedReference, selectedData.pricingLines, selectedData.pricingNotes, selectedData.changeType, selectedData.scheduleDays, selectedData.newSubstantialDate, selectedData.newFinalDate]);
+  const previousChanges = roundMoney(Number(project.currentContractAmount || project.contractAmount) - Number(project.contractAmount));
+  const draftDocument = {
+    project,
+    record: createOpen ? { id: nextWorkflowNumber(records, "PCO"), title, due: recordDate, status: "Draft" } : selectedRecord ? { ...selectedRecord, title: editablePricing ? title : selectedRecord.title } : { id: "", title: "", due: "", status: "Draft" },
+    data: createOpen ? { ...emptyChangeOrderData, description, reason, requestedBy, relatedReference, changeType, ...schedulePreview, originalContractValue: Number(project.contractAmount), previousApprovedChangeOrders: previousChanges } : editablePricing && viewMode === "Office Pricing View" ? { ...selectedData, description, reason, requestedBy, relatedReference, ...schedulePreview, pricingNotes, changeType, costStatus: pricingLines.length || changeType === "No Cost" ? "Priced" : "To Be Determined", approvedTotal: pricedChangeValue(pricingLines, changeType), originalContractValue: Number(project.contractAmount), previousApprovedChangeOrders: previousChanges, contractValueAfterThisChange: Number(project.contractAmount) + previousChanges + pricedChangeValue(pricingLines, changeType) } : selectedData,
+  };
+  let formalNeedsReview = false;
+  let refreshedFormalSchedule = { newSubstantialDate: "", newFinalDate: "" };
+  let formalScheduleError = "";
+  try { refreshedFormalSchedule = calculateChangeOrderSchedule(project, formalPreviewData.scheduleDays); }
+  catch (error) { formalScheduleError = error instanceof Error ? error.message : "Invalid Completion Dates"; }
+  if (formalPreviewRecord?.status === "Awaiting Owner Signature") {
+    try { releasedChangeOrderSchedule(formalPreviewRecord.data || {}, project); }
+    catch { formalNeedsReview = true; }
+    if (Math.abs(formalContractAfter - (Number(project.currentContractAmount || project.contractAmount) + formalPreviewData.approvedTotal)) > 0.005) formalNeedsReview = true;
+  }
+  function closeChangeRecord() {
+    if (saving) return;
+    if ((createOpen && Boolean(title || description || scheduleDays) || !formalPreviewRecord && pricingDirty || fileDirty) && !window.confirm("Discard Unsaved Change Order Edits?")) return;
+    setCreateOpen(false); setSelectedId(null); setFormalPreviewId(null); setNotice("");
+  }
+  function reviewedSchedule() {
+    if (scheduleError) { showNotice(scheduleError); return null; }
+    return schedulePreview;
+  }
+
   function openCreate() {
-    if (!budgetReady) {
-      showNotice(
-        "Complete And Lock The Original Project Budget Before Starting A Change Order.",
-      );
-      return;
-    }
+    setNotice("");
+    setRecordTab(0);
+    setScheduleDays(0);
+    setPricingLines([]);
+    setPricingNotes("");
     setTitle("");
     setDescription("");
     setReason("Owner Request");
     setRequestedBy("Project Owner");
-    setSubmittedBy(project.superintendent || project.projectManager || actor.name);
+    setSubmittedBy(actor.name);
     setRelatedReference("");
     setScheduleImpact("Unknown");
     setRecordDate(currentDateInput(project.timeZone));
     setRecordTime(currentTimeInput(project.timeZone));
-    setAttachmentFiles([]);
     setChangeType("Additive");
     setCreateOpen(true);
   }
 
   function openRecord(record: RecordItem) {
     const data = changeOrderData(record);
+    setNotice("");
+    setRecordTab(4);
     setSelectedId(record.id);
+    setTitle(record.title); setDescription(data.description); setReason(data.reason); setRequestedBy(data.requestedBy); setSubmittedBy(data.submittedBy); setRelatedReference(data.relatedReference);
     setPricingLines(data.pricingLines);
     setPricingNotes(data.pricingNotes);
     setChangeType(data.changeType);
@@ -2607,10 +2505,10 @@ function ChangeOrdersWorkspace({
       showNotice("Add The Title Description And Requesting Party Before Submitting.");
       return;
     }
-    if (scheduleError) { showNotice(scheduleError); return; }
+    const schedule = reviewedSchedule();
+    if (!schedule) return;
     setSaving(true);
     const id = nextWorkflowNumber(records, "PCO");
-    const attachmentNames = attachmentFiles.map((file) => file.name);
     const workflowEntry = `Submitted By ${submittedBy} · ${numericDateFromInput(recordDate)} · ${displayTimeInput(recordTime)} · Cost To Be Determined`;
     const data: ChangeOrderData = {
       ...emptyChangeOrderData,
@@ -2619,10 +2517,10 @@ function ChangeOrdersWorkspace({
       requestedBy: requestedBy.trim(),
       submittedBy,
       relatedReference: relatedReference.trim(),
-      scheduleImpact: schedulePreview.scheduleDays > 0 ? "Impact Expected" : scheduleImpact,
-      ...schedulePreview,
+      scheduleImpact: schedule.scheduleDays > 0 ? "Impact Expected" : scheduleImpact,
+      ...schedule,
       changeType,
-      attachments: attachmentNames,
+      attachments: [],
       workflowHistory: [workflowEntry],
     };
     const record: RecordItem = {
@@ -2640,9 +2538,6 @@ function ChangeOrdersWorkspace({
       persistent: true,
     };
     try {
-      for (const file of attachmentFiles) {
-        await uploadChangeOrderAttachment(file, project.number, id);
-      }
       await persistCommandRecord(project.number, "Change Orders", record);
     } catch (error) {
       setSaving(false);
@@ -2656,6 +2551,8 @@ function ChangeOrdersWorkspace({
     onRecordsChange([record, ...records]);
     setSaving(false);
     setCreateOpen(false);
+    openRecord(record);
+    setRecordTab(4);
     showNotice(`${id} Submitted Permanently To ${record.owner} For Pricing.`);
   }
 
@@ -2850,9 +2747,31 @@ function ChangeOrdersWorkspace({
     showNotice(`${selectedRecord.id} Is ${status} And Its Number Remains Permanently Reserved.`);
   }
 
+  async function savePcoDetails() {
+    if (!selectedRecord || !editablePricing) return;
+    if (!title.trim() || !description.trim() || !requestedBy.trim()) { showNotice("Add The Title Description And Requesting Party Before Saving."); return; }
+    const schedule = reviewedSchedule();
+    if (!schedule) return;
+    const next: RecordItem = {
+      ...selectedRecord, title: title.trim(), status: selectedRecord.status === "Awaiting Release" ? "Pricing" : selectedRecord.status,
+      data: { ...selectedData, description: description.trim(), reason, requestedBy: requestedBy.trim(), relatedReference: relatedReference.trim(), pricingLines, pricingNotes: pricingNotes.trim(), changeType, ...schedule, costStatus: "To Be Determined", approvedTotal: 0 },
+      meta: "PCO Saved · Pricing Not Released",
+    };
+    setSaving(true);
+    try {
+      await persistCommandRecord(project.number, "Change Orders", next);
+      onRecordsChange(records.map(record => record.id === next.id ? next : record));
+      setReleaseChecked(false);
+      showNotice(`${next.id} Saved. Its Prior Version Remains In Audit History.`);
+    } catch (error) { showNotice(error instanceof Error ? error.message : "The PCO Could Not Be Saved."); }
+    finally { setSaving(false); }
+  }
+
   async function savePricing() {
     if (!selectedRecord) return;
-    if (scheduleError) { showNotice(scheduleError); return; }
+    if (!title.trim() || !description.trim() || !requestedBy.trim()) { showNotice("Add The Title Description And Requesting Party Before Submitting."); return; }
+    const schedule = reviewedSchedule();
+    if (!schedule) return;
     const completeLines = pricingLines.filter(
       (line) => line.description.trim() && line.cost > 0,
     );
@@ -2868,16 +2787,18 @@ function ChangeOrdersWorkspace({
     const entry = `Priced By ${project.projectManager || "Company Owner"} · ${changeType} · ${formatCurrency(approvedTotal)} · Submitted For Release Approval`;
     const next: RecordItem = {
       ...selectedRecord,
+      title: title.trim(),
       status: "Awaiting Release",
       meta: `${formatCurrency(approvedTotal)} · Company Owner Or Administrator Release Required`,
       data: {
         ...selectedData,
+        description: description.trim(), reason, requestedBy: requestedBy.trim(), relatedReference: relatedReference.trim(),
         costStatus: "Priced",
         pricingLines: completeLines,
         pricingNotes: pricingNotes.trim(),
         changeType,
-        ...schedulePreview,
-        scheduleImpact: schedulePreview.scheduleDays ? "Impact Expected" : "No Impact Expected",
+        ...schedule,
+        scheduleImpact: schedule.scheduleDays ? "Impact Expected" : "No Impact Expected",
         approvedTotal,
         workflowHistory: [...selectedData.workflowHistory, entry],
       },
@@ -2895,7 +2816,10 @@ function ChangeOrdersWorkspace({
     }
     onRecordsChange(records.map((record) => (record.id === next.id ? next : record)));
     setSaving(false);
+    setPricingLines(completeLines);
+    setPricingNotes(pricingNotes.trim());
     setReleaseChecked(false);
+    setRecordTab(3);
     showNotice(`${selectedRecord.id} Pricing Saved And Submitted For Release Approval.`);
   }
 
@@ -2904,8 +2828,9 @@ function ChangeOrdersWorkspace({
       showNotice("Confirm The Scope Pricing Schedule Impact And Supporting Files First.");
       return;
     }
-    if (!canRelease) { showNotice("Company Owner Or Administrator Permission Required To Release."); return; }
-    if (scheduleError) { showNotice(scheduleError); return; }
+    if (!canRelease || pricingDirty) { showNotice("Save Pricing And Completion Dates Before Release Approval."); return; }
+    const schedule = reviewedSchedule();
+    if (!schedule) return;
     const coNumber = nextWorkflowNumber(records, "CO");
     const originalContractValue = Number(project.contractAmount) || 0;
     const previousApprovedChangeOrders = previousChanges;
@@ -2928,7 +2853,7 @@ function ChangeOrdersWorkspace({
         originalContractValue,
         previousApprovedChangeOrders,
         contractValueAfterThisChange,
-        ...schedulePreview,
+        ...schedule,
         workflowHistory: [...selectedData.workflowHistory, releaseEntry],
       },
       auditHistory: [...(selectedRecord.auditHistory ?? []), releaseEntry],
@@ -2967,6 +2892,7 @@ function ChangeOrdersWorkspace({
     onRecordsChange(nextRecords);
     setSelectedId(coNumber);
     setFormalPreviewId(coNumber);
+    setRecordTab(1);
     setReleaseChecked(false);
     setSaving(false);
     showNotice(`${coNumber} Created And Approved For Distribution To The Project Owner.`);
@@ -3074,23 +3000,24 @@ function ChangeOrdersWorkspace({
 
   function showNotice(message: string) {
     setNotice(message);
-    window.setTimeout(() => setNotice(""), 3600);
+
   }
 
   return (
     <div className="module-workspace change-order-workspace">
+      {!createOpen && !selectedRecord && !formalPreviewRecord ? <>
       <section className="workspace-heading change-order-heading">
         <div>
           <p className="eyebrow orange-text">{project.name.toUpperCase()}</p>
           <h1>Change Orders</h1>
 
         </div>
-        <button className="primary-action large" disabled={!budgetReady} onClick={openCreate}>
+        <button className="primary-action large" onClick={openCreate}>
           ＋ New Potential Change Order
         </button>
       </section>
       {notice ? <div className="inline-success">{notice}</div> : null}
-      {!budgetReady ? <section className="budget-prerequisite"><span>1</span><div><strong>Locked Original Budget Required</strong><p>Select project cost codes enter a positive original budget and lock it before creating or updating Change Orders.</p></div><button className="primary-action" onClick={onOpenBudget}>Open Budget Setup</button></section> : null}
+      {!budgetReady ? <div className="change-order-controls"><span>Pricing Requires A Locked Original Budget.</span><button className="secondary-action" onClick={onOpenBudget}>Open Budget Setup</button></div> : null}
       <section className="change-order-summary">
         <article {...summaryDrilldownProps({ title: "Potential Change Orders", rows: records.filter((record) => record.id.startsWith("PCO-")).map((record) => ({ id: record.id, title: record.title, subtitle: record.meta, status: record.status, value: formatCurrency(changeOrderData(record).approvedTotal), onOpen: () => openRecord(record), openLabel: "Open PCO →" })) })}>
           <span>PCO</span>
@@ -3189,138 +3116,37 @@ function ChangeOrdersWorkspace({
         })}
       </section>
 
-      {createOpen ? (
-        <div className="modal-layer" role="presentation">
-          <section
-            className="record-modal wide change-order-modal"
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="new-pco-title"
-          >
-            <div className="modal-heading">
-              <div>
-
-                <h2 id="new-pco-title">New Potential Change Order</h2>
-              </div>
-              <button aria-label="Close Potential Change Order" onClick={() => setCreateOpen(false)}>×</button>
-            </div>
-            <div className="field-grid">
-              <label className="field-label">
-                PCO Number
-                <input value={nextWorkflowNumber(records, "PCO")} disabled />
-              </label>
-              <label className="field-label">
-                Date
-                <input type="date" value={recordDate} onChange={(event) => setRecordDate(event.target.value)} />
-              </label>
-              <label className="field-label">
-                Time
-                <input type="time" value={recordTime} onChange={(event) => setRecordTime(event.target.value)} />
-              </label>
-            </div>
-            <label className="field-label">
-              Change Title
-              <input value={title} onChange={(event) => setTitle(event.target.value)} placeholder="Example: Additional Site Drainage" autoFocus />
-            </label>
-            <label className="field-label">
-              Detailed Description Of The Changed Work
-              <textarea value={description} onChange={(event) => setDescription(event.target.value)} rows={5} placeholder="Describe the changed condition requested work affected area and what was observed." />
-            </label>
-            <div className="field-grid">
-              <label className="field-label">
-                Reason For Change
-                <select value={reason} onChange={(event) => setReason(event.target.value)}>
-                  <option>Owner Request</option>
-                  <option>Design Revision</option>
-                  <option>Unforeseen Condition</option>
-                  <option>Code Requirement</option>
-                  <option>Field Coordination</option>
-                  <option>Other</option>
-                </select>
-              </label>
-              <label className="field-label">
-                Requested By
-                <input value={requestedBy} onChange={(event) => setRequestedBy(event.target.value)} placeholder="Name And Organization" />
-              </label>
-              <label className="field-label">
-                Submitted By
-                <select value={submittedBy} onChange={(event) => setSubmittedBy(event.target.value)}>
-                  {MEFFORD_COMPANY_DIRECTORY.map((member) => <option key={member.email}>{member.name}</option>)}
-                </select>
-              </label>
-            </div>
-            <div className="field-grid">
-              <label className="field-label">
-                Related Drawing RFI Or Submittal
-                <input value={relatedReference} onChange={(event) => setRelatedReference(event.target.value)} placeholder="Example: RFI-007 Or C3.2" />
-              </label>
-              <label className="field-label">
-                Initial Schedule Impact
-                <select value={scheduleImpact} onChange={(event) => setScheduleImpact(event.target.value as ChangeOrderData["scheduleImpact"])}>
-                  <option>Unknown</option>
-                  <option>No Impact Expected</option>
-                  <option>Impact Expected</option>
-                </select>
-              </label>
-              <label className="field-label">
-                Change Order Type
-                <select value={changeType} onChange={(event) => setChangeType(event.target.value as ChangeOrderData["changeType"])}>
-                  <option>Additive</option>
-                  <option>Deductive</option>
-                  <option>No Cost</option>
-                </select>
-              </label>
-            </div>
-            <label className="change-order-upload">
-              <input type="file" multiple onChange={(event) => setAttachmentFiles(Array.from(event.target.files ?? []))} />
-              <span>＋</span>
-              <strong>Add Pictures Drawings Quotes Or Supporting Files</strong>
-              <small>{attachmentFiles.length ? `${attachmentFiles.length} File${attachmentFiles.length === 1 ? "" : "s"} Selected` : "Individual Files Up To 1 GB"}</small>
-            </label>
-            <div className="cost-tbd-banner">
-              <span>$</span>
-              <div>
-                <strong>Pricing Pending</strong>
-                <small>PM pricing required.</small>
-              </div>
-            </div>
-            <div className="modal-actions">
-              <button className="secondary-action" onClick={() => setCreateOpen(false)}>Cancel</button>
-              <button className="primary-action large" disabled={saving} onClick={submitPco}>{saving ? "Saving Permanently..." : "Submit PCO For Pricing"}</button>
-            </div>
-          </section>
+      </> : null}
+      {createOpen ? <ChangeOrderPanel title="New Potential Change Order" context={`${project.number} · ${project.name}`} onClose={closeChangeRecord} busy={saving} notice={notice} document={draftDocument} actions={<><button className="secondary-action" disabled={saving} onClick={closeChangeRecord}>Cancel</button><button className="primary-action" disabled={saving || Boolean(scheduleError)} onClick={submitPco}>{saving ? "Saving…" : "Save PCO And Add Documents"}</button></>}>
+        <div className="co-step-content">
+          <label className="field-label">Change Title<input value={title} onChange={event => setTitle(event.target.value)} placeholder="Example: Additional Site Drainage" /></label>
+          <label className="field-label">Description Of Changed Work<textarea rows={6} value={description} onChange={event => setDescription(event.target.value)} placeholder="Scope, location, and reason for the changed work" /></label>
+          <div className="field-grid"><label className="field-label">Reason For Change<select value={reason} onChange={event => setReason(event.target.value)}>{["Owner Request", "Design Revision", "Unforeseen Condition", "Code Requirement", "Field Coordination", "Other"].map(value => <option key={value}>{value}</option>)}</select></label><label className="field-label">Requested By<input value={requestedBy} onChange={event => setRequestedBy(event.target.value)} /></label><label className="field-label">Submitted By<input value={submittedBy} readOnly /></label></div>
+          <div className="field-grid"><label className="field-label">Related Drawing RFI Or Submittal<input value={relatedReference} onChange={event => setRelatedReference(event.target.value)} placeholder="RFI-007 Or C3.2" /></label><label className="field-label">Change Order Type<select value={changeType} onChange={event => setChangeType(event.target.value as ChangeOrderData["changeType"])}><option>Additive</option><option>Deductive</option><option>No Cost</option></select></label></div>
+          <details><summary>Record Details</summary><div className="field-grid"><label className="field-label">PCO Number<input value={nextWorkflowNumber(records, "PCO")} readOnly /></label><label className="field-label">Date<input type="date" value={recordDate} onChange={event => setRecordDate(event.target.value)} /></label><label className="field-label">Time<input type="time" value={recordTime} onChange={event => setRecordTime(event.target.value)} /></label></div></details>
         </div>
-      ) : null}
+        <div className="co-step-content"><h3>Completion Dates</h3><ChangeOrderScheduleFields days={scheduleDays} onDaysChange={updateScheduleImpactDays} currentSubstantial={project.substantialDate} currentFinal={project.finalDate} revisedSubstantial={newSubstantialDate} revisedFinal={newFinalDate} />{scheduleError ? <p role="alert">{scheduleError}</p> : null}</div>
+      </ChangeOrderPanel> : null}
 
-      {selectedRecord ? (
-        <div className="modal-layer" role="presentation">
-          <section className="record-modal wide change-order-detail-modal" role="dialog" aria-modal="true" aria-labelledby="change-order-detail-title">
-            <div className="modal-heading">
-              <div>
-                <p className="eyebrow orange-text">{selectedRecord.id} · {selectedRecord.status.toUpperCase()}</p>
-                <h2 id="change-order-detail-title">{selectedRecord.title}</h2>
-              </div>
-              <button aria-label="Close Change Order" onClick={() => setSelectedId(null)}>×</button>
-            </div>
-            <section className="change-order-detail-grid">
+      {selectedRecord && !formalPreviewRecord ? (
+        <ChangeOrderPanel title={selectedRecord.title} context={`${selectedRecord.id} · ${selectedRecord.status}`} tabs={["Details", "Pricing", "Schedule", "Approval", "Change File"]} tab={recordTab} onTab={setRecordTab} onClose={closeChangeRecord} busy={saving} notice={notice} document={draftDocument} actions={editablePricing && viewMode === "Office Pricing View" ? <><button className="secondary-action" disabled={saving || Boolean(scheduleError) || !pricingDirty} onClick={savePcoDetails}>Save PCO</button><button className="primary-action" disabled={saving || !budgetReady || Boolean(scheduleError) || selectedRecord.status === "Awaiting Release" && !pricingDirty} onClick={savePricing}>{saving ? "Saving…" : selectedRecord.status === "Awaiting Release" && !pricingDirty ? "Saved For Release Approval" : "Submit Pricing For Release"}</button></> : undefined}>
+            <div hidden={recordTab !== 4}><ChangeOrderFile key={selectedRecord.id} refreshKey={JSON.stringify(selectedRecord)} projectId={project.number} recordId={selectedRecord.id} onDirtyChange={setFileDirty} upload={(file, category, revision, access) => uploadChangeOrderAttachment(file, project.number, selectedRecord.id, category, revision, access)} /></div>
+            <div hidden={recordTab !== 2} className="co-step-content"><h3>Completion Dates</h3><ChangeOrderScheduleFields days={editablePricing ? scheduleDays : selectedData.scheduleDays} onDaysChange={updateScheduleImpactDays} readOnly={!editablePricing || viewMode === "Field View"} currentSubstantial={editablePricing ? project.substantialDate : selectedData.priorSubstantialDate || project.substantialDate} currentFinal={editablePricing ? project.finalDate : selectedData.priorFinalDate || project.finalDate} revisedSubstantial={editablePricing ? newSubstantialDate : selectedData.newSubstantialDate || project.substantialDate} revisedFinal={editablePricing ? newFinalDate : selectedData.newFinalDate || project.finalDate} />{scheduleError && editablePricing ? <p role="alert">{scheduleError}</p> : null}</div>
+            {editablePricing && viewMode === "Office Pricing View" ? <div className="co-step-content" hidden={recordTab !== 0}><label className="field-label">Change Title<input value={title} onChange={event => setTitle(event.target.value)} /></label><label className="field-label">Description Of Changed Work<textarea rows={6} value={description} onChange={event => setDescription(event.target.value)} /></label><div className="field-grid"><label className="field-label">Reason For Change<select value={reason} onChange={event => setReason(event.target.value)}>{["Owner Request", "Design Revision", "Unforeseen Condition", "Code Requirement", "Field Coordination", "Other"].map(value => <option key={value}>{value}</option>)}</select></label><label className="field-label">Requested By<input value={requestedBy} onChange={event => setRequestedBy(event.target.value)} /></label></div><label className="field-label">Related Drawing RFI Or Submittal<input value={relatedReference} onChange={event => setRelatedReference(event.target.value)} /></label></div> : null}
+            <section className="change-order-detail-grid" hidden={recordTab !== 0 || editablePricing && viewMode === "Office Pricing View"}>
               <div><span>Requested By</span><strong>{selectedData.requestedBy}</strong></div>
               <div><span>Submitted By</span><strong>{selectedData.submittedBy}</strong></div>
               <div><span>Reason</span><strong>{selectedData.reason}</strong></div>
               <div><span>Change Type</span><strong>{selectedData.changeType}</strong></div>
               <div><span>Related Record</span><strong>{selectedData.relatedReference || "None Entered"}</strong></div>
             </section>
-            <section className="change-order-description-card">
+            <section className="change-order-description-card" hidden={recordTab !== 0 || editablePricing && viewMode === "Office Pricing View"}>
               <span>Changed Work Description</span>
               <p>{selectedData.description || selectedRecord.title}</p>
-              <small>{selectedData.attachments.length} Supporting File{selectedData.attachments.length === 1 ? "" : "s"} · {selectedData.scheduleImpact}</small>
+              <button className="secondary-action" onClick={() => setRecordTab(4)}>Open Change File</button>
             </section>
             {viewMode === "Office Pricing View" && selectedRecord.id.startsWith("PCO-") && !["Converted", "Rejected", "Void"].includes(selectedRecord.status) ? (
-              <section className="pricing-invite-panel">
-                <div>
-
-                  <h3>Subcontractor Pricing Request</h3>
-
-                </div>
+              <details className="pricing-invite-panel" hidden={recordTab !== 0}><summary>Subcontractor Pricing Request</summary>
                 <div className="pricing-invite-fields">
                   <label className="field-label">Subcontractor Company<input value={pricingInviteCompany} onChange={(event) => setPricingInviteCompany(event.target.value)} placeholder="Company Name" /></label>
                   <label className="field-label">Pricing Contact Email<input type="email" value={pricingInviteEmail} onChange={(event) => setPricingInviteEmail(event.target.value)} placeholder="pricing@company.com" /></label>
@@ -3335,15 +3161,15 @@ function ChangeOrdersWorkspace({
                 ) : (
                   <button className="secondary-action" disabled={saving} onClick={() => savePricingInvite(false)}>Create Secure Pricing Invite</button>
                 )}
-              </section>
+              </details>
             ) : null}
             {viewMode === "Field View" ? (
-              <section className="field-pricing-summary">
+              <section className="field-pricing-summary" hidden={recordTab !== 1}>
                 <span>FIELD ACCESS</span>
                 <div><strong>{selectedData.costStatus === "To Be Determined" ? "Cost To Be Determined" : formatCurrency(selectedData.approvedTotal)}</strong><small>{selectedData.costStatus === "To Be Determined" ? "Project Manager Pricing In Progress" : "Approved Total Only · Internal Breakdown And Cost Codes Hidden"}</small></div>
               </section>
             ) : selectedRecord.id.startsWith("PCO-") && ["Submitted", "Pricing", "Awaiting Release"].includes(selectedRecord.status) ? (
-              <section className="pricing-builder">
+              <section className="pricing-builder" hidden={recordTab !== 1}>
                 <div className="pricing-builder-heading">
                   <div><h3>Project Manager Pricing</h3></div>
                   <div><button className="secondary-action" onClick={() => setAddingMasterCostCode((current) => !current)}>＋ Add From Master List</button><button className="secondary-action" onClick={() => setAddingCostCode((current) => !current)}>＋ Add Project-Only Code</button><button className="secondary-action" onClick={addPricingLine}>＋ Add Pricing Line</button></div>
@@ -3372,75 +3198,54 @@ function ChangeOrdersWorkspace({
                 ) : <button className="empty-pricing" onClick={addPricingLine}>＋ Add The First Labor Material Equipment Or Subcontractor Cost</button>}
                 <div className="pricing-footer-grid">
                   <label className="field-label">Change Order Type<select value={changeType} onChange={(event) => setChangeType(event.target.value as ChangeOrderData["changeType"])}><option>Additive</option><option>Deductive</option><option>No Cost</option></select></label>
-                  <label className="field-label">Final Schedule Impact In Days<input type="number" min="0" value={scheduleDays} onChange={(event) => updateScheduleImpactDays(Number(event.target.value))} />{scheduleError ? <small role="alert">{scheduleError}</small> : null}</label>
-                  <label className="field-label">New Substantial Completion Date<input type="date" value={newSubstantialDate} readOnly /></label>
-                  <label className="field-label">New Final Completion Date<input type="date" value={newFinalDate} readOnly /></label>
                   <label className="field-label">Pricing Notes<textarea rows={3} value={pricingNotes} onChange={(event) => setPricingNotes(event.target.value)} placeholder="Clarifications exclusions allowance or pricing assumptions" /></label>
                   <div className="pricing-total"><span>Proposed {changeType} Change Amount</span><strong>{formatCurrency(pricedChangeValue(pricingLines, changeType))}</strong><small>{changeType === "No Cost" ? "No Contract Value Change" : "Includes Entered Markup And Cost Code Allocation"}</small></div>
                 </div>
-                {selectedRecord.status !== "Awaiting Release" ? <button className="primary-action large full-width-action" disabled={saving} onClick={savePricing}>{saving ? "Saving Permanently..." : "Save Pricing And Submit For Release"}</button> : null}
               </section>
             ) : null}
-            {viewMode === "Office Pricing View" && selectedData.pricingLines.length && !["Submitted", "Pricing"].includes(selectedRecord.status) ? (
-              <section className="approved-pricing-summary">
-                <div><h3>Approved Change Amount</h3></div>
-                <strong>{formatCurrency(selectedData.approvedTotal)}</strong>
-                <small>{selectedData.pricingLines.length} Pricing Line{selectedData.pricingLines.length === 1 ? "" : "s"} · {selectedData.scheduleDays} Schedule Day{selectedData.scheduleDays === 1 ? "" : "s"} · Substantial {displayProjectDate(selectedData.newSubstantialDate || project.substantialDate)} · Final {displayProjectDate(selectedData.newFinalDate || project.finalDate)}</small>
+            {!editablePricing && viewMode === "Office Pricing View" && recordTab === 1 ? <section className="co-step-content"><h3>Released Pricing</h3><dl className="co-review-list">{selectedData.pricingLines.map(line => <div key={line.id}><dt>{line.description}</dt><dd>{formatCurrency(changeOrderLineTotal(line))}</dd></div>)}<div><dt>{selectedData.changeType} Total</dt><dd>{formatCurrency(selectedData.approvedTotal)}</dd></div></dl></section> : null}
+            {viewMode === "Office Pricing View" ? (
+              <section className="approved-pricing-summary" hidden={recordTab !== 3}>
+                <div><h3>{selectedRecord.status === "Executed" ? "Executed Change" : "Change For Review"}</h3></div>
+                <strong>{formatCurrency(editablePricing ? pricedChangeValue(pricingLines, changeType) : selectedData.approvedTotal)}</strong>
+                {pricingDirty ? <p>Unsaved Changes — Save Before Release Approval.</p> : null}
+                <small>{editablePricing ? pricingLines.length : selectedData.pricingLines.length} Pricing Lines · {editablePricing ? scheduleDays : selectedData.scheduleDays} Calendar Days · Substantial {displayProjectDate(editablePricing ? newSubstantialDate : selectedData.newSubstantialDate || project.substantialDate)} · Final {displayProjectDate(editablePricing ? newFinalDate : selectedData.newFinalDate || project.finalDate)}</small>
               </section>
             ) : null}
-            {selectedRecord.status === "Awaiting Release" && viewMode === "Office Pricing View" && canRelease ? (
-              <section className="release-checkoff">
+            {selectedRecord.status === "Awaiting Release" && viewMode === "Office Pricing View" && canRelease && !pricingDirty ? (
+              <section className="release-checkoff" hidden={recordTab !== 3}>
                 <div><h3>Approve Release To The Project Owner</h3></div>
                 <label><input type="checkbox" checked={releaseChecked} onChange={(event) => setReleaseChecked(event.target.checked)} /><span>I Confirm The Scope Pricing Markup Schedule Impact And Supporting Files Are Complete For This Exact Version.</span></label>
-                <button className="primary-action large" disabled={!releaseChecked || saving || Boolean(scheduleError)} onClick={approveRelease}>{saving ? "Creating Formal Change Order..." : `Approve Release And Create ${nextWorkflowNumber(records, "CO")}`}</button>
+                <button className="primary-action large" disabled={!releaseChecked || saving} onClick={approveRelease}>{saving ? "Creating Formal Change Order..." : `Approve Release And Create ${nextWorkflowNumber(records, "CO")}`}</button>
               </section>
             ) : null}
             {selectedRecord.id.startsWith("CO-") ? (
-              <section className="formal-co-actions">
+              <section className="formal-co-actions" hidden={recordTab !== 3}>
                 <div><span>FORMAL CHANGE ORDER</span><strong>{selectedRecord.status}</strong><small>Originated As {selectedData.originPco}</small></div>
-                <button className="primary-action" onClick={() => setFormalPreviewId(selectedRecord.id)}>Preview Formal Change Order</button>
+                <button className="primary-action" onClick={() => { setFormalPreviewId(selectedRecord.id); setRecordTab(0); setNotice(""); setReleaseChecked(false); }}>Preview Formal Change Order</button>
               </section>
             ) : null}
             {viewMode === "Office Pricing View" && selectedRecord.id.startsWith("PCO-") && !["Converted", "Rejected", "Void"].includes(selectedRecord.status) ? (
-              <section className="pco-disposition-panel">
-                <div><h3>Reject Or Void This PCO</h3></div>
+              <details className="pco-disposition-panel" hidden={recordTab !== 3}><summary>Reject Or Void This PCO</summary>
+
                 <label className="field-label">Required Reason<textarea rows={2} value={dispositionReason} onChange={(event) => setDispositionReason(event.target.value)} placeholder="Explain Why This PCO Will Not Proceed" /></label>
                 <div><button className="secondary-action" disabled={saving} onClick={() => reserveDisposition("Rejected")}>Reject And Reserve Number</button><button className="secondary-action danger-outline" disabled={saving} onClick={() => reserveDisposition("Void")}>Void And Reserve Number</button></div>
-              </section>
+              </details>
             ) : null}
-            <section className="change-order-history">
-              <p className="eyebrow">PERMANENT WORKFLOW HISTORY</p>
+            <details className="change-order-history" hidden={recordTab !== 3}><summary>Workflow History</summary>
+
               <ol>{selectedData.workflowHistory.map((entry, index) => <li key={`${entry}-${index}`}>{entry}</li>)}</ol>
-            </section>
-          </section>
-        </div>
+            </details>
+        </ChangeOrderPanel>
       ) : null}
 
       {formalPreviewRecord ? (
-        <div className="modal-layer formal-co-layer" role="presentation">
-          <section className="formal-change-order-preview" role="dialog" aria-modal="true" aria-labelledby="formal-co-title">
-            <header><Mark /><div><p>MEFFORD CONTRACTING</p><h2 id="formal-co-title">Change Order</h2></div><strong>{formalPreviewRecord.id}</strong></header>
-            <section className="formal-co-project-grid">
-              <div><span>Project</span><strong>{project.name}</strong></div><div><span>Project Number</span><strong>{project.number}</strong></div><div><span>Owner</span><strong>{project.ownerName}</strong></div><div><span>Date</span><strong>{formalPreviewRecord.due}</strong></div>
-            </section>
-            <section className="formal-co-title"><span>Change Order Title</span><h3>{formalPreviewRecord.title}</h3></section>
-            <section className="formal-co-description"><span>Description Of Changed Work</span><p>{formalPreviewData.description}</p><small>Type: {formalPreviewData.changeType} · Reason: {formalPreviewData.reason} · Requested By: {formalPreviewData.requestedBy} · Related Record: {formalPreviewData.relatedReference || "None"}</small></section>
-            <section className="formal-co-value-grid">
-              <div><span>Original Contract Value</span><strong>{formatCurrency(formalOriginalContract)}</strong></div>
-              <div><span>This Change Order</span><strong>{formatCurrency(formalPreviewData.approvedTotal)}</strong></div>
-              <div><span>Previously Approved Change Orders</span><strong>{formatCurrency(formalPreviousApproved)}</strong></div>
-              <div><span>Contract Value After This Change Order</span><strong>{formatCurrency(formalContractAfter)}</strong></div>
-            </section>
-            <section className="formal-co-schedule-grid">
-              <div><span>Contract Time Change</span><strong>{formalPreviewData.scheduleDays ? `${formalPreviewData.scheduleDays} Calendar Days` : "No Change"}</strong></div>
-              <div><span>New Substantial Completion Date</span><strong>{displayProjectDate(formalPreviewData.newSubstantialDate || project.substantialDate)}</strong></div>
-              <div><span>New Final Completion Date</span><strong>{displayProjectDate(formalPreviewData.newFinalDate || project.finalDate)}</strong></div>
-            </section>
-            {formalNeedsReview ? <section className="co-review-conflict" role="alert"><h3>Project Dates Or Contract Value Have Changed</h3><p>Review And Reapprove This Change Order Before Obtaining A New Owner Signature.</p>{canRelease ? <><div><span>Refreshed New Substantial Completion Date</span><strong>{displayProjectDate(refreshedFormalSchedule.newSubstantialDate || project.substantialDate)}</strong></div><div><span>Refreshed New Final Completion Date</span><strong>{displayProjectDate(refreshedFormalSchedule.newFinalDate || project.finalDate)}</strong></div><label><input type="checkbox" checked={releaseChecked} onChange={event => setReleaseChecked(event.target.checked)} /> I Approve The Revised Dates And Contract Value ({formatCurrency(Number(project.currentContractAmount || project.contractAmount) + formalPreviewData.approvedTotal)}).</label>{formalScheduleError ? <p>{formalScheduleError}</p> : null}<button className="primary-action" disabled={saving || !releaseChecked || Boolean(formalScheduleError)} onClick={reapproveFormalDates}>Reapprove Updated Change Order</button></> : <p>Company Owner Or Administrator Reapproval Required.</p>}</section> : null}
-            <section className="formal-co-certification"><p>The Contract Sum Contract Time And Contract Documents Are Modified Only As Stated In This Change Order. All Other Contract Terms Remain Unchanged.</p></section>
-            <section className="formal-co-signatures"><div><span>Project Owner</span>{formalPreviewData.ownerSignatureName ? <strong className="executed-signature">{formalPreviewData.ownerSignatureName}</strong> : <i />}<small>{formalPreviewData.ownerSignatureName ? `${formalPreviewData.ownerSignatureTitle} · ${displayProjectDate(formalPreviewData.ownerSignatureDate || "")} · ${formalPreviewData.ownerSignatureMethod}` : "Signature / Date"}</small></div><div><span>Mefford Contracting</span><strong className="executed-signature">{formalPreviewData.releaseApprovedBy || "Jordan Mefford"}</strong><small>Authorized Signature / Release Approval</small></div></section>
+        <ChangeOrderPanel title={formalPreviewRecord.title} context={`${formalPreviewRecord.id} · ${formalPreviewRecord.status}`} tabs={["Change Order", "Owner Execution", "Change File"]} tab={Math.min(recordTab, 2)} onTab={setRecordTab} onClose={closeChangeRecord} busy={saving} notice={notice} document={{ record: formalPreviewRecord, project, data: formalPreviewData }}>
+            <div hidden={recordTab !== 2}><ChangeOrderFile key={formalPreviewRecord.id} refreshKey={JSON.stringify(formalPreviewRecord)} projectId={project.number} recordId={formalPreviewRecord.id} onDirtyChange={setFileDirty} upload={(file, category, revision, access) => uploadChangeOrderAttachment(file, project.number, formalPreviewRecord.id, category, revision, access)} /></div>
+          <div className="co-step-content" hidden={recordTab !== 0}><h3>{formalPreviewRecord.id}</h3><p className="co-scope-text">{formalPreviewData.description}</p><dl className="co-review-list"><div><dt>This Change Order</dt><dd>{formatCurrency(formalPreviewData.approvedTotal)}</dd></div><div><dt>Revised Contract Value</dt><dd>{formatCurrency(formalContractAfter)}</dd></div></dl><ChangeOrderScheduleFields days={formalPreviewData.scheduleDays} readOnly currentSubstantial={formalPreviewData.priorSubstantialDate || project.substantialDate} currentFinal={formalPreviewData.priorFinalDate || project.finalDate} revisedSubstantial={formalPreviewData.newSubstantialDate || project.substantialDate} revisedFinal={formalPreviewData.newFinalDate || project.finalDate} /></div>
+          {formalNeedsReview ? <section className="co-review-conflict" role="alert"><h3>Project Dates Or Contract Value Have Changed</h3><p>Review And Reapprove This Change Order Before Obtaining A New Owner Signature.</p>{canRelease ? <><ChangeOrderScheduleFields days={formalPreviewData.scheduleDays} readOnly currentSubstantial={project.substantialDate} currentFinal={project.finalDate} revisedSubstantial={refreshedFormalSchedule.newSubstantialDate} revisedFinal={refreshedFormalSchedule.newFinalDate} /><label><input type="checkbox" checked={releaseChecked} onChange={event => setReleaseChecked(event.target.checked)} /> I Approve The Revised Dates And Contract Value ({formatCurrency(Number(project.currentContractAmount || project.contractAmount) + formalPreviewData.approvedTotal)}).</label>{formalScheduleError ? <p>{formalScheduleError}</p> : null}<button className="primary-action" disabled={saving || !releaseChecked || Boolean(formalScheduleError)} onClick={reapproveFormalDates}>Reapprove Updated Change Order</button></> : <p>Company Owner Or Administrator Reapproval Required.</p>}</section> : null}
             {formalPreviewRecord.status === "Awaiting Owner Signature" ? (
-              <section className="formal-execution-panel">
+              <section className="formal-execution-panel" hidden={recordTab !== 1}>
                 <div><p className="eyebrow orange-text">OWNER EXECUTION</p><h3>Sign Electronically Or Upload The Owner-Signed PDF</h3><small>The Contract Value And Project Completion Dates Update Only After One Of These Execution Methods Is Completed.</small></div>
                 <div className="formal-signature-fields">
                   <label className="field-label">Owner Signer Name<input value={ownerSignerName} onChange={(event) => setOwnerSignerName(event.target.value)} placeholder="Full Legal Name" /></label>
@@ -3453,12 +3258,9 @@ function ChangeOrdersWorkspace({
                 <button className="secondary-action" disabled={saving || formalNeedsReview || !executedFile} onClick={() => executeFormalChangeOrder("Uploaded Signed PDF")}>Upload Signed PDF And Mark Executed</button>
               </section>
             ) : (
-              <section className="formal-executed-stamp"><span>EXECUTED</span><strong>{formalPreviewData.ownerSignatureName || project.ownerName}</strong><small>{formalPreviewData.executedAt || displayProjectDate(formalPreviewData.ownerSignatureDate || formalPreviewRecord.recordDate || "")}{formalPreviewData.executedFileName ? ` · ${formalPreviewData.executedFileName}` : ""} · Filed In Financial Info / Change Orders</small></section>
+              <section className="formal-executed-stamp" hidden={recordTab !== 1}><span>EXECUTED</span><strong>{formalPreviewData.ownerSignatureName || project.ownerName}</strong><small>{formalPreviewData.executedAt || displayProjectDate(formalPreviewData.ownerSignatureDate || formalPreviewRecord.recordDate || "")}{formalPreviewData.executedFileName ? ` · ${formalPreviewData.executedFileName}` : ""} · Filed In Financial Info / Change Orders</small></section>
             )}
-            <footer><span>Originated As {formalPreviewData.originPco}</span><span>Release Approved By {formalPreviewData.releaseApprovedBy}</span></footer>
-            <div className="formal-preview-actions"><button className="secondary-action" onClick={() => setFormalPreviewId(null)}>Close Preview</button><button className="primary-action" onClick={() => window.print()}>Print Or Save As PDF</button></div>
-          </section>
-        </div>
+        </ChangeOrderPanel>
       ) : null}
     </div>
   );
@@ -3591,6 +3393,8 @@ async function uploadChangeOrderAttachment(
   projectId: string,
   pcoNumber: string,
   category = "Change Orders",
+  revision = `${pcoNumber} Supporting File`,
+  access = "Project Manager + Office",
 ) {
   if (file.size > MAX_PROJECT_FILE_BYTES) {
     throw new Error(`${file.name} Exceeds The 1 GB Individual File Limit.`);
@@ -3599,8 +3403,8 @@ async function uploadChangeOrderAttachment(
     return uploadLargeProjectFile(
       file,
       category,
-      `${pcoNumber} Supporting File`,
-      "Project Manager + Office",
+      revision,
+      access,
       () => undefined,
       projectId,
     );
@@ -3609,8 +3413,8 @@ async function uploadChangeOrderAttachment(
   form.set("file", file);
   form.set("projectId", projectId);
   form.set("category", category);
-  form.set("revision", `${pcoNumber} Supporting File`);
-  form.set("access", "Project Manager + Office");
+  form.set("revision", revision);
+  form.set("access", access);
   const response = await fetch("/api/files", { method: "POST", body: form });
   const result = (await response.json()) as { file?: ProjectFile; error?: string };
   if (!response.ok || !result.file) {
