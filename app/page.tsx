@@ -5978,6 +5978,7 @@ export default function Home() {
   const [projectProfile, setProjectProfile] =
     useState<ProjectProfile>(() => emptyProjectProfile());
   const [projectToolContext, setProjectToolContext] = useState("");
+  const [fieldLaunch, setFieldLaunch] = useState<{ action: string; token: number }>({ action: "", token: 0 });
   const [projectSetupOpen, setProjectSetupOpen] = useState(false);
   const [projectSetupMode, setProjectSetupMode] = useState<"new" | "edit">(
     "edit",
@@ -8627,7 +8628,156 @@ export default function Home() {
             >
               <WorkIcon name="bell" /><span>{notifications.filter((item) => !item.isRead && item.status !== "Completed" && !item.hiddenBySnooze).length}</span>
             </button>
-
+            <button
+              className="primary-action"
+              onClick={() =>
+                active === "Project Overview" && !projectProfile.number
+                  ? openProjectSetup("new")
+                : active === "Dashboard"
+                  ? setNotice("The executive snapshot is current.")
+                : active === "My Work"
+                  ? setNotice("Your Employee Home Is Current!")
+                : active === "IT & Integrations"
+                  ? setNotice("Use Reconcile Now Or Open A Connection To Record A Controlled Health Check.")
+                : active === "Assets & Fleet"
+                  ? window.dispatchEvent(new Event("command:new-asset"))
+                : adminNavigationTargets.includes(active)
+                  ? active === "Admin Command"
+                    ? chooseNav("Admin Requests")
+                    : setNotice(`${sectionTitle(active)} Is Reading The Coordinated Company Administration Record.`)
+                : active === "User Guide"
+                  ? window.print()
+                : active === "Performance Reviews"
+                  ? setNotice("Generate Or Open A Quarterly Review Inside The Owner Performance Center.")
+                : active === "Chart Of Accounts"
+                  ? window.dispatchEvent(new Event("command:new-account"))
+                : active === "General Ledger"
+                  ? window.dispatchEvent(new Event("command:new-journal-entry"))
+                : active === "Employee Onboarding"
+                    ? setNotice("Use Create Employee Record Inside Employee Onboarding.")
+                  : active === "Employee Portal"
+                    ? setNotice("Your Employee Profile Resources And Required Actions Are Current.")
+                  : active === "Accounts Payable"
+                    ? window.dispatchEvent(new Event("command:new-ap-invoice"))
+                  : accountingNavigationTargets.includes(active as AccountingMode)
+                    ? setNotice(`${active} Is Reading The Coordinated Live Command Center Ledger.`)
+                : active === "Sales Dashboard"
+                  ? chooseNav("Sales Funnel")
+                  : active === "Sales Goals"
+                    ? setNotice("Set And Save The Annual Goals Inside Sales Goals.")
+                  : active === "Sales Contacts"
+                  ? window.dispatchEvent(new Event("command:new-contact"))
+                : active === "Sales Funnel"
+                  ? window.dispatchEvent(new Event("command:new-opportunity"))
+                : active === "Design & Drawings"
+                  ? window.dispatchEvent(new Event("command:new-design-package"))
+                : active === "Sales Design"
+                      ? setNotice("Use New Design Package Inside Sales Design.")
+                    : active === "Company Calendar" || active === "Estimating Calendar"
+                      ? setNotice("Use New Calendar Event Inside The Master Calendar.")
+                    : active === "Estimating"
+                      ? chooseNav("Sales Funnel")
+                    : active === "Bid Management"
+                      ? setNotice("Use New Bid Package Inside Bid Management.")
+                    : ["Marketing", "Marketing Social", "Marketing Email", "Marketing Surveys", "Marketing Calendar"].includes(active)
+                      ? setNotice("Use Marketing Command To Create Campaigns, Posts, Newsletters, Analytics Snapshots, Or Connection Setup.")
+                    : active === "Procurement"
+                      ? setNotice("Use New Bid Package Inside Project Procurement.")
+                    : active === "Quality"
+                      ? setFieldLaunch({ action: "quality", token: Date.now() })
+                    : active === "Review"
+                      ? setNotice("Open A Controlled Master To Review Its File History, Upload A New Version, Or Complete Owner Signoff.")
+                : active === "Schedule"
+                  ? setNotice("Use Add activity inside the schedule.")
+                  : active === "Documents"
+                    ? setNotice("Use Upload files inside Project Files.")
+                  : active === "Closeout"
+                      ? setNotice(
+                          "Open A Requirement To Upload Files Or Complete Its Next Approval Gate.",
+                        )
+                      : active === "Safety"
+                        ? openNew("Toolbox Talks")
+                      : active === "Change Orders"
+                          ? setNotice(
+                              projectBudgetReady
+                                ? "Use New Potential Change Order Inside Change Orders."
+                                : "Complete And Lock The Original Budget Before Starting A Change Order.",
+                            )
+                        : active === "Subcontracts"
+                          ? setNotice(
+                              projectBudgetReady
+                                ? "Use Create Subcontract Inside Subcontracts."
+                                : "Complete And Lock The Original Budget Before Starting A Subcontract.",
+                            )
+                        : active === "Team"
+                          ? setNotice(
+                              "Use Invite subcontractor inside Team & Access.",
+                            )
+                          : active === "Review"
+                            ? setNotice(
+                                "Use Review Center To Manage Legal, HR, Benefits, And Every Controlled Company Template.",
+                              )
+                            : openNew(active)
+              }
+            >
+              {active === "Project Overview" && !projectProfile.number
+                ? "＋ Start First Project"
+              : active === "Dashboard"
+                ? "Live Executive Snapshot"
+              : active === "My Work"
+                  ? "My Employee Home"
+              : active === "Project Health"
+                  ? "Live Weighted Score"
+                : active === "IT & Integrations"
+                  ? "Live System Reconciliation"
+                : active === "Assets & Fleet"
+                  ? "＋ Add Company Asset"
+                : adminNavigationTargets.includes(active)
+                  ? active === "Admin Command" ? "Open Employee Queue" : "Live Admin Coordination"
+                : active === "User Guide"
+                  ? "Print User Guide"
+                : active === "Performance Reviews"
+                  ? "Owner Review Center"
+                : active === "Chart Of Accounts"
+                ? "＋ New Account"
+                : active === "General Ledger"
+                  ? "＋ New Journal Entry"
+                : active === "Employee Onboarding"
+                  ? sessionActor.permissionLocked
+                    ? "Onboarding Required"
+                    : "People System"
+                : active === "Employee Portal"
+                  ? "My Employee Home"
+                : active === "Accounts Payable"
+                  ? "＋ New Invoice"
+                : accountingNavigationTargets.includes(active as AccountingMode)
+                  ? "Live Accounting Coordination"
+              : active === "Sales Dashboard"
+                ? "Open Sales Funnel"
+                : active === "Sales Goals"
+                  ? "Sales Goal Settings"
+                : active === "Sales Contacts"
+                ? "＋ New Contact"
+                : active === "Sales Funnel"
+                  ? "＋ New Opportunity"
+                : active === "Design & Drawings"
+                  ? "＋ New Design Package"
+                : active === "Sales Design"
+                    ? "Design Lifecycle"
+                  : active === "Company Calendar" || active === "Estimating Calendar"
+                    ? "Master Calendar Live"
+                  : active === "Estimating"
+                    ? "Open Sales Funnel"
+                  : active === "Bid Management" || active === "Procurement"
+                    ? "Procurement Control"
+                    : ["Marketing", "Marketing Social", "Marketing Email", "Marketing Surveys", "Marketing Calendar"].includes(active)
+                      ? "Marketing Command Live"
+                    : active === "Quality"
+                      ? "Quality Control"
+                    : active === "Review"
+                      ? "Company Review Center"
+                    : "＋ New Item"}
+            </button>
           </div>
         </header>
 
@@ -9266,6 +9416,8 @@ export default function Home() {
               key={projectProfile.number}
               project={projectProfile}
               actor={sessionActor}
+              launch={fieldLaunch}
+              onLaunchConsumed={() => setFieldLaunch(current => current.token === fieldLaunch.token ? { action: "", token: 0 } : current)}
             />
           ) : active === "Review" ? (
             <ReviewWorkspace actor={sessionActor} />

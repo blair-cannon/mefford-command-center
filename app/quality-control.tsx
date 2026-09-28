@@ -26,7 +26,7 @@ type View = "Pre-Work" | "Quality Items" | "Punch & Closeout" | "Portal Access" 
 
 const initialItem = { title: "", description: "", exactLocation: "", inspectionStage: "Preparatory" as "Preparatory" | "Work-In-Place" | "Final", dueDate: "", responsibleTrade: "", responsibleVendorId: "", reference: "", requiresDesignerAcceptance: false, designerVendorId: "" };
 
-export function QualityControlWorkspace({ project, actor }: { project: { number: string; name: string; projectManager: string; superintendent: string; substantialDate: string; timeZone: string }; actor: Actor }) {
+export function QualityControlWorkspace({ project, actor, launch, onLaunchConsumed }: { project: { number: string; name: string; projectManager: string; superintendent: string; substantialDate: string; timeZone: string }; actor: Actor; launch?: { action: string; token: number }; onLaunchConsumed?: () => void }) {
   const [data, setData] = useState<QualityData | null>(null);
   const [view, setView] = useState<View>("Pre-Work");
   const [loading, setLoading] = useState(true);
@@ -96,6 +96,8 @@ export function QualityControlWorkspace({ project, actor }: { project: { number:
   }
 
   function openItem() { setItemDraft({ ...initialItem, dueDate: fieldDateTime(project.timeZone).date }); setItemBeforeFiles([]); setPhotoProgress(null); uploadedPhotos.current.clear(); setNotice(""); setNewItemOpen(true); }
+
+  useEffect(() => { if (!launch?.token) return; const timer = window.setTimeout(() => { if (launch.action === "quality") openItem(); if (launch.action === "pre-work") { setView("Pre-Work"); setDetailOpen(false); } onLaunchConsumed?.(); }, 0); return () => window.clearTimeout(timer); }, [launch?.token]); // eslint-disable-line react-hooks/exhaustive-deps
 
   async function createItem() {
     if (!itemDraft.title.trim() || !itemDraft.description.trim() || !itemDraft.exactLocation.trim() || !itemDraft.responsibleTrade.trim() || !itemDraft.dueDate || !itemBeforeFiles.length) { setNotice("Enter A Title, Description, Exact Location, Trade, Due Date And Before Photos."); return; }
