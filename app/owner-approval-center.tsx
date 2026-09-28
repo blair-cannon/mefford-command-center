@@ -32,7 +32,7 @@ export function OwnerApprovalCenter({ onNavigate }: { onNavigate: (target: strin
   }, []);
 
   const visible = useMemo(() => (data?.queue || []).filter((item) => filter === "Pending" || filter === "History" || item.level === filter), [data, filter]);
-  const selected = visible.find((item) => item.id === selectedId) || visible[0] || null;
+  const selected = data?.queue.find((item) => item.id === selectedId) || visible[0] || null;
   const totalExposure = (data?.queue || []).reduce((total, item) => total + Math.abs(item.amount), 0);
 
   async function decide(item: OwnerApprovalItem, decision: "Approved" | "Returned", decisionNote = note) {
