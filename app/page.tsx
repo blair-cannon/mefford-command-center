@@ -8580,6 +8580,7 @@ export default function Home() {
             ) : null}
           </div>
           <div className="topbar-actions">
+            <a className="dashboard-screens-link" href="/dashboard-display" target="_blank" rel="noopener noreferrer">Dashboard Screens <span aria-hidden="true">↗</span></a>
             <button
               className="sync-state"
               onClick={() => chooseNav("IT & Integrations")}
