@@ -451,6 +451,13 @@ export async function POST(request: Request) {
     const editable = actorCanEdit(actor, context);
     const canFinalize = canFinalizeMeeting(actor, context);
     if (!await canAccessMeeting(actor, context, payload.occurrenceId)) return Response.json({ error: "You Do Not Have Access To This Meeting" }, { status: 403 });
+    if (["update_agenda","remove_agenda","restore_agenda"].includes(payload.action) && isTurnover(context.meeting_type)) {
+      const item = await env.DB.prepare("SELECT source_type FROM meeting_agenda_items WHERE id = ? AND occurrence_id = ?").bind(payload.entityId || "",payload.occurrenceId).first<{source_type:string}>();
+      if (item?.source_type === "Turnover Checklist") {
+        if (payload.action !== "update_agenda") return Response.json({ error:"Dedicated Turnover Checklist Items Cannot Be Removed" },{status:409});
+        return Response.json(await changeTurnover(context,actor,{...payload,action:"turnover_item"}));
+      }
+    }
     if (payload.action.startsWith("turnover_")) return Response.json(await changeTurnover(context, actor, payload));
     if (FINAL_STATUSES.has(String(context.status)) && !["revise_minutes", "download"].includes(payload.action)) return Response.json({ error: "Finalized Meeting Records Are Locked. Create A Numbered Revision." }, { status: 409 });
 
@@ -645,13 +652,13 @@ export async function POST(request: Request) {
       if (context.status !== "Meeting In Progress") return Response.json({ error: "Start The Meeting Before Drafting Its Minutes" }, { status: 409 });
       if (!editable) return Response.json({ error: "Meeting Leader Permission Required" }, { status: 403 });
       const [agenda, decisions, actions] = await Promise.all([
-        env.DB.prepare(`SELECT title, notes, status, source_reason FROM meeting_agenda_items WHERE occurrence_id = ? AND visibility = 'Attendees' AND status <> 'Superseded' ORDER BY position`).bind(payload.occurrenceId).all<Record<string, string>>(),
+        env.DB.prepare(`SELECT title, notes, status, source_reason, source_type FROM meeting_agenda_items WHERE occurrence_id = ? AND visibility = 'Attendees' AND status <> 'Superseded' ORDER BY position`).bind(payload.occurrenceId).all<Record<string, string>>(),
         env.DB.prepare(`SELECT statement, status, decision_maker_name FROM meeting_decisions WHERE occurrence_id = ? ORDER BY created_at`).bind(payload.occurrenceId).all<Record<string, string>>(),
         env.DB.prepare(`SELECT title, status, assignee_name, due_at FROM meeting_action_items WHERE occurrence_id = ? ORDER BY created_at`).bind(payload.occurrenceId).all<Record<string, string>>(),
       ]);
       const summary = payload.minutesSummary?.trim() || [
         `Meeting ${context.meeting_number} was held.`,
-        `Agenda: ${agenda.results.map((item) => `${item.title} — ${item.status}: ${item.notes || "No Discussion Notes Recorded"}${item.source_reason ? ` (${item.source_reason})` : ""}`).join(" | ")}`,
+        `Agenda: ${agenda.results.filter(item => item.source_type !== "Turnover Checklist").map((item) => `${item.title} — ${item.status}: ${item.notes || "No Discussion Notes Recorded"}${item.source_reason ? ` (${item.source_reason})` : ""}`).join(" | ") || (isTurnover(context.meeting_type) ? "See Dedicated Checklist Items And Notes." : "No Agenda Items Recorded.")}`,
         decisions.results.length ? `Decisions: ${decisions.results.map((item) => `${item.statement} (${item.status}; ${item.decision_maker_name})`).join(" | ")}` : "Decisions: None recorded.",
         actions.results.length ? `Actions: ${actions.results.map((item) => `${item.title} — ${item.assignee_name}, ${item.status}, due ${item.due_at}`).join(" | ")}` : "Actions: None recorded.",
       ].join("\n\n");
@@ -693,7 +700,8 @@ export async function POST(request: Request) {
         await auditMeeting({ actor, seriesId: String(context.series_id), occurrenceId: payload.occurrenceId, entityType: "Meeting Minutes", entityId: payload.occurrenceId, action: "Reviewed Draft Minutes Saved", before: { summary: context.minutes_summary }, after: { summary: payload.minutesSummary.trim() } });
         context.minutes_summary = payload.minutesSummary.trim();
       }
-      const minutesBytes = await createMeetingMinutesPdf(context, actor.name);
+      const checklist = isTurnover(context.meeting_type) ? (await env.DB.prepare(`SELECT section_key,title,source_reason,status,notes FROM meeting_agenda_items WHERE occurrence_id = ? AND source_type = 'Turnover Checklist' AND status <> 'Superseded' ORDER BY position`).bind(payload.occurrenceId).all<Record<string,string>>()).results.map(item => ({section:MEETING_SECTIONS[context.meeting_type as MeetingType].find(section => section.key === item.section_key)?.title || item.section_key,title:item.title,source:item.source_reason,notes:item.notes,complete:item.status === "Complete"})) : [];
+      const minutesBytes = await createMeetingMinutesPdf(context, actor.name, checklist);
       const minutesKey = `meetings/${context.project_id}/${payload.occurrenceId}/${context.meeting_number}-minutes-R1.pdf`;
       await env.BUCKET.put(minutesKey, minutesBytes, { httpMetadata: { contentType: "application/pdf" }, customMetadata: { occurrenceId: payload.occurrenceId, kind: "minutes", revision: "1" } });
       const emailAttachments: Array<{ name: string; contentType: string; base64: string }> = [{ name: `${context.meeting_number}-Final-Minutes-R1.pdf`, contentType: "application/pdf", base64: bytesToBase64(minutesBytes) }];

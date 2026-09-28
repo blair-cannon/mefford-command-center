@@ -18,7 +18,7 @@ test("100 estimating handoffs create one living meeting each, permit public bids
     let b = await bundle(h,SALES_TURNOVER);
     const id = b.selectedOccurrenceId, original = b.turnover.revision;
     assert.equal(b.turnover.packet.gaps.some(g=>g.key==="contact"),false);
-    assert.equal(b.agenda.filter(r=>r.source_type==="Turnover Source").length,7);
+    assert.equal(b.agenda.filter(r=>r.source_type==="Turnover Checklist").length,41);
     await act(h,b,"add_agenda",{title:"SYNTHETIC owner promise",sectionKey:"scope",notes:"Preserve existing carpet"});
     const opportunityId = b.turnover.packet.opportunityId;
     await h.save("MEFFORD-SALES","Sales Opportunities",opportunityId,"Estimating",{...h.row("MEFFORD-SALES",opportunityId).data,projectDescription:"SYNTHETIC revised scope: carpet replacement"});
@@ -41,10 +41,11 @@ test("receiver review, revision checks and meeting controls prevent accidental t
     await act(h,b,"turnover_schedule",{startAt:new Date().toISOString(),location:"SYNTHETIC conference room"});
     await act(h,b,"publish"); await act(h,b,"start");
     b = await bundle(h,SALES_TURNOVER,b.selectedOccurrenceId);
-    for (const section of b.turnover.packet.sections) {
-      await act(h,b,"turnover_review",{sectionKey:section.key,value:true});
+    for (const item of b.agenda.filter(r=>r.source_type==="Turnover Checklist")) {
+      await act(h,b,"turnover_item",{entityId:item.id,expectedVersion:item.updated_at,notes:"",status:"Complete"});
       b = await bundle(h,SALES_TURNOVER,b.selectedOccurrenceId);
     }
+    assert.equal(b.turnover.checklist.completed,b.turnover.checklist.total);
     await act(h,b,"turnover_accept",{expectedRevision:b.turnover.revision-1},owner,409);
     await act(h,b,"turnover_accept");
     b = await bundle(h,SALES_TURNOVER,b.selectedOccurrenceId);
