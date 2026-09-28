@@ -1,4 +1,5 @@
 import { isTurnover } from "../../../lib/turnovers";
+import { MeetingInputError, meetingStartInstant, nextMeetingStart, validMeetingCadence } from "../../../lib/meeting-cadence";
 import { bonusTurnoverBlockers } from "../../../lib/bonus-server";
 import { changeTurnover, TurnoverError, turnoverView, reconcileTurnovers } from "../../../lib/turnover-server";
 import { and, eq } from "drizzle-orm";
@@ -45,6 +46,7 @@ import { loadMeetingSources } from "../../../lib/meeting-agenda-server";
 import { recordCompletedWorkflowHandoff } from "../../../lib/domain-outbox";
 import {
   createMicrosoftMeeting,
+  updateMicrosoftMeetingCadence,
   configureOnlineMeetingEvidence,
   findOnlineMeetingByJoinUrl,
   getMeetingAttendance,
@@ -118,10 +120,8 @@ function validType(value: unknown): value is MeetingType {
   return MEETING_TYPES.includes(String(value) as MeetingType);
 }
 
-function normalizedStart(value: string) {
-  const parsed = new Date(value);
-  if (Number.isNaN(parsed.getTime())) throw new Error("A Valid Meeting Start Date And Time Is Required");
-  return parsed.toISOString();
+function normalizedStart(value: string, timeZone = "America/New_York") {
+  return meetingStartInstant(value, timeZone);
 }
 
 function actorCanEdit(actor: MeetingActor, context: Record<string, string | number | null>) {
@@ -294,8 +294,9 @@ export async function POST(request: Request) {
         const project = await db.select().from(projects).where(eq(projects.number, projectId)).limit(1);
         if (!project.length) return Response.json({ error: "The Selected Project Does Not Exist" }, { status: 404 });
       }
-      const startAt = normalizedStart(String(payload.startAt || ""));
+      const startAt = normalizedStart(String(payload.startAt || ""), payload.timeZone || "America/New_York");
       const defaults = MEETING_DEFAULTS[type];
+      if (payload.cadence && !validMeetingCadence(payload.cadence)) throw new MeetingInputError("Choose A Valid Meeting Frequency");
       const duration = Math.max(15, Math.min(480, Number(payload.durationMinutes || defaults.durationMinutes)));
       const endAt = new Date(new Date(startAt).getTime() + duration * 60_000).toISOString();
       const seriesId = crypto.randomUUID();
@@ -382,12 +383,48 @@ export async function POST(request: Request) {
       return Response.json({ saved: true, seriesId: id });
     }
 
+    if (payload.action === "update_cadence") {
+      const series = await env.DB.prepare(`SELECT * FROM meeting_series WHERE id = ?`).bind(payload.seriesId || "").first<Record<string, string | number | null>>();
+      if (!series || series.status !== "Active" || !actorCanEdit(actor, series)) return Response.json({ error: "Meeting Leader Permission Required" }, { status: 403 });
+      if (isTurnover(series.meeting_type)) return Response.json({ error: "Turnover Meetings Are One-Time Handoffs" }, { status: 409 });
+      if (!validMeetingCadence(payload.cadence)) throw new MeetingInputError("Choose A Valid Meeting Frequency");
+      if (payload.expectedVersion !== series.updated_at) return Response.json({ error: "This Meeting Series Changed. Reload Before Updating Its Frequency" }, { status: 409 });
+      if (series.graph_event_id) {
+        const identity = await authorizedMicrosoftIdentityForActor(actor);
+        if (identity.microsoftEmail.toLowerCase() !== String(series.organizer_email).toLowerCase()) return Response.json({ error: "The Approved Outlook Organizer Must Change This Connected Meeting Series" }, { status: 403 });
+      }
+      const now = new Date().toISOString();
+      try {
+        await env.DB.batch([
+          env.DB.prepare(`INSERT INTO meeting_audits (series_id, occurrence_id, entity_type, entity_id, action, before_json, after_json, actor_name, actor_email) VALUES (?, '', 'Meeting Series', (SELECT id FROM meeting_series WHERE id = ? AND updated_at = ? AND cadence = ?), 'Meeting Frequency Updated', ?, ?, ?, ?)`).bind(series.id, series.id, payload.expectedVersion, series.cadence, JSON.stringify({ cadence: series.cadence }), JSON.stringify({ cadence: payload.cadence, existingMeetingDatesPreserved: true }), actor.name, actor.email),
+          env.DB.prepare(`UPDATE meeting_series SET cadence = ?, updated_at = ? WHERE id = ?`).bind(payload.cadence, now, series.id),
+        ]);
+      } catch (error) {
+        if (/NOT NULL constraint failed: meeting_audits.entity_id/.test(String(error))) throw new MeetingAgendaError("This Meeting Series Changed. Reload Before Updating Its Frequency");
+        throw error;
+      }
+      let microsoft;
+      if (series.graph_event_id) {
+        try {
+          await updateMicrosoftMeetingCadence(String(series.graph_event_id), payload.cadence, String(series.start_at), String(series.time_zone), String(series.organizer_email));
+          microsoft = { status: "Succeeded", detail: "Outlook Meeting Frequency Updated." };
+        } catch (error) { microsoft = { status: "Failed", detail: `Frequency Saved In Command Center. Outlook Update Failed: ${error instanceof Error ? error.message : "Retry Required"}` }; }
+        await writeSyncEvent({ seriesId: String(series.id), occurrenceId: payload.occurrenceId || "", eventType: "Calendar Frequency Updated", ...microsoft });
+      }
+      return Response.json({ saved: true, cadence: payload.cadence, microsoft });
+    }
+
     if (payload.action === "create_occurrence") {
       if (!payload.seriesId) return Response.json({ error: "Meeting Series Is Required" }, { status: 400 });
       const series = await env.DB.prepare(`SELECT * FROM meeting_series WHERE id = ?`).bind(payload.seriesId).first<Record<string, string | number | null>>();
       if (series && isTurnover(series.meeting_type)) return Response.json({ error: "Use The Existing Turnover Packet For This Handoff" }, { status: 409 });
       if (!series || series.status !== "Active" || !actorCanEdit(actor, series)) return Response.json({ error: "Meeting Leader Permission Required" }, { status: 403 });
-      const startAt = normalizedStart(String(payload.startAt || ""));
+      const latest = await env.DB.prepare(`SELECT scheduled_start FROM meeting_occurrences WHERE series_id = ? ORDER BY scheduled_start DESC LIMIT 1`).bind(series.id).first<{ scheduled_start: string }>();
+      const proposed = payload.startAt || nextMeetingStart(latest?.scheduled_start || String(series.start_at), String(series.cadence), String(series.time_zone), String(series.start_at));
+      if (!proposed) throw new MeetingInputError("Choose A Date For This One-Time Or As-Needed Meeting");
+      const startAt = normalizedStart(proposed, String(series.time_zone));
+      const duplicate = await env.DB.prepare(`SELECT id, meeting_number FROM meeting_occurrences WHERE series_id = ? AND scheduled_start = ?`).bind(series.id, startAt).first<{ id: string; meeting_number: string }>();
+      if (duplicate) return Response.json({ saved: true, idempotent: true, occurrenceId: duplicate.id, meetingNumber: duplicate.meeting_number });
       const duration = Number(payload.durationMinutes || series.duration_minutes || 60);
       const endAt = new Date(new Date(startAt).getTime() + duration * 60_000).toISOString();
       const occurrenceId = crypto.randomUUID();
@@ -395,10 +432,14 @@ export async function POST(request: Request) {
       const type = String(series.meeting_type) as MeetingType;
       const number = meetingNumber(type, String(series.project_id), startAt, Number(count?.total || 0) + 1);
       const priorAttendees = await env.DB.prepare(`SELECT * FROM meeting_attendees WHERE occurrence_id IN (SELECT id FROM meeting_occurrences WHERE series_id = ? ORDER BY scheduled_start DESC LIMIT 1)`).bind(payload.seriesId).all<Record<string, string | number | null>>();
-      await env.DB.batch([
-        env.DB.prepare(`INSERT INTO meeting_occurrences (id, series_id, meeting_number, scheduled_start, scheduled_end, financial_snapshot_json) VALUES (?, ?, ?, ?, ?, ?)`).bind(occurrenceId, payload.seriesId, number, startAt, endAt, JSON.stringify(type === "Project Owner" ? await ownerSnapshotWithDelta(String(series.project_id), payload.seriesId) : {})),
-        ...priorAttendees.results.map((attendee) => env.DB.prepare(`INSERT INTO meeting_attendees (id, occurrence_id, name, email, attendee_role, attendance_requirement, external) VALUES (?, ?, ?, ?, ?, ?, ?)`).bind(crypto.randomUUID(), occurrenceId, attendee.name, attendee.email, attendee.attendee_role, attendee.attendance_requirement, attendee.external)),
+      const created = await env.DB.batch([
+        env.DB.prepare(`INSERT INTO meeting_occurrences (id, series_id, meeting_number, scheduled_start, scheduled_end, financial_snapshot_json) SELECT ?, ?, ?, ?, ?, ? WHERE NOT EXISTS (SELECT 1 FROM meeting_occurrences WHERE series_id = ? AND scheduled_start = ?)`).bind(occurrenceId, payload.seriesId, number, startAt, endAt, JSON.stringify(type === "Project Owner" ? await ownerSnapshotWithDelta(String(series.project_id), payload.seriesId) : {}), payload.seriesId, startAt),
+        ...priorAttendees.results.map((attendee) => env.DB.prepare(`INSERT INTO meeting_attendees (id, occurrence_id, name, email, attendee_role, attendance_requirement, external) SELECT ?, ?, ?, ?, ?, ?, ? WHERE EXISTS (SELECT 1 FROM meeting_occurrences WHERE id = ?)`).bind(crypto.randomUUID(), occurrenceId, attendee.name, attendee.email, attendee.attendee_role, attendee.attendance_requirement, attendee.external, occurrenceId)),
       ]);
+      if (!created[0].meta.changes) {
+        const existing = await env.DB.prepare(`SELECT id, meeting_number FROM meeting_occurrences WHERE series_id = ? AND scheduled_start = ?`).bind(series.id, startAt).first<{ id: string; meeting_number: string }>();
+        return Response.json({ saved: true, idempotent: true, occurrenceId: existing?.id, meetingNumber: existing?.meeting_number });
+      }
       const generated = await automatedAgendaItems({ type, projectId: String(series.project_id), occurrenceId, seriesId: payload.seriesId, actor });
       await auditMeeting({ actor, seriesId: payload.seriesId, occurrenceId, entityType: "Meeting Occurrence", entityId: occurrenceId, action: "Created", after: { number, startAt, generated } });
       return Response.json({ saved: true, occurrenceId, meetingNumber: number, generated });
@@ -686,6 +727,6 @@ export async function POST(request: Request) {
 
     return Response.json({ error: "Unknown Meeting Action" }, { status: 400 });
   } catch (error) {
-    return Response.json({ error: error instanceof Error ? error.message : "The Meeting Could Not Be Updated" }, { status: error instanceof AccessControlError || error instanceof MeetingAccessError || error instanceof MeetingAgendaError || error instanceof TurnoverError ? error.status : 500 });
+    return Response.json({ error: error instanceof Error ? error.message : "The Meeting Could Not Be Updated" }, { status: error instanceof MeetingInputError || error instanceof AccessControlError || error instanceof MeetingAccessError || error instanceof MeetingAgendaError || error instanceof TurnoverError ? error.status : 500 });
   }
 }
