@@ -11,6 +11,7 @@ import "./project-countdowns.css";
 import "./owner-billing-print.css";
 import "./usability.css";
 import "./project-workspace.css";
+import "./file-drop-uploads.css";
 import { PhotoUploadCompatibility } from "./photo-upload-compatibility";
 
 export const metadata: Metadata = {

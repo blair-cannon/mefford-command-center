@@ -29,10 +29,11 @@ export const TURNOVER_SECTIONS = {
 } as const;
 
 export type TurnoverGap = { key: string; title: string; owner: string; blocking: boolean };
+export type TurnoverChecklistItem = { key: string; title: string; source: string; replaces?: Array<{section: string; key: string}> };
 export type TurnoverPacket = {
   title: string; projectId: string; opportunityId: string; receiverName: string; receiverEmail: string;
   senderName: string; senderEmail: string; contractSigned: boolean; contractValue: number;
-  sections: Array<{ key: string; title: string; minutes: number; content: string }>;
+  sections: Array<{ key: string; title: string; minutes: number; content: string; items?: TurnoverChecklistItem[] }>;
   gaps: TurnoverGap[];
   people: Array<{ name: string; email: string; role: string }>;
   files: Array<{ id: string; name: string; category: string; revision: string; storageKey: string; contentType: string; size: number }>;
@@ -41,7 +42,10 @@ export type TurnoverView = {
   id: string; type: TurnoverType; status: string; revision: number; packet: TurnoverPacket;
   scheduled: boolean; buyoutDue: string; reviewed: string[]; acceptedAt: string; acceptedBy: string;
   ntpReference: string; canAccept: boolean;
+  updatedAt: string; checklist?: { total: number; completed: number };
 };
+
+export const turnoverItemId = (turnoverId: string, section: string, key: string) => `${turnoverId}:item:${section}:${key}`;
 
 /** Calendar days in the meeting's time zone; DST must not move the deadline. */
 export function turnoverBuyoutDate(heldAt: string, timeZone = "America/New_York") {

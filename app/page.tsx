@@ -10,7 +10,6 @@ import {
   useState,
   type PointerEvent as ReactPointerEvent,
 } from "react";
-import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
 import type { WorkSheet } from "xlsx";
 import type { AccountingMode } from "./accounting-erp";
 import {
@@ -47,8 +46,15 @@ import { analyzeConstructionSchedule } from "../lib/construction-schedule";
 import { indexDrawingUpload } from "../lib/drawing-client";
 import type { OwnerContractType } from "../lib/owner-contracts";
 import { isContractedActiveProject } from "../lib/contracted-projects";
-import { PHOTO_UPLOAD_ACCEPT, isPhotoUpload } from "../lib/photo-uploads";
+import { isPhotoUpload } from "../lib/photo-uploads";
+import { FieldPeoplePicker, FieldPhotoCapture, StoredFieldPhotos, useFieldContext } from "./field-capture";
+import { uploadFieldPhotos } from "../lib/field-capture";
+import { dailyScheduleActivities, validateDailySchedule, type DailyScheduleConfirmation } from "../lib/daily-schedule";
+import { DailyScheduleCheck } from "./daily-schedule-check";
+import { calculateChangeOrderSchedule, releasedChangeOrderSchedule } from "../lib/change-order-schedule";
 import { SummaryDrilldownHost, openSummaryDrilldown, summaryDrilldownProps } from "./summary-drilldown";
+import { ChangeOrderPanel, ChangeOrderScheduleFields } from "./change-order-record";
+import { ChangeOrderFile } from "./change-order-file";
 
 const SalesEstimatingWorkspace = lazy(() => import("./sales-estimating").then((module) => ({ default: module.SalesEstimatingWorkspace })));
 const ScheduleWorkspace = lazy(() => import("./schedule-workspace").then((module) => ({ default: module.ScheduleWorkspace })));
@@ -163,13 +169,6 @@ function inputDateFromNumeric(value: string) {
   if (!match) return "";
   const [, month, day, year] = match;
   return `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`;
-}
-
-function addCalendarDays(value: string, days: number) {
-  if (!value) return "";
-  const [year, month, day] = value.split("-").map(Number);
-  const date = new Date(Date.UTC(year, month - 1, day + Math.max(0, days)));
-  return date.toISOString().slice(0, 10);
 }
 
 function displayTimeInput(value: string) {
@@ -2198,6 +2197,9 @@ type ChangeOrderData = {
   relatedReference: string;
   scheduleImpact: "Unknown" | "No Impact Expected" | "Impact Expected";
   scheduleDays: number;
+  scheduleBasis?: "calendar-days-v1";
+  priorSubstantialDate?: string;
+  priorFinalDate?: string;
   attachments: string[];
   costStatus: "To Be Determined" | "Priced" | "Released";
   pricingLines: ChangeOrderPricingLine[];
@@ -2310,136 +2312,15 @@ function formatCurrency(value: number) {
   }).format(value);
 }
 
-function wrapPdfText(
-  text: string,
-  maxWidth: number,
-  font: { widthOfTextAtSize: (value: string, size: number) => number },
-  size: number,
-) {
-  const words = text.replaceAll("·", "-").split(/\s+/).filter(Boolean);
-  const lines: string[] = [];
-  let current = "";
-  for (const word of words) {
-    const next = current ? `${current} ${word}` : word;
-    if (font.widthOfTextAtSize(next, size) <= maxWidth || !current) {
-      current = next;
-    } else {
-      lines.push(current);
-      current = word;
-    }
-  }
-  if (current) lines.push(current);
-  return lines;
-}
-
-async function generateExecutedChangeOrderPdf(
-  record: RecordItem,
-  data: ChangeOrderData,
-  project: ProjectProfile,
-) {
-  const pdf = await PDFDocument.create();
-  pdf.setTitle(`${record.id} ${record.title}`);
-  pdf.setAuthor("Mefford Contracting");
-  pdf.setSubject("Executed Change Order");
-  const page = pdf.addPage([612, 792]);
-  const regular = await pdf.embedFont(StandardFonts.Helvetica);
-  const bold = await pdf.embedFont(StandardFonts.HelveticaBold);
-  const red = rgb(0.616, 0.188, 0.157);
-  const ink = rgb(0.1, 0.12, 0.13);
-  const muted = rgb(0.39, 0.43, 0.45);
-  const line = rgb(0.79, 0.81, 0.8);
-  const margin = 46;
-  const width = 520;
-  let y = 742;
-
-  try {
-    const logoResponse = await fetch("/mefford-logo.png");
-    const logo = await pdf.embedPng(await logoResponse.arrayBuffer());
-    page.drawImage(logo, { x: margin, y: y - 28, width: 50, height: 43 });
-  } catch {
-    page.drawRectangle({ x: margin, y: y - 22, width: 46, height: 34, color: red });
-  }
-  page.drawText("MEFFORD CONTRACTING", { x: 108, y: y + 4, size: 8, font: bold, color: muted });
-  page.drawText("Change Order", { x: 108, y: y - 19, size: 23, font: bold, color: ink });
-  page.drawText(record.id, { x: 500, y: y - 11, size: 15, font: bold, color: red });
-  page.drawLine({ start: { x: margin, y: y - 38 }, end: { x: margin + width, y: y - 38 }, thickness: 3, color: red });
-  y -= 65;
-
-  const projectFields = [
-    ["Project", project.name],
-    ["Project Number", project.number],
-    ["Owner", project.ownerName],
-    ["Date", record.due],
-  ];
-  const projectCell = width / 4;
-  projectFields.forEach(([label, value], index) => {
-    const x = margin + index * projectCell;
-    page.drawRectangle({ x, y: y - 34, width: projectCell, height: 42, borderColor: line, borderWidth: 0.7 });
-    page.drawText(label.toUpperCase(), { x: x + 7, y: y - 6, size: 6, font: bold, color: muted });
-    page.drawText(value, { x: x + 7, y: y - 22, size: 8, font: bold, color: ink, maxWidth: projectCell - 14 });
-  });
-  y -= 58;
-  page.drawText("CHANGE ORDER TITLE", { x: margin, y, size: 6, font: bold, color: muted });
-  page.drawText(record.title, { x: margin, y: y - 19, size: 15, font: bold, color: ink });
-  y -= 43;
-  page.drawText("DESCRIPTION OF CHANGED WORK", { x: margin, y, size: 6, font: bold, color: muted });
-  const descriptionLines = wrapPdfText(data.description, width - 20, regular, 9);
-  const descriptionHeight = Math.max(72, descriptionLines.length * 13 + 25);
-  page.drawRectangle({ x: margin, y: y - descriptionHeight, width, height: descriptionHeight - 8, borderColor: line, borderWidth: 0.7 });
-  descriptionLines.forEach((text, index) => page.drawText(text, { x: margin + 10, y: y - 23 - index * 13, size: 9, font: regular, color: ink }));
-  y -= descriptionHeight + 10;
-  page.drawText(`Type: ${data.changeType}  |  Reason: ${data.reason}  |  Requested By: ${data.requestedBy}`, { x: margin, y, size: 7, font: regular, color: muted });
-  y -= 26;
-
-  const valueRows: Array<[string, number]> = [
-    ["Original Contract Value", data.originalContractValue],
-    ["This Change Order", data.approvedTotal],
-    ["Previously Approved Change Orders", data.previousApprovedChangeOrders],
-    ["Contract Value After This Change Order", data.contractValueAfterThisChange],
-  ];
-  valueRows.forEach(([label, value], index) => {
-    const rowY = y - index * 25;
-    page.drawRectangle({ x: margin, y: rowY - 20, width, height: 25, borderColor: line, borderWidth: 0.7 });
-    page.drawText(label, { x: margin + 9, y: rowY - 11, size: 8, font: bold, color: muted });
-    const amount = formatCurrency(value);
-    page.drawText(amount, { x: margin + width - 9 - bold.widthOfTextAtSize(amount, 9), y: rowY - 11, size: 9, font: bold, color: ink });
-  });
-  y -= 116;
-  const scheduleRows = [
-    ["Contract Time Change", data.scheduleDays ? `${data.scheduleDays} Calendar Days` : "No Change"],
-    ["New Substantial Completion Date", displayProjectDate(data.newSubstantialDate)],
-    ["New Final Completion Date", displayProjectDate(data.newFinalDate)],
-  ];
-  const scheduleCell = width / 3;
-  scheduleRows.forEach(([label, value], index) => {
-    const x = margin + index * scheduleCell;
-    page.drawRectangle({ x, y: y - 38, width: scheduleCell, height: 46, borderColor: line, borderWidth: 0.7 });
-    page.drawText(label.toUpperCase(), { x: x + 7, y: y - 7, size: 5.5, font: bold, color: muted });
-    page.drawText(value, { x: x + 7, y: y - 24, size: 8, font: bold, color: ink, maxWidth: scheduleCell - 14 });
-  });
-  y -= 67;
-  const certification = "The Contract Sum Contract Time And Contract Documents Are Modified Only As Stated In This Change Order. All Other Contract Terms Remain Unchanged.";
-  page.drawRectangle({ x: margin, y: y - 34, width, height: 42, color: rgb(0.95, 0.96, 0.95) });
-  wrapPdfText(certification, width - 18, bold, 7).forEach((text, index) => page.drawText(text, { x: margin + 9, y: y - 10 - index * 11, size: 7, font: bold, color: ink }));
-  y -= 72;
-
-  page.drawText("PROJECT OWNER", { x: margin, y, size: 6, font: bold, color: muted });
-  page.drawText("MEFFORD CONTRACTING", { x: 330, y, size: 6, font: bold, color: muted });
-  page.drawText(data.ownerSignatureName || project.ownerName, { x: margin, y: y - 26, size: 13, font: regular, color: ink });
-  page.drawText(data.releaseApprovedBy || "Jordan Mefford", { x: 330, y: y - 26, size: 13, font: regular, color: ink });
-  page.drawLine({ start: { x: margin, y: y - 31 }, end: { x: 278, y: y - 31 }, thickness: 0.7, color: ink });
-  page.drawLine({ start: { x: 330, y: y - 31 }, end: { x: 566, y: y - 31 }, thickness: 0.7, color: ink });
-  page.drawText(`${data.ownerSignatureTitle || "Authorized Representative"} - ${displayProjectDate(data.ownerSignatureDate || "")}`, { x: margin, y: y - 43, size: 6, font: regular, color: muted });
-  page.drawText("Authorized Signature / Release Approval", { x: 330, y: y - 43, size: 6, font: regular, color: muted });
-  page.drawText("EXECUTED", { x: margin, y: 42, size: 8, font: bold, color: rgb(0.15, 0.43, 0.31) });
-  page.drawText(`Originated As ${data.originPco || "N/A"}  |  Filed In Financial Info / Change Orders`, { x: 112, y: 42, size: 6.5, font: regular, color: muted });
-
-  const bytes = Uint8Array.from(await pdf.save());
-  return new File([bytes.buffer], `${record.id} Executed.pdf`, { type: "application/pdf" });
+async function generateExecutedChangeOrderPdf(record: RecordItem, data: ChangeOrderData, project: ProjectProfile) {
+  const { generateChangeOrderPdf } = await import("../lib/change-order-document");
+  const bytes = await generateChangeOrderPdf({ record, data, project });
+  return new File([new Uint8Array(bytes)], `${record.id} Executed.pdf`, { type: "application/pdf" });
 }
 
 function ChangeOrdersWorkspace({
   project,
+  actor,
   records,
   onRecordsChange,
   onProjectUpdate,
@@ -2449,6 +2330,7 @@ function ChangeOrdersWorkspace({
   onOpenBudget,
 }: {
   project: ProjectProfile;
+  actor: CommandSessionActor;
   records: RecordItem[];
   onRecordsChange: (next: RecordItem[]) => void;
   onProjectUpdate: (changes: Partial<ProjectProfile>) => void;
@@ -2457,6 +2339,8 @@ function ChangeOrdersWorkspace({
   budgetReady: boolean;
   onOpenBudget: () => void;
 }) {
+  const [recordTab, setRecordTab] = useState(0);
+  const canRelease = ["Company Owner", "Administrator"].includes(actor.accessLevel);
   const [query, setQuery] = useState("");
   const [viewMode, setViewMode] = useState<"Office Pricing View" | "Field View">(
     "Office Pricing View",
@@ -2481,13 +2365,16 @@ function ChangeOrdersWorkspace({
   const [recordTime, setRecordTime] = useState(() =>
     currentTimeInput(project.timeZone),
   );
-  const [attachmentFiles, setAttachmentFiles] = useState<File[]>([]);
+  const [fileDirty, setFileDirty] = useState(false);
   const [pricingLines, setPricingLines] = useState<ChangeOrderPricingLine[]>([]);
   const [pricingNotes, setPricingNotes] = useState("");
   const [changeType, setChangeType] = useState<ChangeOrderData["changeType"]>("Additive");
   const [scheduleDays, setScheduleDays] = useState(0);
-  const [newSubstantialDate, setNewSubstantialDate] = useState(project.substantialDate);
-  const [newFinalDate, setNewFinalDate] = useState(project.finalDate);
+  let scheduleError = "";
+  let schedulePreview = { scheduleBasis: "calendar-days-v1" as const, scheduleDays, priorSubstantialDate: project.substantialDate, priorFinalDate: project.finalDate, newSubstantialDate: "", newFinalDate: "" };
+  try { schedulePreview = calculateChangeOrderSchedule(project, scheduleDays); }
+  catch (error) { scheduleError = error instanceof Error ? error.message : "Invalid Schedule Days"; }
+  const { newSubstantialDate, newFinalDate } = schedulePreview;
   const [pricingInviteCompany, setPricingInviteCompany] = useState("");
   const [pricingInviteEmail, setPricingInviteEmail] = useState("");
   const [dispositionReason, setDispositionReason] = useState("");
@@ -2530,7 +2417,7 @@ function ChangeOrdersWorkspace({
   const formalOriginalContract =
     formalPreviewData.originalContractValue || Number(project.contractAmount) || 0;
   const formalPreviousApproved =
-    formalPreviewData.previousApprovedChangeOrders || calculatedPreviousApproved;
+    formalPreviewRecord?.data?.previousApprovedChangeOrders != null ? formalPreviewData.previousApprovedChangeOrders : calculatedPreviousApproved;
   const formalContractAfter =
     formalPreviewData.contractValueAfterThisChange ||
     formalOriginalContract + formalPreviousApproved + formalPreviewData.approvedTotal;
@@ -2550,36 +2437,63 @@ function ChangeOrdersWorkspace({
     )
     .reduce((total, record) => total + changeOrderData(record).approvedTotal, 0);
 
+  const editablePricing = Boolean(selectedRecord?.id.startsWith("PCO-") && ["Submitted", "Pricing", "Awaiting Release"].includes(selectedRecord.status));
+  const pricingDirty = editablePricing && JSON.stringify([title.trim(), description.trim(), reason, requestedBy.trim(), relatedReference.trim(), pricingLines, pricingNotes.trim(), changeType, scheduleDays, newSubstantialDate, newFinalDate]) !== JSON.stringify([selectedRecord?.title, selectedData.description, selectedData.reason, selectedData.requestedBy, selectedData.relatedReference, selectedData.pricingLines, selectedData.pricingNotes, selectedData.changeType, selectedData.scheduleDays, selectedData.newSubstantialDate, selectedData.newFinalDate]);
+  const previousChanges = roundMoney(Number(project.currentContractAmount || project.contractAmount) - Number(project.contractAmount));
+  const draftDocument = {
+    project,
+    record: createOpen ? { id: nextWorkflowNumber(records, "PCO"), title, due: recordDate, status: "Draft" } : selectedRecord ? { ...selectedRecord, title: editablePricing ? title : selectedRecord.title } : { id: "", title: "", due: "", status: "Draft" },
+    data: createOpen ? { ...emptyChangeOrderData, description, reason, requestedBy, relatedReference, changeType, ...schedulePreview, originalContractValue: Number(project.contractAmount), previousApprovedChangeOrders: previousChanges } : editablePricing && viewMode === "Office Pricing View" ? { ...selectedData, description, reason, requestedBy, relatedReference, ...schedulePreview, pricingNotes, changeType, costStatus: pricingLines.length || changeType === "No Cost" ? "Priced" : "To Be Determined", approvedTotal: pricedChangeValue(pricingLines, changeType), originalContractValue: Number(project.contractAmount), previousApprovedChangeOrders: previousChanges, contractValueAfterThisChange: Number(project.contractAmount) + previousChanges + pricedChangeValue(pricingLines, changeType) } : selectedData,
+  };
+  let formalNeedsReview = false;
+  let refreshedFormalSchedule = { newSubstantialDate: "", newFinalDate: "" };
+  let formalScheduleError = "";
+  try { refreshedFormalSchedule = calculateChangeOrderSchedule(project, formalPreviewData.scheduleDays); }
+  catch (error) { formalScheduleError = error instanceof Error ? error.message : "Invalid Completion Dates"; }
+  if (formalPreviewRecord?.status === "Awaiting Owner Signature") {
+    try { releasedChangeOrderSchedule(formalPreviewRecord.data || {}, project); }
+    catch { formalNeedsReview = true; }
+    if (Math.abs(formalContractAfter - (Number(project.currentContractAmount || project.contractAmount) + formalPreviewData.approvedTotal)) > 0.005) formalNeedsReview = true;
+  }
+  function closeChangeRecord() {
+    if (saving) return;
+    if ((createOpen && Boolean(title || description || scheduleDays) || !formalPreviewRecord && pricingDirty || fileDirty) && !window.confirm("Discard Unsaved Change Order Edits?")) return;
+    setCreateOpen(false); setSelectedId(null); setFormalPreviewId(null); setNotice("");
+  }
+  function reviewedSchedule() {
+    if (scheduleError) { showNotice(scheduleError); return null; }
+    return schedulePreview;
+  }
+
   function openCreate() {
-    if (!budgetReady) {
-      showNotice(
-        "Complete And Lock The Original Project Budget Before Starting A Change Order.",
-      );
-      return;
-    }
+    setNotice("");
+    setRecordTab(0);
+    setScheduleDays(0);
+    setPricingLines([]);
+    setPricingNotes("");
     setTitle("");
     setDescription("");
     setReason("Owner Request");
     setRequestedBy("Project Owner");
-    setSubmittedBy(project.superintendent || project.projectManager || "Jordan Mefford");
+    setSubmittedBy(actor.name);
     setRelatedReference("");
     setScheduleImpact("Unknown");
     setRecordDate(currentDateInput(project.timeZone));
     setRecordTime(currentTimeInput(project.timeZone));
-    setAttachmentFiles([]);
     setChangeType("Additive");
     setCreateOpen(true);
   }
 
   function openRecord(record: RecordItem) {
     const data = changeOrderData(record);
+    setNotice("");
+    setRecordTab(4);
     setSelectedId(record.id);
+    setTitle(record.title); setDescription(data.description); setReason(data.reason); setRequestedBy(data.requestedBy); setSubmittedBy(data.submittedBy); setRelatedReference(data.relatedReference);
     setPricingLines(data.pricingLines);
     setPricingNotes(data.pricingNotes);
     setChangeType(data.changeType);
     setScheduleDays(data.scheduleDays);
-    setNewSubstantialDate(data.newSubstantialDate || project.substantialDate);
-    setNewFinalDate(data.newFinalDate || project.finalDate);
     setPricingInviteCompany(data.pricingInviteCompany || "");
     setPricingInviteEmail(data.pricingInviteEmail || "");
     setDispositionReason(data.dispositionReason || "");
@@ -2595,9 +2509,10 @@ function ChangeOrdersWorkspace({
       showNotice("Add The Title Description And Requesting Party Before Submitting.");
       return;
     }
+    const schedule = reviewedSchedule();
+    if (!schedule) return;
     setSaving(true);
     const id = nextWorkflowNumber(records, "PCO");
-    const attachmentNames = attachmentFiles.map((file) => file.name);
     const workflowEntry = `Submitted By ${submittedBy} · ${numericDateFromInput(recordDate)} · ${displayTimeInput(recordTime)} · Cost To Be Determined`;
     const data: ChangeOrderData = {
       ...emptyChangeOrderData,
@@ -2606,9 +2521,10 @@ function ChangeOrdersWorkspace({
       requestedBy: requestedBy.trim(),
       submittedBy,
       relatedReference: relatedReference.trim(),
-      scheduleImpact,
+      scheduleImpact: schedule.scheduleDays > 0 ? "Impact Expected" : scheduleImpact,
+      ...schedule,
       changeType,
-      attachments: attachmentNames,
+      attachments: [],
       workflowHistory: [workflowEntry],
     };
     const record: RecordItem = {
@@ -2626,9 +2542,6 @@ function ChangeOrdersWorkspace({
       persistent: true,
     };
     try {
-      for (const file of attachmentFiles) {
-        await uploadChangeOrderAttachment(file, project.number, id);
-      }
       await persistCommandRecord(project.number, "Change Orders", record);
     } catch (error) {
       setSaving(false);
@@ -2642,6 +2555,8 @@ function ChangeOrdersWorkspace({
     onRecordsChange([record, ...records]);
     setSaving(false);
     setCreateOpen(false);
+    openRecord(record);
+    setRecordTab(4);
     showNotice(`${id} Submitted Permanently To ${record.owner} For Pricing.`);
   }
 
@@ -2759,10 +2674,8 @@ function ChangeOrdersWorkspace({
   }
 
   function updateScheduleImpactDays(value: number) {
-    const days = Math.max(0, value || 0);
-    setScheduleDays(days);
-    setNewSubstantialDate(addCalendarDays(project.substantialDate, days));
-    setNewFinalDate(addCalendarDays(project.finalDate, days));
+    setScheduleDays(value);
+    setReleaseChecked(false);
   }
 
   async function savePricingInvite(markSent = false) {
@@ -2811,7 +2724,7 @@ function ChangeOrdersWorkspace({
       showNotice(`Add A Reason Before Marking This PCO ${status}.`);
       return;
     }
-    const entry = `${status} By Jordan Mefford · ${numericDateFromInput(currentDateInput(project.timeZone))} · Number Permanently Reserved · ${dispositionReason.trim()}`;
+    const entry = `${status} By ${actor.name} · ${numericDateFromInput(currentDateInput(project.timeZone))} · Number Permanently Reserved · ${dispositionReason.trim()}`;
     const next: RecordItem = {
       ...selectedRecord,
       status,
@@ -2838,8 +2751,31 @@ function ChangeOrdersWorkspace({
     showNotice(`${selectedRecord.id} Is ${status} And Its Number Remains Permanently Reserved.`);
   }
 
+  async function savePcoDetails() {
+    if (!selectedRecord || !editablePricing) return;
+    if (!title.trim() || !description.trim() || !requestedBy.trim()) { showNotice("Add The Title Description And Requesting Party Before Saving."); return; }
+    const schedule = reviewedSchedule();
+    if (!schedule) return;
+    const next: RecordItem = {
+      ...selectedRecord, title: title.trim(), status: selectedRecord.status === "Awaiting Release" ? "Pricing" : selectedRecord.status,
+      data: { ...selectedData, description: description.trim(), reason, requestedBy: requestedBy.trim(), relatedReference: relatedReference.trim(), pricingLines, pricingNotes: pricingNotes.trim(), changeType, ...schedule, costStatus: "To Be Determined", approvedTotal: 0 },
+      meta: "PCO Saved · Pricing Not Released",
+    };
+    setSaving(true);
+    try {
+      await persistCommandRecord(project.number, "Change Orders", next);
+      onRecordsChange(records.map(record => record.id === next.id ? next : record));
+      setReleaseChecked(false);
+      showNotice(`${next.id} Saved. Its Prior Version Remains In Audit History.`);
+    } catch (error) { showNotice(error instanceof Error ? error.message : "The PCO Could Not Be Saved."); }
+    finally { setSaving(false); }
+  }
+
   async function savePricing() {
     if (!selectedRecord) return;
+    if (!title.trim() || !description.trim() || !requestedBy.trim()) { showNotice("Add The Title Description And Requesting Party Before Submitting."); return; }
+    const schedule = reviewedSchedule();
+    if (!schedule) return;
     const completeLines = pricingLines.filter(
       (line) => line.description.trim() && line.cost > 0,
     );
@@ -2855,17 +2791,18 @@ function ChangeOrdersWorkspace({
     const entry = `Priced By ${project.projectManager || "Company Owner"} · ${changeType} · ${formatCurrency(approvedTotal)} · Submitted For Release Approval`;
     const next: RecordItem = {
       ...selectedRecord,
+      title: title.trim(),
       status: "Awaiting Release",
       meta: `${formatCurrency(approvedTotal)} · Company Owner Or Administrator Release Required`,
       data: {
         ...selectedData,
+        description: description.trim(), reason, requestedBy: requestedBy.trim(), relatedReference: relatedReference.trim(),
         costStatus: "Priced",
         pricingLines: completeLines,
         pricingNotes: pricingNotes.trim(),
         changeType,
-        scheduleDays: Math.max(0, scheduleDays),
-        newSubstantialDate,
-        newFinalDate,
+        ...schedule,
+        scheduleImpact: schedule.scheduleDays ? "Impact Expected" : "No Impact Expected",
         approvedTotal,
         workflowHistory: [...selectedData.workflowHistory, entry],
       },
@@ -2883,6 +2820,10 @@ function ChangeOrdersWorkspace({
     }
     onRecordsChange(records.map((record) => (record.id === next.id ? next : record)));
     setSaving(false);
+    setPricingLines(completeLines);
+    setPricingNotes(pricingNotes.trim());
+    setReleaseChecked(false);
+    setRecordTab(3);
     showNotice(`${selectedRecord.id} Pricing Saved And Submitted For Release Approval.`);
   }
 
@@ -2891,21 +2832,18 @@ function ChangeOrdersWorkspace({
       showNotice("Confirm The Scope Pricing Schedule Impact And Supporting Files First.");
       return;
     }
+    if (!canRelease || pricingDirty) { showNotice("Save Pricing And Completion Dates Before Release Approval."); return; }
+    const schedule = reviewedSchedule();
+    if (!schedule) return;
     const coNumber = nextWorkflowNumber(records, "CO");
     const originalContractValue = Number(project.contractAmount) || 0;
-    const previousApprovedChangeOrders = records
-      .filter(
-        (record) =>
-          record.id.startsWith("CO-") &&
-          ["Approved", "Executed"].includes(record.status),
-      )
-      .reduce((total, record) => total + changeOrderData(record).approvedTotal, 0);
+    const previousApprovedChangeOrders = previousChanges;
     const contractValueAfterThisChange =
       originalContractValue +
       previousApprovedChangeOrders +
       selectedData.approvedTotal;
     const approvedAt = `${numericDateFromInput(currentDateInput(project.timeZone))} · ${displayTimeInput(currentTimeInput(project.timeZone))}`;
-    const releaseEntry = `Release Approved By Jordan Mefford · Company Owner · ${approvedAt} · Formal ${coNumber} Created`;
+    const releaseEntry = `Release Approved By ${actor.name} · ${actor.accessLevel} · ${approvedAt} · Formal ${coNumber} Created`;
     const convertedPco: RecordItem = {
       ...selectedRecord,
       status: "Converted",
@@ -2914,13 +2852,12 @@ function ChangeOrdersWorkspace({
         ...selectedData,
         costStatus: "Released",
         coNumber,
-        releaseApprovedBy: "Jordan Mefford",
+        releaseApprovedBy: actor.name,
         releaseApprovedAt: approvedAt,
         originalContractValue,
         previousApprovedChangeOrders,
         contractValueAfterThisChange,
-        newSubstantialDate: selectedData.newSubstantialDate || newSubstantialDate,
-        newFinalDate: selectedData.newFinalDate || newFinalDate,
+        ...schedule,
         workflowHistory: [...selectedData.workflowHistory, releaseEntry],
       },
       auditHistory: [...(selectedRecord.auditHistory ?? []), releaseEntry],
@@ -2959,15 +2896,31 @@ function ChangeOrdersWorkspace({
     onRecordsChange(nextRecords);
     setSelectedId(coNumber);
     setFormalPreviewId(coNumber);
+    setRecordTab(1);
     setReleaseChecked(false);
     setSaving(false);
     showNotice(`${coNumber} Created And Approved For Distribution To The Project Owner.`);
   }
 
+  async function reapproveFormalDates() {
+    if (!formalPreviewRecord || !canRelease || !releaseChecked) return;
+    setSaving(true);
+    try {
+      const schedule = calculateChangeOrderSchedule(project, formalPreviewData.scheduleDays);
+      const entry = `Completion Dates And Contract Value Reviewed And Reapproved By ${actor.name} · ${currentDateInput(project.timeZone)}`;
+      const next: RecordItem = { ...formalPreviewRecord, data: { ...formalPreviewData, ...schedule, originalContractValue: Number(project.contractAmount), previousApprovedChangeOrders: previousChanges, contractValueAfterThisChange: Number(project.currentContractAmount || project.contractAmount) + formalPreviewData.approvedTotal, releaseApprovedBy: actor.name, releaseApprovedAt: currentDateInput(project.timeZone), ownerSignatureName: "", ownerSignatureTitle: "", ownerSignatureDate: "", ownerSignatureMethod: undefined, executedFileName: "", executedFileId: null, workflowHistory: [...formalPreviewData.workflowHistory, entry] } };
+      await persistCommandRecord(project.number, "Change Orders", next);
+      onRecordsChange(records.map(record => record.id === next.id ? next : record));
+      setReleaseChecked(false); setOwnerSignatureConsent(false); setOwnerSignerName(""); setExecutedFile(null);
+      showNotice("Updated Dates Reapproved. Obtain The Owner's Signature On This Revised Document.");
+    } catch (error) { showNotice(error instanceof Error ? error.message : "The Dates Could Not Be Reapproved."); }
+    setSaving(false);
+  }
+
   async function executeFormalChangeOrder(
     method: "Electronic Signature" | "Uploaded Signed PDF",
   ) {
-    if (!formalPreviewRecord) return;
+    if (!formalPreviewRecord || formalNeedsReview) return;
     if (method === "Electronic Signature" && (!ownerSignerName.trim() || !ownerSignatureConsent)) {
       showNotice("Add The Owner Signer Name And Confirm The Electronic Signature Consent.");
       return;
@@ -3051,23 +3004,24 @@ function ChangeOrdersWorkspace({
 
   function showNotice(message: string) {
     setNotice(message);
-    window.setTimeout(() => setNotice(""), 3600);
+
   }
 
   return (
     <div className="module-workspace change-order-workspace">
+      {!createOpen && !selectedRecord && !formalPreviewRecord ? <>
       <section className="workspace-heading change-order-heading">
         <div>
           <p className="eyebrow orange-text">{project.name.toUpperCase()}</p>
           <h1>Change Orders</h1>
 
         </div>
-        <button className="primary-action large" disabled={!budgetReady} onClick={openCreate}>
+        <button className="primary-action large" onClick={openCreate}>
           ＋ New Potential Change Order
         </button>
       </section>
       {notice ? <div className="inline-success">{notice}</div> : null}
-      {!budgetReady ? <section className="budget-prerequisite"><span>1</span><div><strong>Locked Original Budget Required</strong><p>Select project cost codes enter a positive original budget and lock it before creating or updating Change Orders.</p></div><button className="primary-action" onClick={onOpenBudget}>Open Budget Setup</button></section> : null}
+      {!budgetReady ? <div className="change-order-controls"><span>Pricing Requires A Locked Original Budget.</span><button className="secondary-action" onClick={onOpenBudget}>Open Budget Setup</button></div> : null}
       <section className="change-order-summary">
         <article {...summaryDrilldownProps({ title: "Potential Change Orders", rows: records.filter((record) => record.id.startsWith("PCO-")).map((record) => ({ id: record.id, title: record.title, subtitle: record.meta, status: record.status, value: formatCurrency(changeOrderData(record).approvedTotal), onOpen: () => openRecord(record), openLabel: "Open PCO →" })) })}>
           <span>PCO</span>
@@ -3166,138 +3120,37 @@ function ChangeOrdersWorkspace({
         })}
       </section>
 
-      {createOpen ? (
-        <div className="modal-layer" role="presentation">
-          <section
-            className="record-modal wide change-order-modal"
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="new-pco-title"
-          >
-            <div className="modal-heading">
-              <div>
-
-                <h2 id="new-pco-title">New Potential Change Order</h2>
-              </div>
-              <button aria-label="Close Potential Change Order" onClick={() => setCreateOpen(false)}>×</button>
-            </div>
-            <div className="field-grid">
-              <label className="field-label">
-                PCO Number
-                <input value={nextWorkflowNumber(records, "PCO")} disabled />
-              </label>
-              <label className="field-label">
-                Date
-                <input type="date" value={recordDate} onChange={(event) => setRecordDate(event.target.value)} />
-              </label>
-              <label className="field-label">
-                Time
-                <input type="time" value={recordTime} onChange={(event) => setRecordTime(event.target.value)} />
-              </label>
-            </div>
-            <label className="field-label">
-              Change Title
-              <input value={title} onChange={(event) => setTitle(event.target.value)} placeholder="Example: Additional Site Drainage" autoFocus />
-            </label>
-            <label className="field-label">
-              Detailed Description Of The Changed Work
-              <textarea value={description} onChange={(event) => setDescription(event.target.value)} rows={5} placeholder="Describe the changed condition requested work affected area and what was observed." />
-            </label>
-            <div className="field-grid">
-              <label className="field-label">
-                Reason For Change
-                <select value={reason} onChange={(event) => setReason(event.target.value)}>
-                  <option>Owner Request</option>
-                  <option>Design Revision</option>
-                  <option>Unforeseen Condition</option>
-                  <option>Code Requirement</option>
-                  <option>Field Coordination</option>
-                  <option>Other</option>
-                </select>
-              </label>
-              <label className="field-label">
-                Requested By
-                <input value={requestedBy} onChange={(event) => setRequestedBy(event.target.value)} placeholder="Name And Organization" />
-              </label>
-              <label className="field-label">
-                Submitted By
-                <select value={submittedBy} onChange={(event) => setSubmittedBy(event.target.value)}>
-                  {MEFFORD_COMPANY_DIRECTORY.map((member) => <option key={member.email}>{member.name}</option>)}
-                </select>
-              </label>
-            </div>
-            <div className="field-grid">
-              <label className="field-label">
-                Related Drawing RFI Or Submittal
-                <input value={relatedReference} onChange={(event) => setRelatedReference(event.target.value)} placeholder="Example: RFI-007 Or C3.2" />
-              </label>
-              <label className="field-label">
-                Initial Schedule Impact
-                <select value={scheduleImpact} onChange={(event) => setScheduleImpact(event.target.value as ChangeOrderData["scheduleImpact"])}>
-                  <option>Unknown</option>
-                  <option>No Impact Expected</option>
-                  <option>Impact Expected</option>
-                </select>
-              </label>
-              <label className="field-label">
-                Change Order Type
-                <select value={changeType} onChange={(event) => setChangeType(event.target.value as ChangeOrderData["changeType"])}>
-                  <option>Additive</option>
-                  <option>Deductive</option>
-                  <option>No Cost</option>
-                </select>
-              </label>
-            </div>
-            <label className="change-order-upload">
-              <input type="file" multiple onChange={(event) => setAttachmentFiles(Array.from(event.target.files ?? []))} />
-              <span>＋</span>
-              <strong>Add Pictures Drawings Quotes Or Supporting Files</strong>
-              <small>{attachmentFiles.length ? `${attachmentFiles.length} File${attachmentFiles.length === 1 ? "" : "s"} Selected` : "Individual Files Up To 1 GB"}</small>
-            </label>
-            <div className="cost-tbd-banner">
-              <span>$</span>
-              <div>
-                <strong>Pricing Pending</strong>
-                <small>PM pricing required.</small>
-              </div>
-            </div>
-            <div className="modal-actions">
-              <button className="secondary-action" onClick={() => setCreateOpen(false)}>Cancel</button>
-              <button className="primary-action large" disabled={saving} onClick={submitPco}>{saving ? "Saving Permanently..." : "Submit PCO For Pricing"}</button>
-            </div>
-          </section>
+      </> : null}
+      {createOpen ? <ChangeOrderPanel title="New Potential Change Order" context={`${project.number} · ${project.name}`} onClose={closeChangeRecord} busy={saving} notice={notice} document={draftDocument} actions={<><button className="secondary-action" disabled={saving} onClick={closeChangeRecord}>Cancel</button><button className="primary-action" disabled={saving || Boolean(scheduleError)} onClick={submitPco}>{saving ? "Saving…" : "Save PCO And Add Documents"}</button></>}>
+        <div className="co-step-content">
+          <label className="field-label">Change Title<input value={title} onChange={event => setTitle(event.target.value)} placeholder="Example: Additional Site Drainage" /></label>
+          <label className="field-label">Description Of Changed Work<textarea rows={6} value={description} onChange={event => setDescription(event.target.value)} placeholder="Scope, location, and reason for the changed work" /></label>
+          <div className="field-grid"><label className="field-label">Reason For Change<select value={reason} onChange={event => setReason(event.target.value)}>{["Owner Request", "Design Revision", "Unforeseen Condition", "Code Requirement", "Field Coordination", "Other"].map(value => <option key={value}>{value}</option>)}</select></label><label className="field-label">Requested By<input value={requestedBy} onChange={event => setRequestedBy(event.target.value)} /></label><label className="field-label">Submitted By<input value={submittedBy} readOnly /></label></div>
+          <div className="field-grid"><label className="field-label">Related Drawing RFI Or Submittal<input value={relatedReference} onChange={event => setRelatedReference(event.target.value)} placeholder="RFI-007 Or C3.2" /></label><label className="field-label">Change Order Type<select value={changeType} onChange={event => setChangeType(event.target.value as ChangeOrderData["changeType"])}><option>Additive</option><option>Deductive</option><option>No Cost</option></select></label></div>
+          <details><summary>Record Details</summary><div className="field-grid"><label className="field-label">PCO Number<input value={nextWorkflowNumber(records, "PCO")} readOnly /></label><label className="field-label">Date<input type="date" value={recordDate} onChange={event => setRecordDate(event.target.value)} /></label><label className="field-label">Time<input type="time" value={recordTime} onChange={event => setRecordTime(event.target.value)} /></label></div></details>
         </div>
-      ) : null}
+        <div className="co-step-content"><h3>Completion Dates</h3><ChangeOrderScheduleFields days={scheduleDays} onDaysChange={updateScheduleImpactDays} currentSubstantial={project.substantialDate} currentFinal={project.finalDate} revisedSubstantial={newSubstantialDate} revisedFinal={newFinalDate} />{scheduleError ? <p role="alert">{scheduleError}</p> : null}</div>
+      </ChangeOrderPanel> : null}
 
-      {selectedRecord ? (
-        <div className="modal-layer" role="presentation">
-          <section className="record-modal wide change-order-detail-modal" role="dialog" aria-modal="true" aria-labelledby="change-order-detail-title">
-            <div className="modal-heading">
-              <div>
-                <p className="eyebrow orange-text">{selectedRecord.id} · {selectedRecord.status.toUpperCase()}</p>
-                <h2 id="change-order-detail-title">{selectedRecord.title}</h2>
-              </div>
-              <button aria-label="Close Change Order" onClick={() => setSelectedId(null)}>×</button>
-            </div>
-            <section className="change-order-detail-grid">
+      {selectedRecord && !formalPreviewRecord ? (
+        <ChangeOrderPanel title={selectedRecord.title} context={`${selectedRecord.id} · ${selectedRecord.status}`} tabs={["Details", "Pricing", "Schedule", "Approval", "Change File"]} tab={recordTab} onTab={setRecordTab} onClose={closeChangeRecord} busy={saving} notice={notice} document={draftDocument} actions={editablePricing && viewMode === "Office Pricing View" ? <><button className="secondary-action" disabled={saving || Boolean(scheduleError) || !pricingDirty} onClick={savePcoDetails}>Save PCO</button><button className="primary-action" disabled={saving || !budgetReady || Boolean(scheduleError) || selectedRecord.status === "Awaiting Release" && !pricingDirty} onClick={savePricing}>{saving ? "Saving…" : selectedRecord.status === "Awaiting Release" && !pricingDirty ? "Saved For Release Approval" : "Submit Pricing For Release"}</button></> : undefined}>
+            <div hidden={recordTab !== 4}><ChangeOrderFile key={selectedRecord.id} refreshKey={JSON.stringify(selectedRecord)} projectId={project.number} recordId={selectedRecord.id} onDirtyChange={setFileDirty} upload={(file, category, revision, access) => uploadChangeOrderAttachment(file, project.number, selectedRecord.id, category, revision, access)} /></div>
+            <div hidden={recordTab !== 2} className="co-step-content"><h3>Completion Dates</h3><ChangeOrderScheduleFields days={editablePricing ? scheduleDays : selectedData.scheduleDays} onDaysChange={updateScheduleImpactDays} readOnly={!editablePricing || viewMode === "Field View"} currentSubstantial={editablePricing ? project.substantialDate : selectedData.priorSubstantialDate || project.substantialDate} currentFinal={editablePricing ? project.finalDate : selectedData.priorFinalDate || project.finalDate} revisedSubstantial={editablePricing ? newSubstantialDate : selectedData.newSubstantialDate || project.substantialDate} revisedFinal={editablePricing ? newFinalDate : selectedData.newFinalDate || project.finalDate} />{scheduleError && editablePricing ? <p role="alert">{scheduleError}</p> : null}</div>
+            {editablePricing && viewMode === "Office Pricing View" ? <div className="co-step-content" hidden={recordTab !== 0}><label className="field-label">Change Title<input value={title} onChange={event => setTitle(event.target.value)} /></label><label className="field-label">Description Of Changed Work<textarea rows={6} value={description} onChange={event => setDescription(event.target.value)} /></label><div className="field-grid"><label className="field-label">Reason For Change<select value={reason} onChange={event => setReason(event.target.value)}>{["Owner Request", "Design Revision", "Unforeseen Condition", "Code Requirement", "Field Coordination", "Other"].map(value => <option key={value}>{value}</option>)}</select></label><label className="field-label">Requested By<input value={requestedBy} onChange={event => setRequestedBy(event.target.value)} /></label></div><label className="field-label">Related Drawing RFI Or Submittal<input value={relatedReference} onChange={event => setRelatedReference(event.target.value)} /></label></div> : null}
+            <section className="change-order-detail-grid" hidden={recordTab !== 0 || editablePricing && viewMode === "Office Pricing View"}>
               <div><span>Requested By</span><strong>{selectedData.requestedBy}</strong></div>
               <div><span>Submitted By</span><strong>{selectedData.submittedBy}</strong></div>
               <div><span>Reason</span><strong>{selectedData.reason}</strong></div>
               <div><span>Change Type</span><strong>{selectedData.changeType}</strong></div>
               <div><span>Related Record</span><strong>{selectedData.relatedReference || "None Entered"}</strong></div>
             </section>
-            <section className="change-order-description-card">
+            <section className="change-order-description-card" hidden={recordTab !== 0 || editablePricing && viewMode === "Office Pricing View"}>
               <span>Changed Work Description</span>
               <p>{selectedData.description || selectedRecord.title}</p>
-              <small>{selectedData.attachments.length} Supporting File{selectedData.attachments.length === 1 ? "" : "s"} · {selectedData.scheduleImpact}</small>
+              <button className="secondary-action" onClick={() => setRecordTab(4)}>Open Change File</button>
             </section>
             {viewMode === "Office Pricing View" && selectedRecord.id.startsWith("PCO-") && !["Converted", "Rejected", "Void"].includes(selectedRecord.status) ? (
-              <section className="pricing-invite-panel">
-                <div>
-
-                  <h3>Subcontractor Pricing Request</h3>
-
-                </div>
+              <details className="pricing-invite-panel" hidden={recordTab !== 0}><summary>Subcontractor Pricing Request</summary>
                 <div className="pricing-invite-fields">
                   <label className="field-label">Subcontractor Company<input value={pricingInviteCompany} onChange={(event) => setPricingInviteCompany(event.target.value)} placeholder="Company Name" /></label>
                   <label className="field-label">Pricing Contact Email<input type="email" value={pricingInviteEmail} onChange={(event) => setPricingInviteEmail(event.target.value)} placeholder="pricing@company.com" /></label>
@@ -3312,15 +3165,15 @@ function ChangeOrdersWorkspace({
                 ) : (
                   <button className="secondary-action" disabled={saving} onClick={() => savePricingInvite(false)}>Create Secure Pricing Invite</button>
                 )}
-              </section>
+              </details>
             ) : null}
             {viewMode === "Field View" ? (
-              <section className="field-pricing-summary">
+              <section className="field-pricing-summary" hidden={recordTab !== 1}>
                 <span>FIELD ACCESS</span>
                 <div><strong>{selectedData.costStatus === "To Be Determined" ? "Cost To Be Determined" : formatCurrency(selectedData.approvedTotal)}</strong><small>{selectedData.costStatus === "To Be Determined" ? "Project Manager Pricing In Progress" : "Approved Total Only · Internal Breakdown And Cost Codes Hidden"}</small></div>
               </section>
             ) : selectedRecord.id.startsWith("PCO-") && ["Submitted", "Pricing", "Awaiting Release"].includes(selectedRecord.status) ? (
-              <section className="pricing-builder">
+              <section className="pricing-builder" hidden={recordTab !== 1}>
                 <div className="pricing-builder-heading">
                   <div><h3>Project Manager Pricing</h3></div>
                   <div><button className="secondary-action" onClick={() => setAddingMasterCostCode((current) => !current)}>＋ Add From Master List</button><button className="secondary-action" onClick={() => setAddingCostCode((current) => !current)}>＋ Add Project-Only Code</button><button className="secondary-action" onClick={addPricingLine}>＋ Add Pricing Line</button></div>
@@ -3349,92 +3202,69 @@ function ChangeOrdersWorkspace({
                 ) : <button className="empty-pricing" onClick={addPricingLine}>＋ Add The First Labor Material Equipment Or Subcontractor Cost</button>}
                 <div className="pricing-footer-grid">
                   <label className="field-label">Change Order Type<select value={changeType} onChange={(event) => setChangeType(event.target.value as ChangeOrderData["changeType"])}><option>Additive</option><option>Deductive</option><option>No Cost</option></select></label>
-                  <label className="field-label">Final Schedule Impact In Days<input type="number" min="0" value={scheduleDays} onChange={(event) => updateScheduleImpactDays(Number(event.target.value))} /></label>
-                  <label className="field-label">New Substantial Completion Date<input type="date" value={newSubstantialDate} onChange={(event) => setNewSubstantialDate(event.target.value)} /></label>
-                  <label className="field-label">New Final Completion Date<input type="date" value={newFinalDate} onChange={(event) => setNewFinalDate(event.target.value)} /></label>
                   <label className="field-label">Pricing Notes<textarea rows={3} value={pricingNotes} onChange={(event) => setPricingNotes(event.target.value)} placeholder="Clarifications exclusions allowance or pricing assumptions" /></label>
                   <div className="pricing-total"><span>Proposed {changeType} Change Amount</span><strong>{formatCurrency(pricedChangeValue(pricingLines, changeType))}</strong><small>{changeType === "No Cost" ? "No Contract Value Change" : "Includes Entered Markup And Cost Code Allocation"}</small></div>
                 </div>
-                {selectedRecord.status !== "Awaiting Release" ? <button className="primary-action large full-width-action" disabled={saving} onClick={savePricing}>{saving ? "Saving Permanently..." : "Save Pricing And Submit For Release"}</button> : null}
               </section>
             ) : null}
-            {viewMode === "Office Pricing View" && selectedData.pricingLines.length && !["Submitted", "Pricing"].includes(selectedRecord.status) ? (
-              <section className="approved-pricing-summary">
-                <div><h3>Approved Change Amount</h3></div>
-                <strong>{formatCurrency(selectedData.approvedTotal)}</strong>
-                <small>{selectedData.pricingLines.length} Pricing Line{selectedData.pricingLines.length === 1 ? "" : "s"} · {selectedData.scheduleDays} Schedule Day{selectedData.scheduleDays === 1 ? "" : "s"} · Substantial {displayProjectDate(selectedData.newSubstantialDate || project.substantialDate)} · Final {displayProjectDate(selectedData.newFinalDate || project.finalDate)}</small>
+            {!editablePricing && viewMode === "Office Pricing View" && recordTab === 1 ? <section className="co-step-content"><h3>Released Pricing</h3><dl className="co-review-list">{selectedData.pricingLines.map(line => <div key={line.id}><dt>{line.description}</dt><dd>{formatCurrency(changeOrderLineTotal(line))}</dd></div>)}<div><dt>{selectedData.changeType} Total</dt><dd>{formatCurrency(selectedData.approvedTotal)}</dd></div></dl></section> : null}
+            {viewMode === "Office Pricing View" ? (
+              <section className="approved-pricing-summary" hidden={recordTab !== 3}>
+                <div><h3>{selectedRecord.status === "Executed" ? "Executed Change" : "Change For Review"}</h3></div>
+                <strong>{formatCurrency(editablePricing ? pricedChangeValue(pricingLines, changeType) : selectedData.approvedTotal)}</strong>
+                {pricingDirty ? <p>Unsaved Changes — Save Before Release Approval.</p> : null}
+                <small>{editablePricing ? pricingLines.length : selectedData.pricingLines.length} Pricing Lines · {editablePricing ? scheduleDays : selectedData.scheduleDays} Calendar Days · Substantial {displayProjectDate(editablePricing ? newSubstantialDate : selectedData.newSubstantialDate || project.substantialDate)} · Final {displayProjectDate(editablePricing ? newFinalDate : selectedData.newFinalDate || project.finalDate)}</small>
               </section>
             ) : null}
-            {selectedRecord.status === "Awaiting Release" && viewMode === "Office Pricing View" ? (
-              <section className="release-checkoff">
+            {selectedRecord.status === "Awaiting Release" && viewMode === "Office Pricing View" && canRelease && !pricingDirty ? (
+              <section className="release-checkoff" hidden={recordTab !== 3}>
                 <div><h3>Approve Release To The Project Owner</h3></div>
                 <label><input type="checkbox" checked={releaseChecked} onChange={(event) => setReleaseChecked(event.target.checked)} /><span>I Confirm The Scope Pricing Markup Schedule Impact And Supporting Files Are Complete For This Exact Version.</span></label>
                 <button className="primary-action large" disabled={!releaseChecked || saving} onClick={approveRelease}>{saving ? "Creating Formal Change Order..." : `Approve Release And Create ${nextWorkflowNumber(records, "CO")}`}</button>
               </section>
             ) : null}
             {selectedRecord.id.startsWith("CO-") ? (
-              <section className="formal-co-actions">
+              <section className="formal-co-actions" hidden={recordTab !== 3}>
                 <div><span>FORMAL CHANGE ORDER</span><strong>{selectedRecord.status}</strong><small>Originated As {selectedData.originPco}</small></div>
-                <button className="primary-action" onClick={() => setFormalPreviewId(selectedRecord.id)}>Preview Formal Change Order</button>
+                <button className="primary-action" onClick={() => { setFormalPreviewId(selectedRecord.id); setRecordTab(0); setNotice(""); setReleaseChecked(false); }}>Preview Formal Change Order</button>
               </section>
             ) : null}
             {viewMode === "Office Pricing View" && selectedRecord.id.startsWith("PCO-") && !["Converted", "Rejected", "Void"].includes(selectedRecord.status) ? (
-              <section className="pco-disposition-panel">
-                <div><h3>Reject Or Void This PCO</h3></div>
+              <details className="pco-disposition-panel" hidden={recordTab !== 3}><summary>Reject Or Void This PCO</summary>
+
                 <label className="field-label">Required Reason<textarea rows={2} value={dispositionReason} onChange={(event) => setDispositionReason(event.target.value)} placeholder="Explain Why This PCO Will Not Proceed" /></label>
                 <div><button className="secondary-action" disabled={saving} onClick={() => reserveDisposition("Rejected")}>Reject And Reserve Number</button><button className="secondary-action danger-outline" disabled={saving} onClick={() => reserveDisposition("Void")}>Void And Reserve Number</button></div>
-              </section>
+              </details>
             ) : null}
-            <section className="change-order-history">
-              <p className="eyebrow">PERMANENT WORKFLOW HISTORY</p>
+            <details className="change-order-history" hidden={recordTab !== 3}><summary>Workflow History</summary>
+
               <ol>{selectedData.workflowHistory.map((entry, index) => <li key={`${entry}-${index}`}>{entry}</li>)}</ol>
-            </section>
-          </section>
-        </div>
+            </details>
+        </ChangeOrderPanel>
       ) : null}
 
       {formalPreviewRecord ? (
-        <div className="modal-layer formal-co-layer" role="presentation">
-          <section className="formal-change-order-preview" role="dialog" aria-modal="true" aria-labelledby="formal-co-title">
-            <header><Mark /><div><p>MEFFORD CONTRACTING</p><h2 id="formal-co-title">Change Order</h2></div><strong>{formalPreviewRecord.id}</strong></header>
-            <section className="formal-co-project-grid">
-              <div><span>Project</span><strong>{project.name}</strong></div><div><span>Project Number</span><strong>{project.number}</strong></div><div><span>Owner</span><strong>{project.ownerName}</strong></div><div><span>Date</span><strong>{formalPreviewRecord.due}</strong></div>
-            </section>
-            <section className="formal-co-title"><span>Change Order Title</span><h3>{formalPreviewRecord.title}</h3></section>
-            <section className="formal-co-description"><span>Description Of Changed Work</span><p>{formalPreviewData.description}</p><small>Type: {formalPreviewData.changeType} · Reason: {formalPreviewData.reason} · Requested By: {formalPreviewData.requestedBy} · Related Record: {formalPreviewData.relatedReference || "None"}</small></section>
-            <section className="formal-co-value-grid">
-              <div><span>Original Contract Value</span><strong>{formatCurrency(formalOriginalContract)}</strong></div>
-              <div><span>This Change Order</span><strong>{formatCurrency(formalPreviewData.approvedTotal)}</strong></div>
-              <div><span>Previously Approved Change Orders</span><strong>{formatCurrency(formalPreviousApproved)}</strong></div>
-              <div><span>Contract Value After This Change Order</span><strong>{formatCurrency(formalContractAfter)}</strong></div>
-            </section>
-            <section className="formal-co-schedule-grid">
-              <div><span>Contract Time Change</span><strong>{formalPreviewData.scheduleDays ? `${formalPreviewData.scheduleDays} Calendar Days` : "No Change"}</strong></div>
-              <div><span>New Substantial Completion Date</span><strong>{displayProjectDate(formalPreviewData.newSubstantialDate || project.substantialDate)}</strong></div>
-              <div><span>New Final Completion Date</span><strong>{displayProjectDate(formalPreviewData.newFinalDate || project.finalDate)}</strong></div>
-            </section>
-            <section className="formal-co-certification"><p>The Contract Sum Contract Time And Contract Documents Are Modified Only As Stated In This Change Order. All Other Contract Terms Remain Unchanged.</p></section>
-            <section className="formal-co-signatures"><div><span>Project Owner</span>{formalPreviewData.ownerSignatureName ? <strong className="executed-signature">{formalPreviewData.ownerSignatureName}</strong> : <i />}<small>{formalPreviewData.ownerSignatureName ? `${formalPreviewData.ownerSignatureTitle} · ${displayProjectDate(formalPreviewData.ownerSignatureDate || "")} · ${formalPreviewData.ownerSignatureMethod}` : "Signature / Date"}</small></div><div><span>Mefford Contracting</span><strong className="executed-signature">{formalPreviewData.releaseApprovedBy || "Jordan Mefford"}</strong><small>Authorized Signature / Release Approval</small></div></section>
+        <ChangeOrderPanel title={formalPreviewRecord.title} context={`${formalPreviewRecord.id} · ${formalPreviewRecord.status}`} tabs={["Change Order", "Owner Execution", "Change File"]} tab={Math.min(recordTab, 2)} onTab={setRecordTab} onClose={closeChangeRecord} busy={saving} notice={notice} document={{ record: formalPreviewRecord, project, data: formalPreviewData }}>
+            <div hidden={recordTab !== 2}><ChangeOrderFile key={formalPreviewRecord.id} refreshKey={JSON.stringify(formalPreviewRecord)} projectId={project.number} recordId={formalPreviewRecord.id} onDirtyChange={setFileDirty} upload={(file, category, revision, access) => uploadChangeOrderAttachment(file, project.number, formalPreviewRecord.id, category, revision, access)} /></div>
+          <div className="co-step-content" hidden={recordTab !== 0}><h3>{formalPreviewRecord.id}</h3><p className="co-scope-text">{formalPreviewData.description}</p><dl className="co-review-list"><div><dt>This Change Order</dt><dd>{formatCurrency(formalPreviewData.approvedTotal)}</dd></div><div><dt>Revised Contract Value</dt><dd>{formatCurrency(formalContractAfter)}</dd></div></dl><ChangeOrderScheduleFields days={formalPreviewData.scheduleDays} readOnly currentSubstantial={formalPreviewData.priorSubstantialDate || project.substantialDate} currentFinal={formalPreviewData.priorFinalDate || project.finalDate} revisedSubstantial={formalPreviewData.newSubstantialDate || project.substantialDate} revisedFinal={formalPreviewData.newFinalDate || project.finalDate} /></div>
+          {formalNeedsReview ? <section className="co-review-conflict" role="alert"><h3>Project Dates Or Contract Value Have Changed</h3><p>Review And Reapprove This Change Order Before Obtaining A New Owner Signature.</p>{canRelease ? <><ChangeOrderScheduleFields days={formalPreviewData.scheduleDays} readOnly currentSubstantial={project.substantialDate} currentFinal={project.finalDate} revisedSubstantial={refreshedFormalSchedule.newSubstantialDate} revisedFinal={refreshedFormalSchedule.newFinalDate} /><label><input type="checkbox" checked={releaseChecked} onChange={event => setReleaseChecked(event.target.checked)} /> I Approve The Revised Dates And Contract Value ({formatCurrency(Number(project.currentContractAmount || project.contractAmount) + formalPreviewData.approvedTotal)}).</label>{formalScheduleError ? <p>{formalScheduleError}</p> : null}<button className="primary-action" disabled={saving || !releaseChecked || Boolean(formalScheduleError)} onClick={reapproveFormalDates}>Reapprove Updated Change Order</button></> : <p>Company Owner Or Administrator Reapproval Required.</p>}</section> : null}
             {formalPreviewRecord.status === "Awaiting Owner Signature" ? (
-              <section className="formal-execution-panel">
+              <section className="formal-execution-panel" hidden={recordTab !== 1}>
                 <div><p className="eyebrow orange-text">OWNER EXECUTION</p><h3>Sign Electronically Or Upload The Owner-Signed PDF</h3><small>The Contract Value And Project Completion Dates Update Only After One Of These Execution Methods Is Completed.</small></div>
                 <div className="formal-signature-fields">
                   <label className="field-label">Owner Signer Name<input value={ownerSignerName} onChange={(event) => setOwnerSignerName(event.target.value)} placeholder="Full Legal Name" /></label>
                   <label className="field-label">Signer Title<input value={ownerSignerTitle} onChange={(event) => setOwnerSignerTitle(event.target.value)} /></label>
                 </div>
                 <label className="owner-signature-consent"><input type="checkbox" checked={ownerSignatureConsent} onChange={(event) => setOwnerSignatureConsent(event.target.checked)} /><span>I Am Authorized To Sign For The Project Owner And I Intend This Electronic Signature To Execute This Change Order.</span></label>
-                <button className="primary-action" disabled={saving || !ownerSignatureConsent || !ownerSignerName.trim()} onClick={() => executeFormalChangeOrder("Electronic Signature")}>{saving ? "Saving Execution..." : "Sign And Execute Change Order"}</button>
+                <button className="primary-action" disabled={saving || formalNeedsReview || !ownerSignatureConsent || !ownerSignerName.trim()} onClick={() => executeFormalChangeOrder("Electronic Signature")}>{saving ? "Saving Execution..." : "Sign And Execute Change Order"}</button>
                 <div className="execution-divider"><span>OR</span></div>
                 <label className="signed-pdf-upload"><input type="file" data-format-required="true" accept="application/pdf" onChange={(event) => setExecutedFile(event.target.files?.[0] || null)} /><span>＋</span><strong>{executedFile?.name || "Choose Owner-Signed PDF"}</strong><small>PDF Up To 1 GB</small></label>
-                <button className="secondary-action" disabled={saving || !executedFile} onClick={() => executeFormalChangeOrder("Uploaded Signed PDF")}>Upload Signed PDF And Mark Executed</button>
+                <button className="secondary-action" disabled={saving || formalNeedsReview || !executedFile} onClick={() => executeFormalChangeOrder("Uploaded Signed PDF")}>Upload Signed PDF And Mark Executed</button>
               </section>
             ) : (
-              <section className="formal-executed-stamp"><span>EXECUTED</span><strong>{formalPreviewData.ownerSignatureName || project.ownerName}</strong><small>{formalPreviewData.executedAt || displayProjectDate(formalPreviewData.ownerSignatureDate || formalPreviewRecord.recordDate || "")}{formalPreviewData.executedFileName ? ` · ${formalPreviewData.executedFileName}` : ""} · Filed In Financial Info / Change Orders</small></section>
+              <section className="formal-executed-stamp" hidden={recordTab !== 1}><span>EXECUTED</span><strong>{formalPreviewData.ownerSignatureName || project.ownerName}</strong><small>{formalPreviewData.executedAt || displayProjectDate(formalPreviewData.ownerSignatureDate || formalPreviewRecord.recordDate || "")}{formalPreviewData.executedFileName ? ` · ${formalPreviewData.executedFileName}` : ""} · Filed In Financial Info / Change Orders</small></section>
             )}
-            <footer><span>Originated As {formalPreviewData.originPco}</span><span>Release Approved By {formalPreviewData.releaseApprovedBy}</span></footer>
-            <div className="formal-preview-actions"><button className="secondary-action" onClick={() => setFormalPreviewId(null)}>Close Preview</button><button className="primary-action" onClick={() => window.print()}>Print Or Save As PDF</button></div>
-          </section>
-        </div>
+        </ChangeOrderPanel>
       ) : null}
     </div>
   );
@@ -3567,6 +3397,8 @@ async function uploadChangeOrderAttachment(
   projectId: string,
   pcoNumber: string,
   category = "Change Orders",
+  revision = `${pcoNumber} Supporting File`,
+  access = "Project Manager + Office",
 ) {
   if (file.size > MAX_PROJECT_FILE_BYTES) {
     throw new Error(`${file.name} Exceeds The 1 GB Individual File Limit.`);
@@ -3575,8 +3407,8 @@ async function uploadChangeOrderAttachment(
     return uploadLargeProjectFile(
       file,
       category,
-      `${pcoNumber} Supporting File`,
-      "Project Manager + Office",
+      revision,
+      access,
       () => undefined,
       projectId,
     );
@@ -3585,8 +3417,8 @@ async function uploadChangeOrderAttachment(
   form.set("file", file);
   form.set("projectId", projectId);
   form.set("category", category);
-  form.set("revision", `${pcoNumber} Supporting File`);
-  form.set("access", "Project Manager + Office");
+  form.set("revision", revision);
+  form.set("access", access);
   const response = await fetch("/api/files", { method: "POST", body: form });
   const result = (await response.json()) as { file?: ProjectFile; error?: string };
   if (!response.ok || !result.file) {
@@ -5978,6 +5810,7 @@ export default function Home() {
   const [projectProfile, setProjectProfile] =
     useState<ProjectProfile>(() => emptyProjectProfile());
   const [projectToolContext, setProjectToolContext] = useState("");
+  const [fieldLaunch, setFieldLaunch] = useState<{ action: string; token: number }>({ action: "", token: 0 });
   const [projectSetupOpen, setProjectSetupOpen] = useState(false);
   const [projectSetupMode, setProjectSetupMode] = useState<"new" | "edit">(
     "edit",
@@ -6053,7 +5886,7 @@ export default function Home() {
   const [recordTitle, setRecordTitle] = useState("");
   const [recordOwner, setRecordOwner] = useState("Jordan Mefford");
   const [recordNotes, setRecordNotes] = useState("");
-  const [recordFormError, setRecordFormError] = useState("");
+  const [fieldFormError, setFieldFormError] = useState("");
   const [dailyDate, setDailyDate] = useState(() =>
     currentDateInput(companyTimeZone),
   );
@@ -6107,6 +5940,14 @@ export default function Home() {
   const [toolboxAttendees, setToolboxAttendees] = useState<string[]>([]);
   const [signedAttendees, setSignedAttendees] = useState<string[]>([]);
   const [signedAttendeeEvidence, setSignedAttendeeEvidence] = useState<Record<string, { typedIdentity: string; signatureImage: string; signedAt: string; deviceRecord: string; method: string }>>({});
+  const [incidentAnswered, setIncidentAnswered] = useState(false);
+  const [photoProgress, setPhotoProgress] = useState<{ uploaded: number; processed: number; total: number } | null>(null);
+  const [fieldCommitted, setFieldCommitted] = useState(false);
+  const committedFieldRecord = useRef("");
+  const uploadedDailyPhotos = useRef(new Set<File>());
+  const [scheduleConfirmations, setScheduleConfirmations] = useState<Partial<DailyScheduleConfirmation>[]>([]);
+  const dailyActivities = dailyScheduleActivities(records["Schedule"] || [], dailyDate);
+  const { context: fieldContext, error: fieldContextError } = useFieldContext(projectProfile.number, formOpen);
   const dailyDraftData = useMemo(() => ({
     recordTitle, recordOwner, recordNotes, dailyDate, recordTime, dailyWeatherMetrics, dailyWeather, dailyWeatherSource, employeesOnSite, subsOnSite, incidentReported, incidentDetails,
     originalPhotoNames: photoFiles.map((file) => file.name),
@@ -6128,9 +5969,9 @@ export default function Home() {
     dailyDraft.restored();
   }
   async function closeRecordForm() {
-    if (recordSaving) return;
+    if (recordSaving || committedFieldRecord.current) return;
     if (formType === "Daily Logs" && !await dailyDraft.save()) {
-      setRecordFormError("Your draft has not been saved. Keep this form open and try Save Draft again.");
+      setFieldFormError("Your draft has not been saved. Keep this form open and try Save Draft again.");
       return;
     }
     setFormOpen(false);
@@ -7258,13 +7099,18 @@ export default function Home() {
     }
     if (!projectProfile.number) { setNotice("Select A Project Before Adding A Record."); chooseNav("Project Overview"); return; }
     if (!canActorAccessNavigation(sessionActor, nextType === "Toolbox Talks" ? "Safety" : nextType)) { setNotice("This Record Type Is Outside Your Current Permissions."); return; }
-    setRecordFormError("");
     setFormType(nextType);
     setRecordTitle("");
     setRecordOwner(sessionActor.name || projectProfile.superintendent || projectProfile.projectManager || "Office");
+    setFieldFormError("");
+    setPhotoProgress(null);
+    uploadedDailyPhotos.current.clear();
+    committedFieldRecord.current = ""; setFieldCommitted(false);
+    setIncidentAnswered(false);
     setRecordNotes("");
     const today = currentDateInput(projectProfile.timeZone);
     setDailyDate(today);
+    setScheduleConfirmations([]);
     setRecordDate(today);
     setRecordTime(currentTimeInput(projectProfile.timeZone));
     const automaticWeatherAvailable = Boolean(projectWeatherAddress);
@@ -7636,18 +7482,6 @@ export default function Home() {
     window.setTimeout(() => setNotice(""), 2800);
   }
 
-  function toggleValue(
-    value: string,
-    current: string[],
-    update: (next: string[]) => void,
-  ) {
-    update(
-      current.includes(value)
-        ? current.filter((item) => item !== value)
-        : [...current, value],
-    );
-  }
-
   function beginSignature(event: ReactPointerEvent<HTMLCanvasElement>) {
     const canvas = signatureCanvas.current;
     if (!canvas) return;
@@ -7708,10 +7542,13 @@ export default function Home() {
   }
 
   async function saveRecord() {
-    setRecordFormError("");
+    setFieldFormError("");
+    const scheduleCheck = validateDailySchedule(dailyActivities, scheduleConfirmations, dailyDate);
+    if (formType === "Daily Logs" && scheduleCheck.error) { setFieldFormError(scheduleCheck.error); return; }
+    if (formType === "Daily Logs" && !incidentAnswered) { setFieldFormError("Confirm Whether Any Incidents Occurred."); return; }
+    if (formType === "Daily Logs" && incidentReported && !incidentDetails.trim()) { setFieldFormError("Add A Short Incident Description."); return; }
     if (!recordTitle.trim()) {
-      setRecordFormError("Describe the work completed before finalizing this record.");
-      document.getElementById("record-description")?.focus();
+      setFieldFormError("Add A Description Of Work Before Saving.");
       setNotice("Add a title or description before saving.");
       window.setTimeout(() => setNotice(""), 2500);
       return;
@@ -7730,8 +7567,7 @@ export default function Home() {
         !dailyWeatherMetrics.averageConditions.trim()
       )
     ) {
-      setRecordFormError("Complete rainfall, temperature, wind speed, and conditions in Daily Weather before finalizing.");
-      document.getElementById("daily-weather-section")?.setAttribute("open", "");
+      setFieldFormError("Complete The Four Daily Weather Fields Before Finalizing.");
       setNotice(
         "Complete Daily Rainfall Average Temperature Average Wind Speed And Average Conditions Before Finalizing.",
       );
@@ -7743,11 +7579,10 @@ export default function Home() {
       (toolboxAttendees.length === 0 ||
         !toolboxAttendees.every((name) => signedAttendees.includes(name) && signedAttendeeEvidence[name]?.signatureImage))
     ) {
-      setRecordFormError("Every listed attendee must sign before this toolbox talk can be completed.");
       setNotice(
         "Every listed attendee must sign before the toolbox talk can be completed.",
       );
-      window.setTimeout(() => setNotice(""), 7000);
+      window.setTimeout(() => setNotice(""), 2800);
       return;
     }
     const copy = workspaceCopy[formType];
@@ -7767,13 +7602,12 @@ export default function Home() {
             : formType === "Team"
               ? "Active"
               : "Draft";
-    const peopleCount = employeesOnSite.length + subsOnSite.length;
     const finalizationSummary =
       `Finalized By ${recordOwner} · ${numericDateFromInput(formType === "Daily Logs" ? dailyDate : recordDate)} · ${displayTimeInput(recordTime)}` +
       (formType === "Daily Logs" ? ` · Weather Snapshot Locked: ${dailyWeather}` : "");
     const meta =
       formType === "Daily Logs"
-        ? `${peopleCount} people on site · ${dailyWeather} · ${photoNames.length} photo${photoNames.length === 1 ? "" : "s"} · ${incidentReported ? "Incident reported" : "No incidents"}`
+        ? `${employeesOnSite.length} employees · ${subsOnSite.length} subcontractors on site · ${dailyWeather} · ${photoNames.length} photo${photoNames.length === 1 ? "" : "s"} · ${incidentReported ? "Incident reported" : "No incidents"}`
         : formType === "Toolbox Talks"
           ? `${toolboxAttendees.length} attendees · ${signedAttendees.length} of ${toolboxAttendees.length} signed`
           : formType === "Change Orders"
@@ -7810,6 +7644,7 @@ export default function Home() {
       ...item,
       data: {
         notes: recordNotes,
+        ...(formType === "Daily Logs" ? { scheduleReviewVersion: 1, scheduleConfirmations: scheduleCheck.confirmations.map(row => ({ ...row, confirmedBy: sessionActor.name, confirmedAt: new Date().toISOString() })) } : {}),
         weather: formType === "Daily Logs" ? dailyWeather : undefined,
         weatherSource:
           formType === "Daily Logs" ? dailyWeatherSource : undefined,
@@ -7878,7 +7713,7 @@ export default function Home() {
       } else {
         let response: Response;
         try {
-          response = await fetch("/api/records", {
+          response = committedFieldRecord.current === `${projectProfile.number}:${id}` ? Response.json({ saved: true }) : await fetch("/api/records", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
@@ -7903,46 +7738,28 @@ export default function Home() {
           if (!response.ok) {
             throw new Error(saved.error || "The record could not be saved permanently.");
           }
+          if (formType === "Daily Logs") { committedFieldRecord.current = `${projectProfile.number}:${id}`; setFieldCommitted(true); }
         }
 
         if (!savedOffline && formType === "Daily Logs" && uploadablePhotoFiles.length) {
-          try {
-            await Promise.all(
-              uploadablePhotoFiles.map(async (file) => {
-                const form = new FormData();
-                form.set("file", file);
-                form.set("projectId", projectProfile.number);
-                form.set("category", "Photos");
-                form.set("revision", `${id} Daily Log Photo`);
-                form.set("access", "Project team");
-                const upload = await fetch("/api/files", {
-                  method: "POST",
-                  body: form,
-                });
-                if (!upload.ok) throw new Error(`${file.name} could not be stored.`);
-              }),
-            );
-          } catch {
-            const photoQueueRecord = {
-              ...recordForStorage,
-              id: `${id}-PHOTOS`,
-              title: `${item.title} · Offline Photo Uploads`,
-              status: "Queued Offline",
-              meta: `${photoFiles.length} original photo${photoFiles.length === 1 ? "" : "s"} and ${markedPhotoFiles.length} marked cop${markedPhotoFiles.length === 1 ? "y" : "ies"} waiting to sync`,
-            };
-            await queueOfflineMobileRecord({
-              projectId: projectProfile.number,
-              recordType: "Photos",
-              record: photoQueueRecord,
-              files: uploadablePhotoFiles,
-            });
+          const pending = uploadablePhotoFiles.filter(file => !uploadedDailyPhotos.current.has(file));
+          const failed = await uploadFieldPhotos(pending, async file => {
+            const form = new FormData();
+            form.set("file", file); form.set("projectId", projectProfile.number);
+            form.set("category", "Photos"); form.set("revision", `${id} Daily Log Photo`); form.set("access", "Project team");
+            const upload = await fetch("/api/files", { method: "POST", body: form });
+            if (!upload.ok) throw new Error(`${file.name} Could Not Be Stored`);
+            uploadedDailyPhotos.current.add(file);
+          }, setPhotoProgress);
+          if (failed.length) {
+            await queueOfflineMobileRecord({ projectId: projectProfile.number, recordType: "Photos", record: { ...recordForStorage, id: `${id}-PHOTOS`, title: `${item.title} · Pending Photos`, status: "Queued Offline", meta: `${failed.length} Photos Waiting To Sync` }, files: failed });
             photosQueued = true;
           }
         }
       }
     } catch (error) {
       setRecordSaving(false);
-      setRecordFormError(error instanceof Error ? error.message : "The record could not be saved. Your entries remain in this form.");
+      setFieldFormError(committedFieldRecord.current ? "The Log Is Saved. Keep This Form Open And Tap Resume Photos To Retry The Remaining Uploads." : error instanceof Error ? error.message : "The Record Could Not Be Saved.");
       setNotice(
         error instanceof Error
           ? error.message
@@ -7952,8 +7769,8 @@ export default function Home() {
       return;
     }
     const displayedItem = savedOffline
-      ? { ...item, status: "Queued Offline", meta: `${item.meta} · Waiting For Connection` }
-      : item;
+      ? { ...item, data: recordForStorage.data, status: "Queued Offline", meta: `${item.meta} · Waiting For Connection` }
+      : { ...item, data: recordForStorage.data };
     setRecords((current) => ({
       ...current,
       [formType]: [displayedItem, ...(current[formType] ?? [])],
@@ -7968,14 +7785,14 @@ export default function Home() {
         : photosQueued
           ? `${id} saved. Its original photos are safely queued and will resume uploading automatically.`
       : formType === "Daily Logs"
-        ? `${id} Uploaded And Finalized For ${projectProfile.name}. Available To The Project Team.`
+        ? "Daily Log Finalized And Saved Permanently With Field Details Photos And Weather."
         : formType === "Change Orders"
           ? `${id} sent to the project-manager approval queue.`
           : formType === "Toolbox Talks"
             ? `${id} completed with all attendee signatures.`
             : `${id} saved as a draft.`,
     );
-    window.setTimeout(() => setNotice(""), 7000);
+    window.setTimeout(() => setNotice(""), 2800);
   }
 
   const canViewProjectFinancials =
@@ -8580,6 +8397,7 @@ export default function Home() {
             ) : null}
           </div>
           <div className="topbar-actions">
+            <a className="dashboard-screens-link" href="/dashboard-display" target="_blank" rel="noopener noreferrer">Dashboard Screens <span aria-hidden="true">↗</span></a>
             <button
               className="sync-state"
               onClick={() => chooseNav("IT & Integrations")}
@@ -8626,7 +8444,156 @@ export default function Home() {
             >
               <WorkIcon name="bell" /><span>{notifications.filter((item) => !item.isRead && item.status !== "Completed" && !item.hiddenBySnooze).length}</span>
             </button>
-
+            <button
+              className="primary-action"
+              onClick={() =>
+                active === "Project Overview" && !projectProfile.number
+                  ? openProjectSetup("new")
+                : active === "Dashboard"
+                  ? setNotice("The executive snapshot is current.")
+                : active === "My Work"
+                  ? setNotice("Your Employee Home Is Current!")
+                : active === "IT & Integrations"
+                  ? setNotice("Use Reconcile Now Or Open A Connection To Record A Controlled Health Check.")
+                : active === "Assets & Fleet"
+                  ? window.dispatchEvent(new Event("command:new-asset"))
+                : adminNavigationTargets.includes(active)
+                  ? active === "Admin Command"
+                    ? chooseNav("Admin Requests")
+                    : setNotice(`${sectionTitle(active)} Is Reading The Coordinated Company Administration Record.`)
+                : active === "User Guide"
+                  ? window.print()
+                : active === "Performance Reviews"
+                  ? setNotice("Generate Or Open A Quarterly Review Inside The Owner Performance Center.")
+                : active === "Chart Of Accounts"
+                  ? window.dispatchEvent(new Event("command:new-account"))
+                : active === "General Ledger"
+                  ? window.dispatchEvent(new Event("command:new-journal-entry"))
+                : active === "Employee Onboarding"
+                    ? setNotice("Use Create Employee Record Inside Employee Onboarding.")
+                  : active === "Employee Portal"
+                    ? setNotice("Your Employee Profile Resources And Required Actions Are Current.")
+                  : active === "Accounts Payable"
+                    ? window.dispatchEvent(new Event("command:new-ap-invoice"))
+                  : accountingNavigationTargets.includes(active as AccountingMode)
+                    ? setNotice(`${active} Is Reading The Coordinated Live Command Center Ledger.`)
+                : active === "Sales Dashboard"
+                  ? chooseNav("Sales Funnel")
+                  : active === "Sales Goals"
+                    ? setNotice("Set And Save The Annual Goals Inside Sales Goals.")
+                  : active === "Sales Contacts"
+                  ? window.dispatchEvent(new Event("command:new-contact"))
+                : active === "Sales Funnel"
+                  ? window.dispatchEvent(new Event("command:new-opportunity"))
+                : active === "Design & Drawings"
+                  ? window.dispatchEvent(new Event("command:new-design-package"))
+                : active === "Sales Design"
+                      ? setNotice("Use New Design Package Inside Sales Design.")
+                    : active === "Company Calendar" || active === "Estimating Calendar"
+                      ? setNotice("Use New Calendar Event Inside The Master Calendar.")
+                    : active === "Estimating"
+                      ? chooseNav("Sales Funnel")
+                    : active === "Bid Management"
+                      ? setNotice("Use New Bid Package Inside Bid Management.")
+                    : ["Marketing", "Marketing Social", "Marketing Email", "Marketing Surveys", "Marketing Calendar"].includes(active)
+                      ? setNotice("Use Marketing Command To Create Campaigns, Posts, Newsletters, Analytics Snapshots, Or Connection Setup.")
+                    : active === "Procurement"
+                      ? setNotice("Use New Bid Package Inside Project Procurement.")
+                    : active === "Quality"
+                      ? setFieldLaunch({ action: "quality", token: Date.now() })
+                    : active === "Review"
+                      ? setNotice("Open A Controlled Master To Review Its File History, Upload A New Version, Or Complete Owner Signoff.")
+                : active === "Schedule"
+                  ? setNotice("Use Add activity inside the schedule.")
+                  : active === "Documents"
+                    ? setNotice("Use Upload files inside Project Files.")
+                  : active === "Closeout"
+                      ? setNotice(
+                          "Open A Requirement To Upload Files Or Complete Its Next Approval Gate.",
+                        )
+                      : active === "Safety"
+                        ? openNew("Toolbox Talks")
+                      : active === "Change Orders"
+                          ? setNotice(
+                              projectBudgetReady
+                                ? "Use New Potential Change Order Inside Change Orders."
+                                : "Complete And Lock The Original Budget Before Starting A Change Order.",
+                            )
+                        : active === "Subcontracts"
+                          ? setNotice(
+                              projectBudgetReady
+                                ? "Use Create Subcontract Inside Subcontracts."
+                                : "Complete And Lock The Original Budget Before Starting A Subcontract.",
+                            )
+                        : active === "Team"
+                          ? setNotice(
+                              "Use Invite subcontractor inside Team & Access.",
+                            )
+                          : active === "Review"
+                            ? setNotice(
+                                "Use Review Center To Manage Legal, HR, Benefits, And Every Controlled Company Template.",
+                              )
+                            : openNew(active)
+              }
+            >
+              {active === "Project Overview" && !projectProfile.number
+                ? "＋ Start First Project"
+              : active === "Dashboard"
+                ? "Live Executive Snapshot"
+              : active === "My Work"
+                  ? "My Employee Home"
+              : active === "Project Health"
+                  ? "Live Weighted Score"
+                : active === "IT & Integrations"
+                  ? "Live System Reconciliation"
+                : active === "Assets & Fleet"
+                  ? "＋ Add Company Asset"
+                : adminNavigationTargets.includes(active)
+                  ? active === "Admin Command" ? "Open Employee Queue" : "Live Admin Coordination"
+                : active === "User Guide"
+                  ? "Print User Guide"
+                : active === "Performance Reviews"
+                  ? "Owner Review Center"
+                : active === "Chart Of Accounts"
+                ? "＋ New Account"
+                : active === "General Ledger"
+                  ? "＋ New Journal Entry"
+                : active === "Employee Onboarding"
+                  ? sessionActor.permissionLocked
+                    ? "Onboarding Required"
+                    : "People System"
+                : active === "Employee Portal"
+                  ? "My Employee Home"
+                : active === "Accounts Payable"
+                  ? "＋ New Invoice"
+                : accountingNavigationTargets.includes(active as AccountingMode)
+                  ? "Live Accounting Coordination"
+              : active === "Sales Dashboard"
+                ? "Open Sales Funnel"
+                : active === "Sales Goals"
+                  ? "Sales Goal Settings"
+                : active === "Sales Contacts"
+                ? "＋ New Contact"
+                : active === "Sales Funnel"
+                  ? "＋ New Opportunity"
+                : active === "Design & Drawings"
+                  ? "＋ New Design Package"
+                : active === "Sales Design"
+                    ? "Design Lifecycle"
+                  : active === "Company Calendar" || active === "Estimating Calendar"
+                    ? "Master Calendar Live"
+                  : active === "Estimating"
+                    ? "Open Sales Funnel"
+                  : active === "Bid Management" || active === "Procurement"
+                    ? "Procurement Control"
+                    : ["Marketing", "Marketing Social", "Marketing Email", "Marketing Surveys", "Marketing Calendar"].includes(active)
+                      ? "Marketing Command Live"
+                    : active === "Quality"
+                      ? "Quality Control"
+                    : active === "Review"
+                      ? "Company Review Center"
+                    : "＋ New Item"}
+            </button>
           </div>
         </header>
 
@@ -8649,7 +8616,7 @@ export default function Home() {
           ) : active === "Owner Approvals" ? (
             <OwnerApprovalCenter onNavigate={(target, projectId, recordId) => openDashboardDecision(projects.find((project) => project.number === projectId), target, recordId)} />
           ) : active === "My Work" ? (
-            <EmployeePortalWorkspace actor={sessionActor} onOpenWorkItem={openMyWorkItem} onWorkItemsChange={setNotifications} everydayTools={everydayTools} onNavigateTool={chooseNav} projectName={projectProfile.name} projectNumber={projectProfile.number} onDailyLog={() => openNew("Daily Logs")} onPhoto={() => openMobileQuickAction({ id: "camera", label: "Photo / Video", target: "Daily Logs", formType: "Daily Logs", icon: "CAM", roles: ["all"] })} />
+            <EmployeePortalWorkspace actor={sessionActor} onOpenWorkItem={openMyWorkItem} onWorkItemsChange={setNotifications} everydayTools={everydayTools} onNavigateTool={chooseNav} projectName={projectProfile.name} projectNumber={projectProfile.number} onDailyLog={() => openNew("Daily Logs")} onPhoto={() => openMobileQuickAction({ id: "camera", label: "Photo / Video", target: "Daily Logs", formType: "Daily Logs", icon: "CAM", roles: ["all"] })} onNavigateApprovalSource={(target, projectId, recordId) => openDashboardDecision(projects.find((project) => project.number === projectId), target, recordId)} />
           ) : active === "User Guide" ? (
             <UserGuideWorkspace />
           ) : active === "Project Health" ? (
@@ -8670,7 +8637,7 @@ export default function Home() {
           ) : active === "Employee Onboarding" ? (
             <EmployeeOnboardingWorkspace actor={sessionActor} />
           ) : active === "Employee Portal" ? (
-            <EmployeePortalWorkspace actor={sessionActor} onOpenWorkItem={openMyWorkItem} onWorkItemsChange={setNotifications} everydayTools={everydayTools} onNavigateTool={chooseNav} projectName={projectProfile.name} projectNumber={projectProfile.number} onDailyLog={() => openNew("Daily Logs")} onPhoto={() => openMobileQuickAction({ id: "camera", label: "Photo / Video", target: "Daily Logs", formType: "Daily Logs", icon: "CAM", roles: ["all"] })} />
+            <EmployeePortalWorkspace actor={sessionActor} onOpenWorkItem={openMyWorkItem} onWorkItemsChange={setNotifications} everydayTools={everydayTools} onNavigateTool={chooseNav} projectName={projectProfile.name} projectNumber={projectProfile.number} onDailyLog={() => openNew("Daily Logs")} onPhoto={() => openMobileQuickAction({ id: "camera", label: "Photo / Video", target: "Daily Logs", formType: "Daily Logs", icon: "CAM", roles: ["all"] })} onNavigateApprovalSource={(target, projectId, recordId) => openDashboardDecision(projects.find((project) => project.number === projectId), target, recordId)} />
           ) : active === "Company Calendar" ? (
             <CompanyCalendarWorkspace initialFilter="All" canManage={["Company Owner", "Administrator"].includes(sessionActor.accessLevel)} />
           ) : active === "Estimating Calendar" ? (
@@ -9194,6 +9161,7 @@ export default function Home() {
           ) : active === "Change Orders" ? (
             <ChangeOrdersWorkspace
               project={projectProfile}
+              actor={sessionActor}
               records={records["Change Orders"] ?? []}
               onRecordsChange={(next) =>
                 setRecords((current) => ({
@@ -9265,6 +9233,8 @@ export default function Home() {
               key={projectProfile.number}
               project={projectProfile}
               actor={sessionActor}
+              launch={fieldLaunch}
+              onLaunchConsumed={() => setFieldLaunch(current => current.token === fieldLaunch.token ? { action: "", token: 0 } : current)}
             />
           ) : active === "Review" ? (
             <ReviewWorkspace actor={sessionActor} />
@@ -9313,16 +9283,20 @@ export default function Home() {
               </div>
               <button
                 aria-label="Close form"
+                disabled={recordSaving || fieldCommitted}
                 onClick={() => void closeRecordForm()}
               >
                 ×
               </button>
             </div>
             <div className="form-context"><WorkIcon name="project" /><strong>{projectProfile.name}</strong><span>{projectProfile.number}</span></div>
-            {recordFormError ? <div className="form-error" role="alert">{recordFormError}</div> : null}
+            {fieldFormError ? <div className="field-error" role="alert">{fieldFormError}</div> : null}
             {formType === "Daily Logs" ? <div className="draft-state" role="status"><span>{dailyDraft.status}</span>{dailyDraft.candidate ? <><button onClick={restoreDailyDraft}>Resume Saved Draft</button><button onClick={() => void dailyDraft.discard()}>Start Fresh</button></> : null}</div> : null}
+            <fieldset className="field-form-content" disabled={recordSaving || fieldCommitted}>
             {formType === "Daily Logs" ? (
               <>
+                <div className="field-context-line"><strong>{recordOwner}</strong><span>{numericDateFromInput(dailyDate)} · {displayTimeInput(recordTime)}</span></div>
+                <details className="field-section"><summary>Date, Time & Weather · {dailyWeatherLoading ? "Loading" : dailyWeatherMetrics.averageConditions ? "Ready To Review" : "Needs Entry"}</summary><div className="field-section-body">
                 <div className="field-grid">
                   <label className="field-label">
                     Log Date
@@ -9331,6 +9305,7 @@ export default function Home() {
                       value={dailyDate}
                       onChange={(event) => {
                         setDailyDate(event.target.value);
+                        setScheduleConfirmations([]);
                         setDailyWeatherMetrics(blankDailyWeatherMetrics());
                         const automaticWeatherAvailable = Boolean(projectWeatherAddress);
                         setDailyWeather(
@@ -9359,19 +9334,6 @@ export default function Home() {
                     </small>
                   </label>
                 </div>
-                <label className="field-label">
-                  Work Completed (Required)
-                  <textarea
-                    id="record-description"
-                    required
-                    autoFocus
-                    value={recordTitle}
-                    onChange={(event) => setRecordTitle(event.target.value)}
-                    rows={4}
-                    placeholder="Describe the work completed, areas worked in, deliveries, delays, and important observations"
-                  />
-                </label>
-                <details className="optional-fields" id="daily-weather-section"><summary>Daily Weather · Review Before Finalizing</summary>
                 <fieldset className="people-fieldset weather-field">
                   <legend>Daily Weather</legend>
                   <div className="field-grid">
@@ -9443,91 +9405,35 @@ export default function Home() {
                   <strong className="field-source">
                     These values save with this Daily Log.
                   </strong>
-                </fieldset>
-                </details>
-                <fieldset className="people-fieldset">
-                  <legend>Mefford Employees On Site</legend>
-                  <div className="check-grid">
-                    {MEFFORD_COMPANY_DIRECTORY.map((member) => member.name).map((name) => (
-                      <label key={name}>
-                        <input
-                          type="checkbox"
-                          checked={employeesOnSite.includes(name)}
-                          onChange={() =>
-                            toggleValue(
-                              name,
-                              employeesOnSite,
-                              setEmployeesOnSite,
-                            )
-                          }
-                        />
-                        <span>{name}</span>
-                      </label>
-                    ))}
-                  </div>
-                </fieldset>
-                <fieldset className="people-fieldset">
-                  <legend>Subcontractors On Site</legend>
-                  <div className="check-grid">
-                    {[
-                      "Bluegrass Electric",
-                      "Commonwealth Plumbing",
-                      "Central Kentucky Concrete",
-                      "FenceCo",
-                      "HVAC Solutions",
-                      "Sitework Partners",
-                    ].map((name) => (
-                      <label key={name}>
-                        <input
-                          type="checkbox"
-                          checked={subsOnSite.includes(name)}
-                          onChange={() =>
-                            toggleValue(name, subsOnSite, setSubsOnSite)
-                          }
-                        />
-                        <span>{name}</span>
-                      </label>
-                    ))}
-                  </div>
-                </fieldset>
-                <label className="photo-upload">
-                  <input
-                    aria-label="Upload jobsite photos"
-                    type="file"
-                    accept={PHOTO_UPLOAD_ACCEPT}
-                    capture="environment"
-                    multiple
-                    onChange={(event) => {
-                      const selected = Array.from(event.target.files ?? []);
-                      setPhotoFiles(selected);
-                      setPhotoNames(selected.map((file) => file.name));
-                      setPhotoMarkups({});
-                    }}
+                </fieldset></div></details>
+                <label className="field-label">
+                  Description Of Work Performed
+                  <textarea
+                    autoFocus
+                    value={recordTitle}
+                    onChange={(event) => setRecordTitle(event.target.value)}
+                    rows={4}
+                    placeholder="Describe the work completed, areas worked in, deliveries, delays, and important observations"
                   />
-                  <span className="upload-icon">＋</span>
-                  <span>
-                    <strong>Add Jobsite Pictures</strong>
-                    <small>Take photos or choose several from the phone</small>
-                  </span>
                 </label>
-                {photoNames.length ? (
-                  <div className="photo-list">
-                    {photoFiles.map((file) => {
-                      const markup = photoMarkups[file.name];
-                      return <span key={file.name}><b>PHOTO · {file.name}</b><small>{markup?.annotatedFile ? `${markup.operationCount} marks · ${markup.pairRole}${markup.pairReference ? ` · ${markup.pairReference}` : ""}` : "Original preserved"}</small><button type="button" onClick={() => setPhotoEditorFile(file)}>{markup?.annotatedFile ? "Edit Markup" : "Markup / Pair"}</button></span>;
-                    })}
-                  </div>
-                ) : null}
+                <DailyScheduleCheck activities={dailyActivities} confirmations={scheduleConfirmations} onChange={setScheduleConfirmations} date={dailyDate} />
+                <details className="field-section" open><summary>Crew · {employeesOnSite.length} Employees · {subsOnSite.length} Companies</summary><div className="field-section-body">
+                  {fieldContextError ? <p className="field-error">{fieldContextError}. Add Names Below.</p> : null}
+                  {fieldContext?.previousCrew ? <button className="secondary-action" type="button" onClick={() => { setEmployeesOnSite(fieldContext.previousCrew!.employees); setSubsOnSite(fieldContext.previousCrew!.subcontractors); }}>Use Crew From {numericDateFromInput(fieldContext.previousCrew.date)}</button> : null}
+                  <FieldPeoplePicker title="Mefford Employees On Site" choices={fieldContext?.employees || [sessionActor.name]} suggestions={fieldContext?.employeeDirectory} selected={employeesOnSite} onChange={setEmployeesOnSite} addLabel="Add Employee Name" />
+                  <FieldPeoplePicker title="Subcontractors On Site" choices={fieldContext?.subcontractors || []} selected={subsOnSite} onChange={setSubsOnSite} addLabel="Add Subcontractor Company" />
+                </div></details>
+                <details className="field-section" open><summary>Photos · {photoFiles.length} Attached</summary><div className="field-section-body"><FieldPhotoCapture files={photoFiles} onChange={files => { setPhotoFiles(files); setPhotoNames(files.map(file => file.name)); setPhotoMarkups(current => Object.fromEntries(Object.entries(current).filter(([name]) => files.some(file => file.name === name)))); }} disabled={recordSaving} onMarkup={setPhotoEditorFile} progress={photoProgress} /></div></details>
                 {photoEditorFile ? <Suspense fallback={<section className="panel empty-attention-state"><strong>Opening Photo Editor</strong><span>Loading markup tools…</span></section>}><MobileMediaEditor file={photoEditorFile} initial={photoMarkups[photoEditorFile.name]} onCancel={() => setPhotoEditorFile(null)} onSave={(markup) => { setPhotoMarkups((current) => ({ ...current, [markup.originalName]: markup })); setPhotoEditorFile(null); }} /></Suspense> : null}
                 <fieldset className="incident-fieldset">
                   <legend>Any Incidents To Report?</legend>
                   <div className="choice-row">
-                    <label className={!incidentReported ? "selected" : ""}>
+                    <label className={incidentAnswered && !incidentReported ? "selected" : ""}>
                       <input
                         type="radio"
                         name="incident"
-                        checked={!incidentReported}
-                        onChange={() => setIncidentReported(false)}
+                        checked={incidentAnswered && !incidentReported}
+                        onChange={() => { setIncidentReported(false); setIncidentAnswered(true); }}
                       />
                       No incidents
                     </label>
@@ -9538,7 +9444,7 @@ export default function Home() {
                         type="radio"
                         name="incident"
                         checked={incidentReported}
-                        onChange={() => setIncidentReported(true)}
+                        onChange={() => { setIncidentReported(true); setIncidentAnswered(true); }}
                       />
                       Yes — incident occurred
                     </label>
@@ -9557,21 +9463,7 @@ export default function Home() {
                     />
                   </label>
                 ) : null}
-                <label className="field-label">
-                  Prepared By
-                  <select
-                    value={recordOwner}
-                    onChange={(event) => setRecordOwner(event.target.value)}
-                  >
-                    {MEFFORD_COMPANY_DIRECTORY.map((member) => <option key={member.email}>{member.name}</option>)}
-                  </select>
-                </label>
-                <div className="form-rule">
-                  <strong>Superintendent Permission:</strong> Saving will
-                  finalize this daily log and lock its date and time. An
-                  Administrator Or Company Owner Can Make An Audited Correction
-                  Later.
-                </div>
+                <p className="field-source">Finalizing Locks This Log, Its Weather, Date And Time. Later Corrections Require An Audited Approval.</p>
               </>
             ) : formType === "Toolbox Talks" ? (
               <>
@@ -9584,6 +9476,7 @@ export default function Home() {
                     placeholder="Enter the safety topic"
                   />
                 </label>
+                <div className="field-quick-choices">{["PPE", "Fall Protection", "Housekeeping", "Ladder Safety", "Equipment Safety"].map(topic => <button type="button" className="secondary-action" key={topic} onClick={() => setRecordTitle(topic)}>{topic}</button>)}</div>
                 <div className="field-grid">
                   <label className="field-label">
                     Talk Leader
@@ -9591,7 +9484,7 @@ export default function Home() {
                       value={recordOwner}
                       onChange={(event) => setRecordOwner(event.target.value)}
                     >
-                      {MEFFORD_COMPANY_DIRECTORY.map((member) => <option key={member.email}>{member.name}</option>)}
+                      {(fieldContext?.employees || [sessionActor.name]).map(name => <option key={name}>{name}</option>)}
                     </select>
                   </label>
                   <label className="field-label">
@@ -9611,32 +9504,7 @@ export default function Home() {
                     />
                   </label>
                 </div>
-                <fieldset className="people-fieldset">
-                  <legend>People Who Attended</legend>
-                  <div className="check-grid">
-                    {MEFFORD_COMPANY_DIRECTORY.map((member) => member.name).map((name) => (
-                      <label key={name}>
-                        <input
-                          type="checkbox"
-                          checked={toolboxAttendees.includes(name)}
-                          onChange={() => {
-                            const removing = toolboxAttendees.includes(name);
-                            toggleValue(
-                              name,
-                              toolboxAttendees,
-                              setToolboxAttendees,
-                            );
-                            if (removing)
-                              setSignedAttendees((current) =>
-                                current.filter((person) => person !== name),
-                              );
-                          }}
-                        />
-                        <span>{name}</span>
-                      </label>
-                    ))}
-                  </div>
-                </fieldset>
+                <FieldPeoplePicker title="People Who Attended" choices={fieldContext?.employees || [sessionActor.name]} suggestions={fieldContext?.employeeDirectory} selected={toolboxAttendees} onChange={names => { setToolboxAttendees(names); setSignedAttendees(current => current.filter(name => names.includes(name))); setSignedAttendeeEvidence(current => Object.fromEntries(Object.entries(current).filter(([name]) => names.includes(name)))); }} addLabel="Add Employee Or Subcontractor Attendee" />
                 <label className="field-label">
                   Talk Notes
                   <textarea
@@ -9757,11 +9625,13 @@ export default function Home() {
                 ) : null}
               </>
             )}
+            </fieldset>
             <div className="modal-actions">
               <span className="form-submit-context">{projectProfile.number}{formType === "Change Orders" ? " · Next: Project Manager Review" : formType === "Daily Logs" ? " · Finalize To Share With The Project Team" : ` · ${projectProfile.name}`}</span>
-              {formType === "Daily Logs" ? <button className="secondary-action" disabled={recordSaving || Boolean(dailyDraft.candidate)} onClick={() => void dailyDraft.save()}>Save Draft On Device</button> : null}
+              {formType === "Daily Logs" && !fieldCommitted ? <button className="secondary-action" disabled={recordSaving || Boolean(dailyDraft.candidate)} onClick={() => void dailyDraft.save()}>Save Draft On Device</button> : null}
               <button
                 className="secondary-action"
+                disabled={recordSaving || fieldCommitted}
                 onClick={() => void closeRecordForm()}
               >
                 {formType === "Daily Logs" ? "Save & Close" : "Cancel"}
@@ -9779,7 +9649,8 @@ export default function Home() {
                 onClick={saveRecord}
               >
                 {recordSaving
-                  ? "Saving Permanently..."
+                  ? photoProgress ? `Uploading ${photoProgress.uploaded}/${photoProgress.total} Photos…` : "Saving Permanently..."
+                  : fieldCommitted ? "Resume Photos"
                   : formType === "Daily Logs"
                   ? "Finalize Daily Log"
                   : formType === "Change Orders"
@@ -9838,6 +9709,8 @@ export default function Home() {
               </div>
             </section>
 
+            {selectedRecord?.type === "Daily Logs" ? <StoredFieldPhotos files={projectPhotos.filter(photo => dailyLogIdForPhoto(photo) === selectedRecordItem.id)} /> : null}
+            {Array.isArray(selectedRecordItem.data?.scheduleConfirmations) ? <section className="stored-record-details"><h3>Schedule Confirmations</h3><div className="field-section-body">{(selectedRecordItem.data.scheduleConfirmations as DailyScheduleConfirmation[]).map(row => <article className="field-schedule-activity" key={row.id}><h3>{row.title}</h3><p>{row.trade} · Planned {row.start} – {row.finish}</p><strong>{row.status} · {row.timing}</strong>{row.completedDate ? <p>Completed {row.completedDate}</p> : null}{row.reason ? <p>{row.reason}</p> : null}<p>{row.confirmedBy} · {row.confirmedAt ? new Date(row.confirmedAt).toLocaleString() : selectedRecordItem.recordDate}</p></article>)}{!selectedRecordItem.data.scheduleConfirmations.length ? <p>No Activities Scheduled For This Date.</p> : null}</div></section> : null}
             {selectedRecordItem.data &&
             Object.keys(selectedRecordItem.data).length ? (
               <section className="stored-record-details">

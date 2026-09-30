@@ -31,7 +31,7 @@ export function ProjectBonusControls({projectId,onSaved}:{projectId:string;onSav
       {data.canSign&&!data.closeoutAt?<button type="button" className="primary-action" disabled={saving||!canSign} onClick={()=>{setSign(!sign);setPreview(true);setName(s[data.canSign as "pm"|"superintendent"].name);}}>Sign My Agreement</button>:null}
       {data.canStartReplacement?<button type="button" className="primary-action" disabled={saving} onClick={()=>void post("start-replacement",{})}>Start Follow-Up Turnover Now</button>:null}
     </div></header>
-    <div className="bonus-facts"><span>Budget <b>{bonusMoney(s.budget)}</b></span><span>Completion <b>{s.finalDate||"Required"}</b></span><span>Potential payout <b>{s.payoutMonth||"Required"}</b></span></div>
+    <div className="bonus-facts"><span>Bonus Calculation Budget <b>{bonusMoney(s.budget)}</b></span><span>Completion <b>{s.finalDate||"Required"}</b></span><span>Potential payout <b>{s.payoutMonth||"Required"}</b></span></div>
     <div className="bonus-people">{(["superintendent","pm"] as const).map(role=><div key={role}><strong>{role==="pm"?"PM":"Site superintendent"}: {s[role].name||"Unassigned"}</strong><span>{bonusMoney(role==="pm"?s.pmBonus:s.superintendentBonus)} · {a.signatures[role]?`Signed ${new Date(a.signatures[role]!.at).toLocaleString()}`:"Awaiting signature"}</span></div>)}</div>
     {error?<div className="meeting-refresh-error" role="alert">{error}</div>:null}
     {data.sourceChanged?<p className="bonus-warning" role="alert">Project details or team changed. The Company Owner must issue a new revision before signing or accepting turnover.</p>:null}

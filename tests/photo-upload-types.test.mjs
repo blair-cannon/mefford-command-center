@@ -50,8 +50,9 @@ test("all reported image MIME types pass while non-photo documents stay distinct
 });
 
 test("Daily Logs and every shared upload path use the platform-wide compatibility contract", async () => {
-  const [page, layout, compatibility, filesApi, multipartApi, marketingApi, vendorApi, vendorBidApi, assetsApi, reviewApi, proposalApi] = await Promise.all([
+  const [page, fieldCapture, layout, compatibility, filesApi, multipartApi, marketingApi, vendorApi, vendorBidApi, assetsApi, reviewApi, proposalApi] = await Promise.all([
     readFile(new URL("../app/page.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../app/field-capture.tsx", import.meta.url), "utf8"),
     readFile(new URL("../app/layout.tsx", import.meta.url), "utf8"),
     readFile(new URL("../app/photo-upload-compatibility.tsx", import.meta.url), "utf8"),
     readFile(new URL("../app/api/files/route.ts", import.meta.url), "utf8"),
@@ -63,7 +64,8 @@ test("Daily Logs and every shared upload path use the platform-wide compatibilit
     readFile(new URL("../app/api/review/route.ts", import.meta.url), "utf8"),
     readFile(new URL("../app/api/proposals/route.ts", import.meta.url), "utf8"),
   ]);
-  assert.match(page, /aria-label="Upload jobsite photos"[\s\S]{0,180}accept=\{PHOTO_UPLOAD_ACCEPT\}/);
+  assert.match(page, /FieldPhotoCapture/);
+  assert.match(fieldCapture, /accept=\{PHOTO_UPLOAD_ACCEPT\}/);
   assert.match(layout, /<PhotoUploadCompatibility \/>/);
   assert.match(compatibility, /MutationObserver/);
   assert.match(compatibility, /PHOTO_UPLOAD_ACCEPT/);

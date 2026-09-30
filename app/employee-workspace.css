@@ -234,6 +234,12 @@
   font-size: 0.5625rem;
 }
 
+.employee-home-approvals > .owner-approval-center {
+  min-height: 0;
+  padding: 0;
+  background: transparent;
+}
+
 .employee-live-notice,
 .native-office-notice {
   display: flex;

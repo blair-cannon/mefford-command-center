@@ -2152,3 +2152,19 @@ export const accountingPlaidSessions = sqliteTable(
     index("accounting_plaid_session_actor_idx").on(table.actorEmail, table.createdAt),
   ],
 );
+
+export const changeOrderEvidence = sqliteTable("change_order_evidence", {
+  id: text("id").primaryKey(),
+  projectId: text("project_id").notNull(),
+  rootId: text("root_id").notNull(),
+  recordId: text("record_id").notNull(),
+  kind: text("kind").notNull(),
+  category: text("category").notNull(),
+  title: text("title").notNull(),
+  note: text("note").notNull().default(""),
+  snapshotJson: text("snapshot_json").notNull().default("{}"),
+  requestJson: text("request_json").notNull().default("{}"),
+  actorName: text("actor_name").notNull(),
+  actorEmail: text("actor_email").notNull(),
+  createdAt: text("created_at").notNull().default(sql`CURRENT_TIMESTAMP`),
+}, (table) => [index("change_order_evidence_case_idx").on(table.projectId, table.rootId, table.createdAt)]);

@@ -1,4 +1,5 @@
 import type { MicrosoftDirectoryPerson } from "./microsoft-access";
+import { meetingLocalDateTime } from "./meeting-cadence";
 
 type GraphAuthConfig = {
   tenantId: string;
@@ -187,25 +188,26 @@ export async function listMicrosoftDirectoryUsers() {
   return users;
 }
 
-function recurrence(cadence: string, startAt: string) {
-  const start = new Date(startAt);
+function recurrence(cadence: string, startAt: string, timeZone = "UTC") {
+  const localDate = new Intl.DateTimeFormat("en-CA", { timeZone, year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date(startAt));
+  const start = new Date(`${localDate}T12:00:00Z`);
   const day = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"][start.getUTCDay()];
   if (cadence === "Weekly" || cadence === "Biweekly") {
     return {
       pattern: { type: "weekly", interval: cadence === "Weekly" ? 1 : 2, daysOfWeek: [day] },
-      range: { type: "noEnd", startDate: start.toISOString().slice(0, 10) },
+      range: { type: "noEnd", startDate: localDate, recurrenceTimeZone: timeZone },
     };
   }
   if (cadence === "Monthly") {
     return {
       pattern: { type: "absoluteMonthly", interval: 1, dayOfMonth: start.getUTCDate() },
-      range: { type: "noEnd", startDate: start.toISOString().slice(0, 10) },
+      range: { type: "noEnd", startDate: localDate, recurrenceTimeZone: timeZone },
     };
   }
   if (cadence === "Quarterly") {
     return {
       pattern: { type: "absoluteMonthly", interval: 3, dayOfMonth: start.getUTCDate() },
-      range: { type: "noEnd", startDate: start.toISOString().slice(0, 10) },
+      range: { type: "noEnd", startDate: localDate, recurrenceTimeZone: timeZone },
     };
   }
   return undefined;
@@ -234,19 +236,26 @@ export async function createMicrosoftMeeting(input: {
     body: JSON.stringify({
       subject: input.subject,
       body: { contentType: "HTML", content: input.bodyHtml },
-      start: { dateTime: input.startAt, timeZone: input.timeZone },
-      end: { dateTime: input.endAt, timeZone: input.timeZone },
+      start: { dateTime: meetingLocalDateTime(input.startAt, input.timeZone), timeZone: input.timeZone },
+      end: { dateTime: meetingLocalDateTime(input.endAt, input.timeZone), timeZone: input.timeZone },
       location: { displayName: input.location || "Microsoft Teams" },
       attendees: input.attendees.map((item) => ({
         emailAddress: { address: item.email, name: item.name },
         type: item.required ? "required" : "optional",
       })),
-      recurrence: recurrence(input.cadence, input.startAt),
+      recurrence: recurrence(input.cadence, input.startAt, input.timeZone),
       isOnlineMeeting: true,
       onlineMeetingProvider: "teamsForBusiness",
       allowNewTimeProposals: true,
       transactionId: input.transactionId,
     }),
+  });
+}
+
+export async function updateMicrosoftMeetingCadence(eventId: string, cadence: string, startAt: string, timeZone: string, organizerEmail: string) {
+  const config = await meetingConfig(organizerEmail);
+  return graph<{ id: string; changeKey?: string }>(`/users/${encodeURIComponent(config.mailbox)}/calendar/events/${encodeURIComponent(eventId)}`, {
+    method: "PATCH", body: JSON.stringify({ recurrence: recurrence(cadence, startAt, timeZone) || null }),
   });
 }
 

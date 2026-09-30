@@ -1,0 +1,75 @@
+/* Existing upload labels remain the click targets and reuse their upload handlers. */
+label[data-file-dropzone="true"] {
+  box-sizing: border-box;
+  position: relative;
+  min-width: 0;
+  max-width: 100%;
+  min-height: var(--ui-control-size);
+  height: auto;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-start;
+  gap: .35rem .6rem;
+  padding: .65rem .8rem;
+  border: 1px dashed var(--ui-border);
+  border-radius: var(--ui-control-radius);
+  cursor: pointer;
+  font-size: .875rem;
+  line-height: 1.4;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+label[data-file-dropzone="true"]::after {
+  content: attr(data-file-drop-hint);
+  display: block;
+  flex-basis: 100%;
+  grid-column: 1 / -1;
+  font-size: .875rem;
+  line-height: 1.4;
+  font-weight: 500;
+  letter-spacing: normal;
+  text-transform: none;
+}
+label[data-file-dropzone="true"] input[type="file"] {
+  max-width: 100%;
+  min-width: 0;
+  font: inherit;
+}
+label[data-file-dropzone="true"]:focus-visible,
+label[data-file-dropzone="true"]:focus-within,
+label[data-file-dragging="true"] {
+  outline: 2px solid var(--ui-accent);
+  outline-offset: 3px;
+  border-color: var(--ui-accent);
+}
+label[data-file-dragging="true"] {
+  background: var(--orange-soft) !important;
+  color: var(--ui-text) !important;
+}
+label[data-file-drop-disabled="true"] { cursor: not-allowed; opacity: .6; }
+.proposal-customer-brand:has([data-file-dropzone]) { display: flex; flex-wrap: wrap; }
+.proposal-customer-brand:has([data-file-dropzone]) > div { flex: 0 1 180px; }
+.proposal-customer-brand:has([data-file-dropzone]) > label { flex: 1 1 220px; }
+.proposal-customer-brand:has([data-file-dropzone]) > small { flex-basis: 100%; }
+.field-grid:has([data-file-dropzone]) { grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr)); }
+.file-drop-error {
+  position: fixed;
+  z-index: 100000;
+  inset: auto 1rem 1rem;
+  margin-inline: auto;
+  width: min(42rem, calc(100% - 2rem));
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem;
+  background: var(--ui-surface);
+  color: var(--ui-text);
+  border: 1px solid var(--ui-accent);
+  border-radius: var(--ui-surface-radius);
+  box-shadow: 0 6px 28px #0002;
+  font-size: .875rem;
+  overflow-wrap: anywhere;
+}
+.file-drop-error > span { flex: 1; min-width: 0; }
