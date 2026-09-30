@@ -5,6 +5,8 @@ import test from "node:test";
 const page = fs.readFileSync(new URL("../app/page.tsx", import.meta.url), "utf8");
 const styles = fs.readFileSync(new URL("../app/globals.css", import.meta.url), "utf8");
 const mobile = fs.readFileSync(new URL("../app/mobile-command.tsx", import.meta.url), "utf8");
+const fieldCapture = fs.readFileSync(new URL("../app/field-capture.tsx", import.meta.url), "utf8");
+const fieldCaptureLib = fs.readFileSync(new URL("../lib/field-capture.ts", import.meta.url), "utf8");
 
 test("project camera surfaces never claim an unconnected live feed", () => {
   for (const falseClaim of ["All Assigned Cameras Online", "Live Cameras", "All Systems Online", "3 access points", "camera-tile live", "camera-scan"]) {
@@ -25,8 +27,9 @@ test("camera planning remains useful without inventing device assignments", () =
 });
 
 test("real field capture preserves originals and evidence", () => {
-  assert.match(page, /capture="environment"/);
-  assert.match(page, /Original preserved/);
+  assert.match(page, /FieldPhotoCapture/);
+  assert.match(fieldCapture, /capture="environment"/);
+  assert.match(fieldCaptureLib, /Preserve every distinct original/);
   assert.match(page, /\/api\/files/);
   assert.match(mobile, /capture="environment"/);
   assert.match(mobile, /Save Original & OCR Record/);

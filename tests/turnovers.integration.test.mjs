@@ -101,7 +101,7 @@ test("award builds the template's eleven sections, current contract value and bu
     const pdf = await h.send(`/api/meetings/document?occurrenceId=${encodeURIComponent(occurrenceId)}&kind=agenda`,{actor:pm,binary:true});
     assert.equal(Buffer.from(pdf).subarray(0,4).toString(),"%PDF");
     const printed = execFileSync("pdftotext",["-layout","-","-"],{input:Buffer.from(pdf),encoding:"utf8"});
-    assert.match(printed,/318,400/); assert.match(printed,/Scope Responsibility Matrix/); assert.match(printed,/PM hours/);
+    assert.match(printed,/318,400/); assert.match(printed,/Project Scope/); assert.match(printed,/PM Hours/);
     assert.ok(b.attachments.length,"Source files are available from the turnover meeting");
     for (const role of ["Chief Estimator","Director of Operations"]) await act(h,b,"add_attendee",{assigneeName:owner.name,assigneeEmail:owner.email,value:role},pm);
     b = await bundle(h,OPS_TURNOVER,occurrenceId,pm);

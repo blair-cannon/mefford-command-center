@@ -46,7 +46,11 @@ import { analyzeConstructionSchedule } from "../lib/construction-schedule";
 import { indexDrawingUpload } from "../lib/drawing-client";
 import type { OwnerContractType } from "../lib/owner-contracts";
 import { isContractedActiveProject } from "../lib/contracted-projects";
-import { PHOTO_UPLOAD_ACCEPT, isPhotoUpload } from "../lib/photo-uploads";
+import { isPhotoUpload } from "../lib/photo-uploads";
+import { FieldPeoplePicker, FieldPhotoCapture, StoredFieldPhotos, useFieldContext } from "./field-capture";
+import { uploadFieldPhotos } from "../lib/field-capture";
+import { dailyScheduleActivities, validateDailySchedule, type DailyScheduleConfirmation } from "../lib/daily-schedule";
+import { DailyScheduleCheck } from "./daily-schedule-check";
 import { calculateChangeOrderSchedule, releasedChangeOrderSchedule } from "../lib/change-order-schedule";
 import { SummaryDrilldownHost, openSummaryDrilldown, summaryDrilldownProps } from "./summary-drilldown";
 import { ChangeOrderPanel, ChangeOrderScheduleFields } from "./change-order-record";
@@ -5882,7 +5886,7 @@ export default function Home() {
   const [recordTitle, setRecordTitle] = useState("");
   const [recordOwner, setRecordOwner] = useState("Jordan Mefford");
   const [recordNotes, setRecordNotes] = useState("");
-  const [recordFormError, setRecordFormError] = useState("");
+  const [fieldFormError, setFieldFormError] = useState("");
   const [dailyDate, setDailyDate] = useState(() =>
     currentDateInput(companyTimeZone),
   );
@@ -5936,6 +5940,14 @@ export default function Home() {
   const [toolboxAttendees, setToolboxAttendees] = useState<string[]>([]);
   const [signedAttendees, setSignedAttendees] = useState<string[]>([]);
   const [signedAttendeeEvidence, setSignedAttendeeEvidence] = useState<Record<string, { typedIdentity: string; signatureImage: string; signedAt: string; deviceRecord: string; method: string }>>({});
+  const [incidentAnswered, setIncidentAnswered] = useState(false);
+  const [photoProgress, setPhotoProgress] = useState<{ uploaded: number; processed: number; total: number } | null>(null);
+  const [fieldCommitted, setFieldCommitted] = useState(false);
+  const committedFieldRecord = useRef("");
+  const uploadedDailyPhotos = useRef(new Set<File>());
+  const [scheduleConfirmations, setScheduleConfirmations] = useState<Partial<DailyScheduleConfirmation>[]>([]);
+  const dailyActivities = dailyScheduleActivities(records["Schedule"] || [], dailyDate);
+  const { context: fieldContext, error: fieldContextError } = useFieldContext(projectProfile.number, formOpen);
   const dailyDraftData = useMemo(() => ({
     recordTitle, recordOwner, recordNotes, dailyDate, recordTime, dailyWeatherMetrics, dailyWeather, dailyWeatherSource, employeesOnSite, subsOnSite, incidentReported, incidentDetails,
     originalPhotoNames: photoFiles.map((file) => file.name),
@@ -5957,9 +5969,9 @@ export default function Home() {
     dailyDraft.restored();
   }
   async function closeRecordForm() {
-    if (recordSaving) return;
+    if (recordSaving || committedFieldRecord.current) return;
     if (formType === "Daily Logs" && !await dailyDraft.save()) {
-      setRecordFormError("Your draft has not been saved. Keep this form open and try Save Draft again.");
+      setFieldFormError("Your draft has not been saved. Keep this form open and try Save Draft again.");
       return;
     }
     setFormOpen(false);
@@ -7087,13 +7099,18 @@ export default function Home() {
     }
     if (!projectProfile.number) { setNotice("Select A Project Before Adding A Record."); chooseNav("Project Overview"); return; }
     if (!canActorAccessNavigation(sessionActor, nextType === "Toolbox Talks" ? "Safety" : nextType)) { setNotice("This Record Type Is Outside Your Current Permissions."); return; }
-    setRecordFormError("");
     setFormType(nextType);
     setRecordTitle("");
     setRecordOwner(sessionActor.name || projectProfile.superintendent || projectProfile.projectManager || "Office");
+    setFieldFormError("");
+    setPhotoProgress(null);
+    uploadedDailyPhotos.current.clear();
+    committedFieldRecord.current = ""; setFieldCommitted(false);
+    setIncidentAnswered(false);
     setRecordNotes("");
     const today = currentDateInput(projectProfile.timeZone);
     setDailyDate(today);
+    setScheduleConfirmations([]);
     setRecordDate(today);
     setRecordTime(currentTimeInput(projectProfile.timeZone));
     const automaticWeatherAvailable = Boolean(projectWeatherAddress);
@@ -7465,18 +7482,6 @@ export default function Home() {
     window.setTimeout(() => setNotice(""), 2800);
   }
 
-  function toggleValue(
-    value: string,
-    current: string[],
-    update: (next: string[]) => void,
-  ) {
-    update(
-      current.includes(value)
-        ? current.filter((item) => item !== value)
-        : [...current, value],
-    );
-  }
-
   function beginSignature(event: ReactPointerEvent<HTMLCanvasElement>) {
     const canvas = signatureCanvas.current;
     if (!canvas) return;
@@ -7537,10 +7542,13 @@ export default function Home() {
   }
 
   async function saveRecord() {
-    setRecordFormError("");
+    setFieldFormError("");
+    const scheduleCheck = validateDailySchedule(dailyActivities, scheduleConfirmations, dailyDate);
+    if (formType === "Daily Logs" && scheduleCheck.error) { setFieldFormError(scheduleCheck.error); return; }
+    if (formType === "Daily Logs" && !incidentAnswered) { setFieldFormError("Confirm Whether Any Incidents Occurred."); return; }
+    if (formType === "Daily Logs" && incidentReported && !incidentDetails.trim()) { setFieldFormError("Add A Short Incident Description."); return; }
     if (!recordTitle.trim()) {
-      setRecordFormError("Describe the work completed before finalizing this record.");
-      document.getElementById("record-description")?.focus();
+      setFieldFormError("Add A Description Of Work Before Saving.");
       setNotice("Add a title or description before saving.");
       window.setTimeout(() => setNotice(""), 2500);
       return;
@@ -7559,8 +7567,7 @@ export default function Home() {
         !dailyWeatherMetrics.averageConditions.trim()
       )
     ) {
-      setRecordFormError("Complete rainfall, temperature, wind speed, and conditions in Daily Weather before finalizing.");
-      document.getElementById("daily-weather-section")?.setAttribute("open", "");
+      setFieldFormError("Complete The Four Daily Weather Fields Before Finalizing.");
       setNotice(
         "Complete Daily Rainfall Average Temperature Average Wind Speed And Average Conditions Before Finalizing.",
       );
@@ -7572,11 +7579,10 @@ export default function Home() {
       (toolboxAttendees.length === 0 ||
         !toolboxAttendees.every((name) => signedAttendees.includes(name) && signedAttendeeEvidence[name]?.signatureImage))
     ) {
-      setRecordFormError("Every listed attendee must sign before this toolbox talk can be completed.");
       setNotice(
         "Every listed attendee must sign before the toolbox talk can be completed.",
       );
-      window.setTimeout(() => setNotice(""), 7000);
+      window.setTimeout(() => setNotice(""), 2800);
       return;
     }
     const copy = workspaceCopy[formType];
@@ -7596,13 +7602,12 @@ export default function Home() {
             : formType === "Team"
               ? "Active"
               : "Draft";
-    const peopleCount = employeesOnSite.length + subsOnSite.length;
     const finalizationSummary =
       `Finalized By ${recordOwner} · ${numericDateFromInput(formType === "Daily Logs" ? dailyDate : recordDate)} · ${displayTimeInput(recordTime)}` +
       (formType === "Daily Logs" ? ` · Weather Snapshot Locked: ${dailyWeather}` : "");
     const meta =
       formType === "Daily Logs"
-        ? `${peopleCount} people on site · ${dailyWeather} · ${photoNames.length} photo${photoNames.length === 1 ? "" : "s"} · ${incidentReported ? "Incident reported" : "No incidents"}`
+        ? `${employeesOnSite.length} employees · ${subsOnSite.length} subcontractors on site · ${dailyWeather} · ${photoNames.length} photo${photoNames.length === 1 ? "" : "s"} · ${incidentReported ? "Incident reported" : "No incidents"}`
         : formType === "Toolbox Talks"
           ? `${toolboxAttendees.length} attendees · ${signedAttendees.length} of ${toolboxAttendees.length} signed`
           : formType === "Change Orders"
@@ -7639,6 +7644,7 @@ export default function Home() {
       ...item,
       data: {
         notes: recordNotes,
+        ...(formType === "Daily Logs" ? { scheduleReviewVersion: 1, scheduleConfirmations: scheduleCheck.confirmations.map(row => ({ ...row, confirmedBy: sessionActor.name, confirmedAt: new Date().toISOString() })) } : {}),
         weather: formType === "Daily Logs" ? dailyWeather : undefined,
         weatherSource:
           formType === "Daily Logs" ? dailyWeatherSource : undefined,
@@ -7707,7 +7713,7 @@ export default function Home() {
       } else {
         let response: Response;
         try {
-          response = await fetch("/api/records", {
+          response = committedFieldRecord.current === `${projectProfile.number}:${id}` ? Response.json({ saved: true }) : await fetch("/api/records", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
@@ -7732,46 +7738,28 @@ export default function Home() {
           if (!response.ok) {
             throw new Error(saved.error || "The record could not be saved permanently.");
           }
+          if (formType === "Daily Logs") { committedFieldRecord.current = `${projectProfile.number}:${id}`; setFieldCommitted(true); }
         }
 
         if (!savedOffline && formType === "Daily Logs" && uploadablePhotoFiles.length) {
-          try {
-            await Promise.all(
-              uploadablePhotoFiles.map(async (file) => {
-                const form = new FormData();
-                form.set("file", file);
-                form.set("projectId", projectProfile.number);
-                form.set("category", "Photos");
-                form.set("revision", `${id} Daily Log Photo`);
-                form.set("access", "Project team");
-                const upload = await fetch("/api/files", {
-                  method: "POST",
-                  body: form,
-                });
-                if (!upload.ok) throw new Error(`${file.name} could not be stored.`);
-              }),
-            );
-          } catch {
-            const photoQueueRecord = {
-              ...recordForStorage,
-              id: `${id}-PHOTOS`,
-              title: `${item.title} · Offline Photo Uploads`,
-              status: "Queued Offline",
-              meta: `${photoFiles.length} original photo${photoFiles.length === 1 ? "" : "s"} and ${markedPhotoFiles.length} marked cop${markedPhotoFiles.length === 1 ? "y" : "ies"} waiting to sync`,
-            };
-            await queueOfflineMobileRecord({
-              projectId: projectProfile.number,
-              recordType: "Photos",
-              record: photoQueueRecord,
-              files: uploadablePhotoFiles,
-            });
+          const pending = uploadablePhotoFiles.filter(file => !uploadedDailyPhotos.current.has(file));
+          const failed = await uploadFieldPhotos(pending, async file => {
+            const form = new FormData();
+            form.set("file", file); form.set("projectId", projectProfile.number);
+            form.set("category", "Photos"); form.set("revision", `${id} Daily Log Photo`); form.set("access", "Project team");
+            const upload = await fetch("/api/files", { method: "POST", body: form });
+            if (!upload.ok) throw new Error(`${file.name} Could Not Be Stored`);
+            uploadedDailyPhotos.current.add(file);
+          }, setPhotoProgress);
+          if (failed.length) {
+            await queueOfflineMobileRecord({ projectId: projectProfile.number, recordType: "Photos", record: { ...recordForStorage, id: `${id}-PHOTOS`, title: `${item.title} · Pending Photos`, status: "Queued Offline", meta: `${failed.length} Photos Waiting To Sync` }, files: failed });
             photosQueued = true;
           }
         }
       }
     } catch (error) {
       setRecordSaving(false);
-      setRecordFormError(error instanceof Error ? error.message : "The record could not be saved. Your entries remain in this form.");
+      setFieldFormError(committedFieldRecord.current ? "The Log Is Saved. Keep This Form Open And Tap Resume Photos To Retry The Remaining Uploads." : error instanceof Error ? error.message : "The Record Could Not Be Saved.");
       setNotice(
         error instanceof Error
           ? error.message
@@ -7781,8 +7769,8 @@ export default function Home() {
       return;
     }
     const displayedItem = savedOffline
-      ? { ...item, status: "Queued Offline", meta: `${item.meta} · Waiting For Connection` }
-      : item;
+      ? { ...item, data: recordForStorage.data, status: "Queued Offline", meta: `${item.meta} · Waiting For Connection` }
+      : { ...item, data: recordForStorage.data };
     setRecords((current) => ({
       ...current,
       [formType]: [displayedItem, ...(current[formType] ?? [])],
@@ -7797,14 +7785,14 @@ export default function Home() {
         : photosQueued
           ? `${id} saved. Its original photos are safely queued and will resume uploading automatically.`
       : formType === "Daily Logs"
-        ? `${id} Uploaded And Finalized For ${projectProfile.name}. Available To The Project Team.`
+        ? "Daily Log Finalized And Saved Permanently With Field Details Photos And Weather."
         : formType === "Change Orders"
           ? `${id} sent to the project-manager approval queue.`
           : formType === "Toolbox Talks"
             ? `${id} completed with all attendee signatures.`
             : `${id} saved as a draft.`,
     );
-    window.setTimeout(() => setNotice(""), 7000);
+    window.setTimeout(() => setNotice(""), 2800);
   }
 
   const canViewProjectFinancials =
@@ -9295,16 +9283,20 @@ export default function Home() {
               </div>
               <button
                 aria-label="Close form"
+                disabled={recordSaving || fieldCommitted}
                 onClick={() => void closeRecordForm()}
               >
                 ×
               </button>
             </div>
             <div className="form-context"><WorkIcon name="project" /><strong>{projectProfile.name}</strong><span>{projectProfile.number}</span></div>
-            {recordFormError ? <div className="form-error" role="alert">{recordFormError}</div> : null}
+            {fieldFormError ? <div className="field-error" role="alert">{fieldFormError}</div> : null}
             {formType === "Daily Logs" ? <div className="draft-state" role="status"><span>{dailyDraft.status}</span>{dailyDraft.candidate ? <><button onClick={restoreDailyDraft}>Resume Saved Draft</button><button onClick={() => void dailyDraft.discard()}>Start Fresh</button></> : null}</div> : null}
+            <fieldset className="field-form-content" disabled={recordSaving || fieldCommitted}>
             {formType === "Daily Logs" ? (
               <>
+                <div className="field-context-line"><strong>{recordOwner}</strong><span>{numericDateFromInput(dailyDate)} · {displayTimeInput(recordTime)}</span></div>
+                <details className="field-section"><summary>Date, Time & Weather · {dailyWeatherLoading ? "Loading" : dailyWeatherMetrics.averageConditions ? "Ready To Review" : "Needs Entry"}</summary><div className="field-section-body">
                 <div className="field-grid">
                   <label className="field-label">
                     Log Date
@@ -9313,6 +9305,7 @@ export default function Home() {
                       value={dailyDate}
                       onChange={(event) => {
                         setDailyDate(event.target.value);
+                        setScheduleConfirmations([]);
                         setDailyWeatherMetrics(blankDailyWeatherMetrics());
                         const automaticWeatherAvailable = Boolean(projectWeatherAddress);
                         setDailyWeather(
@@ -9341,19 +9334,6 @@ export default function Home() {
                     </small>
                   </label>
                 </div>
-                <label className="field-label">
-                  Work Completed (Required)
-                  <textarea
-                    id="record-description"
-                    required
-                    autoFocus
-                    value={recordTitle}
-                    onChange={(event) => setRecordTitle(event.target.value)}
-                    rows={4}
-                    placeholder="Describe the work completed, areas worked in, deliveries, delays, and important observations"
-                  />
-                </label>
-                <details className="optional-fields" id="daily-weather-section"><summary>Daily Weather · Review Before Finalizing</summary>
                 <fieldset className="people-fieldset weather-field">
                   <legend>Daily Weather</legend>
                   <div className="field-grid">
@@ -9425,91 +9405,35 @@ export default function Home() {
                   <strong className="field-source">
                     These values save with this Daily Log.
                   </strong>
-                </fieldset>
-                </details>
-                <fieldset className="people-fieldset">
-                  <legend>Mefford Employees On Site</legend>
-                  <div className="check-grid">
-                    {MEFFORD_COMPANY_DIRECTORY.map((member) => member.name).map((name) => (
-                      <label key={name}>
-                        <input
-                          type="checkbox"
-                          checked={employeesOnSite.includes(name)}
-                          onChange={() =>
-                            toggleValue(
-                              name,
-                              employeesOnSite,
-                              setEmployeesOnSite,
-                            )
-                          }
-                        />
-                        <span>{name}</span>
-                      </label>
-                    ))}
-                  </div>
-                </fieldset>
-                <fieldset className="people-fieldset">
-                  <legend>Subcontractors On Site</legend>
-                  <div className="check-grid">
-                    {[
-                      "Bluegrass Electric",
-                      "Commonwealth Plumbing",
-                      "Central Kentucky Concrete",
-                      "FenceCo",
-                      "HVAC Solutions",
-                      "Sitework Partners",
-                    ].map((name) => (
-                      <label key={name}>
-                        <input
-                          type="checkbox"
-                          checked={subsOnSite.includes(name)}
-                          onChange={() =>
-                            toggleValue(name, subsOnSite, setSubsOnSite)
-                          }
-                        />
-                        <span>{name}</span>
-                      </label>
-                    ))}
-                  </div>
-                </fieldset>
-                <label className="photo-upload">
-                  <input
-                    aria-label="Upload jobsite photos"
-                    type="file"
-                    accept={PHOTO_UPLOAD_ACCEPT}
-                    capture="environment"
-                    multiple
-                    onChange={(event) => {
-                      const selected = Array.from(event.target.files ?? []);
-                      setPhotoFiles(selected);
-                      setPhotoNames(selected.map((file) => file.name));
-                      setPhotoMarkups({});
-                    }}
+                </fieldset></div></details>
+                <label className="field-label">
+                  Description Of Work Performed
+                  <textarea
+                    autoFocus
+                    value={recordTitle}
+                    onChange={(event) => setRecordTitle(event.target.value)}
+                    rows={4}
+                    placeholder="Describe the work completed, areas worked in, deliveries, delays, and important observations"
                   />
-                  <span className="upload-icon">＋</span>
-                  <span>
-                    <strong>Add Jobsite Pictures</strong>
-                    <small>Take photos or choose several from the phone</small>
-                  </span>
                 </label>
-                {photoNames.length ? (
-                  <div className="photo-list">
-                    {photoFiles.map((file) => {
-                      const markup = photoMarkups[file.name];
-                      return <span key={file.name}><b>PHOTO · {file.name}</b><small>{markup?.annotatedFile ? `${markup.operationCount} marks · ${markup.pairRole}${markup.pairReference ? ` · ${markup.pairReference}` : ""}` : "Original preserved"}</small><button type="button" onClick={() => setPhotoEditorFile(file)}>{markup?.annotatedFile ? "Edit Markup" : "Markup / Pair"}</button></span>;
-                    })}
-                  </div>
-                ) : null}
+                <DailyScheduleCheck activities={dailyActivities} confirmations={scheduleConfirmations} onChange={setScheduleConfirmations} date={dailyDate} />
+                <details className="field-section" open><summary>Crew · {employeesOnSite.length} Employees · {subsOnSite.length} Companies</summary><div className="field-section-body">
+                  {fieldContextError ? <p className="field-error">{fieldContextError}. Add Names Below.</p> : null}
+                  {fieldContext?.previousCrew ? <button className="secondary-action" type="button" onClick={() => { setEmployeesOnSite(fieldContext.previousCrew!.employees); setSubsOnSite(fieldContext.previousCrew!.subcontractors); }}>Use Crew From {numericDateFromInput(fieldContext.previousCrew.date)}</button> : null}
+                  <FieldPeoplePicker title="Mefford Employees On Site" choices={fieldContext?.employees || [sessionActor.name]} suggestions={fieldContext?.employeeDirectory} selected={employeesOnSite} onChange={setEmployeesOnSite} addLabel="Add Employee Name" />
+                  <FieldPeoplePicker title="Subcontractors On Site" choices={fieldContext?.subcontractors || []} selected={subsOnSite} onChange={setSubsOnSite} addLabel="Add Subcontractor Company" />
+                </div></details>
+                <details className="field-section" open><summary>Photos · {photoFiles.length} Attached</summary><div className="field-section-body"><FieldPhotoCapture files={photoFiles} onChange={files => { setPhotoFiles(files); setPhotoNames(files.map(file => file.name)); setPhotoMarkups(current => Object.fromEntries(Object.entries(current).filter(([name]) => files.some(file => file.name === name)))); }} disabled={recordSaving} onMarkup={setPhotoEditorFile} progress={photoProgress} /></div></details>
                 {photoEditorFile ? <Suspense fallback={<section className="panel empty-attention-state"><strong>Opening Photo Editor</strong><span>Loading markup tools…</span></section>}><MobileMediaEditor file={photoEditorFile} initial={photoMarkups[photoEditorFile.name]} onCancel={() => setPhotoEditorFile(null)} onSave={(markup) => { setPhotoMarkups((current) => ({ ...current, [markup.originalName]: markup })); setPhotoEditorFile(null); }} /></Suspense> : null}
                 <fieldset className="incident-fieldset">
                   <legend>Any Incidents To Report?</legend>
                   <div className="choice-row">
-                    <label className={!incidentReported ? "selected" : ""}>
+                    <label className={incidentAnswered && !incidentReported ? "selected" : ""}>
                       <input
                         type="radio"
                         name="incident"
-                        checked={!incidentReported}
-                        onChange={() => setIncidentReported(false)}
+                        checked={incidentAnswered && !incidentReported}
+                        onChange={() => { setIncidentReported(false); setIncidentAnswered(true); }}
                       />
                       No incidents
                     </label>
@@ -9520,7 +9444,7 @@ export default function Home() {
                         type="radio"
                         name="incident"
                         checked={incidentReported}
-                        onChange={() => setIncidentReported(true)}
+                        onChange={() => { setIncidentReported(true); setIncidentAnswered(true); }}
                       />
                       Yes — incident occurred
                     </label>
@@ -9539,21 +9463,7 @@ export default function Home() {
                     />
                   </label>
                 ) : null}
-                <label className="field-label">
-                  Prepared By
-                  <select
-                    value={recordOwner}
-                    onChange={(event) => setRecordOwner(event.target.value)}
-                  >
-                    {MEFFORD_COMPANY_DIRECTORY.map((member) => <option key={member.email}>{member.name}</option>)}
-                  </select>
-                </label>
-                <div className="form-rule">
-                  <strong>Superintendent Permission:</strong> Saving will
-                  finalize this daily log and lock its date and time. An
-                  Administrator Or Company Owner Can Make An Audited Correction
-                  Later.
-                </div>
+                <p className="field-source">Finalizing Locks This Log, Its Weather, Date And Time. Later Corrections Require An Audited Approval.</p>
               </>
             ) : formType === "Toolbox Talks" ? (
               <>
@@ -9566,6 +9476,7 @@ export default function Home() {
                     placeholder="Enter the safety topic"
                   />
                 </label>
+                <div className="field-quick-choices">{["PPE", "Fall Protection", "Housekeeping", "Ladder Safety", "Equipment Safety"].map(topic => <button type="button" className="secondary-action" key={topic} onClick={() => setRecordTitle(topic)}>{topic}</button>)}</div>
                 <div className="field-grid">
                   <label className="field-label">
                     Talk Leader
@@ -9573,7 +9484,7 @@ export default function Home() {
                       value={recordOwner}
                       onChange={(event) => setRecordOwner(event.target.value)}
                     >
-                      {MEFFORD_COMPANY_DIRECTORY.map((member) => <option key={member.email}>{member.name}</option>)}
+                      {(fieldContext?.employees || [sessionActor.name]).map(name => <option key={name}>{name}</option>)}
                     </select>
                   </label>
                   <label className="field-label">
@@ -9593,32 +9504,7 @@ export default function Home() {
                     />
                   </label>
                 </div>
-                <fieldset className="people-fieldset">
-                  <legend>People Who Attended</legend>
-                  <div className="check-grid">
-                    {MEFFORD_COMPANY_DIRECTORY.map((member) => member.name).map((name) => (
-                      <label key={name}>
-                        <input
-                          type="checkbox"
-                          checked={toolboxAttendees.includes(name)}
-                          onChange={() => {
-                            const removing = toolboxAttendees.includes(name);
-                            toggleValue(
-                              name,
-                              toolboxAttendees,
-                              setToolboxAttendees,
-                            );
-                            if (removing)
-                              setSignedAttendees((current) =>
-                                current.filter((person) => person !== name),
-                              );
-                          }}
-                        />
-                        <span>{name}</span>
-                      </label>
-                    ))}
-                  </div>
-                </fieldset>
+                <FieldPeoplePicker title="People Who Attended" choices={fieldContext?.employees || [sessionActor.name]} suggestions={fieldContext?.employeeDirectory} selected={toolboxAttendees} onChange={names => { setToolboxAttendees(names); setSignedAttendees(current => current.filter(name => names.includes(name))); setSignedAttendeeEvidence(current => Object.fromEntries(Object.entries(current).filter(([name]) => names.includes(name)))); }} addLabel="Add Employee Or Subcontractor Attendee" />
                 <label className="field-label">
                   Talk Notes
                   <textarea
@@ -9739,11 +9625,13 @@ export default function Home() {
                 ) : null}
               </>
             )}
+            </fieldset>
             <div className="modal-actions">
               <span className="form-submit-context">{projectProfile.number}{formType === "Change Orders" ? " · Next: Project Manager Review" : formType === "Daily Logs" ? " · Finalize To Share With The Project Team" : ` · ${projectProfile.name}`}</span>
-              {formType === "Daily Logs" ? <button className="secondary-action" disabled={recordSaving || Boolean(dailyDraft.candidate)} onClick={() => void dailyDraft.save()}>Save Draft On Device</button> : null}
+              {formType === "Daily Logs" && !fieldCommitted ? <button className="secondary-action" disabled={recordSaving || Boolean(dailyDraft.candidate)} onClick={() => void dailyDraft.save()}>Save Draft On Device</button> : null}
               <button
                 className="secondary-action"
+                disabled={recordSaving || fieldCommitted}
                 onClick={() => void closeRecordForm()}
               >
                 {formType === "Daily Logs" ? "Save & Close" : "Cancel"}
@@ -9761,7 +9649,8 @@ export default function Home() {
                 onClick={saveRecord}
               >
                 {recordSaving
-                  ? "Saving Permanently..."
+                  ? photoProgress ? `Uploading ${photoProgress.uploaded}/${photoProgress.total} Photos…` : "Saving Permanently..."
+                  : fieldCommitted ? "Resume Photos"
                   : formType === "Daily Logs"
                   ? "Finalize Daily Log"
                   : formType === "Change Orders"
@@ -9820,6 +9709,8 @@ export default function Home() {
               </div>
             </section>
 
+            {selectedRecord?.type === "Daily Logs" ? <StoredFieldPhotos files={projectPhotos.filter(photo => dailyLogIdForPhoto(photo) === selectedRecordItem.id)} /> : null}
+            {Array.isArray(selectedRecordItem.data?.scheduleConfirmations) ? <section className="stored-record-details"><h3>Schedule Confirmations</h3><div className="field-section-body">{(selectedRecordItem.data.scheduleConfirmations as DailyScheduleConfirmation[]).map(row => <article className="field-schedule-activity" key={row.id}><h3>{row.title}</h3><p>{row.trade} · Planned {row.start} – {row.finish}</p><strong>{row.status} · {row.timing}</strong>{row.completedDate ? <p>Completed {row.completedDate}</p> : null}{row.reason ? <p>{row.reason}</p> : null}<p>{row.confirmedBy} · {row.confirmedAt ? new Date(row.confirmedAt).toLocaleString() : selectedRecordItem.recordDate}</p></article>)}{!selectedRecordItem.data.scheduleConfirmations.length ? <p>No Activities Scheduled For This Date.</p> : null}</div></section> : null}
             {selectedRecordItem.data &&
             Object.keys(selectedRecordItem.data).length ? (
               <section className="stored-record-details">

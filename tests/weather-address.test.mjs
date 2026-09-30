@@ -52,6 +52,7 @@ test("employee weather cards show conditions without provider or geocoding detai
   assert.match(card, /projectWeather\.conditions/);
   assert.match(card, /Open Daily Weather/);
   assert.doesNotMatch(card, /projectWeather\.source|provider|geocod|weather\.gov|Open-Meteo/i);
-  const details = page.slice(page.indexOf('className="stored-record-details"'), page.indexOf("</section>", page.indexOf('className="stored-record-details"')));
+  const savedFieldInfoStart = page.lastIndexOf('className="stored-record-details"', page.indexOf("Saved Field Information"));
+  const details = page.slice(savedFieldInfoStart, page.indexOf("</section>", savedFieldInfoStart));
   assert.match(details, /key !== "weatherSource"/);
 });
